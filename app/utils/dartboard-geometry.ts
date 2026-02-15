@@ -5,6 +5,8 @@
  * All radii are scaled from BDO standard mm to SVG units.
  */
 
+import type { DartboardThemeColors } from '~/utils/dartboard-themes'
+
 // Segment order clockwise from top (0° = 12 o'clock)
 export const SEGMENT_ORDER = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5] as const
 
@@ -37,7 +39,7 @@ export const R = {
 
 const SEGMENT_ANGLE = 360 / 20 // 18°
 
-// Colors
+// Default colors (classic theme)
 export const COLORS = {
   red: '#E8113A',
   green: '#009B48',
@@ -48,6 +50,20 @@ export const COLORS = {
   wire: '#C0C0C0',
   bg: '#2D2D2D',
   numberText: '#FFFFFF',
+}
+
+export function colorsFromTheme(theme: DartboardThemeColors) {
+  return {
+    red: theme.red,
+    green: theme.green,
+    cream: theme.white,
+    black: theme.black,
+    bullGreen: theme.bullOuter,
+    bullRed: theme.bullInner,
+    wire: theme.wireColor,
+    bg: theme.background,
+    numberText: theme.numberColor,
+  }
 }
 
 export type RingType = 'double' | 'outerSingle' | 'treble' | 'innerSingle'
@@ -85,25 +101,29 @@ export interface SegmentPath {
   color: string
 }
 
+type BoardColors = typeof COLORS
+
 /**
  * Get the fill color for a segment based on its index and ring type.
  */
-function segmentColor(segIndex: number, ring: RingType): string {
+function segmentColor(segIndex: number, ring: RingType, colors: BoardColors = COLORS): string {
   const isEven = segIndex % 2 === 0
   switch (ring) {
     case 'double':
     case 'treble':
-      return isEven ? COLORS.red : COLORS.green
+      return isEven ? colors.red : colors.green
     case 'outerSingle':
     case 'innerSingle':
-      return isEven ? COLORS.cream : COLORS.black
+      return isEven ? colors.cream : colors.black
   }
 }
 
 /**
  * Generate all segment paths for the dartboard.
+ * Accepts optional colors object for theming.
  */
-export function generateSegmentPaths(): SegmentPath[] {
+export function generateSegmentPaths(colors?: BoardColors): SegmentPath[] {
+  const c = colors ?? COLORS
   const paths: SegmentPath[] = []
 
   const rings: { ring: RingType; inner: number; outer: number; mult: 1 | 2 | 3 }[] = [
@@ -124,7 +144,7 @@ export function generateSegmentPaths(): SegmentPath[] {
         ring,
         multiplier: mult,
         path: arcPath(inner, outer, startAngle, endAngle),
-        color: segmentColor(i, ring),
+        color: segmentColor(i, ring, c),
       })
     }
   }

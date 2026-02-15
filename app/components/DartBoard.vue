@@ -6,18 +6,25 @@ import {
   CX,
   CY,
   COLORS,
+  colorsFromTheme,
   svgToScore,
 } from '~/utils/dartboard-geometry'
+import type { DartboardTheme } from '~/utils/dartboard-themes'
 
 const props = defineProps<{
   disabled?: boolean
+  theme?: DartboardTheme
 }>()
 
 const emit = defineEmits<{
   score: [segment: number, multiplier: number]
 }>()
 
-const segments = computed(() => generateSegmentPaths())
+const boardColors = computed(() =>
+  props.theme ? colorsFromTheme(props.theme.colors) : COLORS,
+)
+
+const segments = computed(() => generateSegmentPaths(boardColors.value))
 const numbers = computed(() => generateNumberPositions())
 
 function handleClick(event: MouseEvent) {
@@ -41,14 +48,14 @@ function handleClick(event: MouseEvent) {
     @click="handleClick"
     :class="{ 'cursor-default opacity-70': disabled }"
   >
-    <circle :cx="CX" :cy="CY" :r="R.doubleOuter + 5" :fill="COLORS.bg" />
+    <circle :cx="CX" :cy="CY" :r="R.doubleOuter + 5" :fill="boardColors.bg" />
 
     <path
       v-for="seg in segments"
       :key="`${seg.segment}-${seg.ring}`"
       :d="seg.path"
       :fill="seg.color"
-      :stroke="COLORS.wire"
+      :stroke="boardColors.wire"
       stroke-width="0.5"
       class="segment"
     />
@@ -57,8 +64,8 @@ function handleClick(event: MouseEvent) {
       :cx="CX"
       :cy="CY"
       :r="R.singleBull"
-      :fill="COLORS.bullGreen"
-      :stroke="COLORS.wire"
+      :fill="boardColors.bullGreen"
+      :stroke="boardColors.wire"
       stroke-width="0.5"
       class="segment"
     />
@@ -67,8 +74,8 @@ function handleClick(event: MouseEvent) {
       :cx="CX"
       :cy="CY"
       :r="R.doubleBull"
-      :fill="COLORS.bullRed"
-      :stroke="COLORS.wire"
+      :fill="boardColors.bullRed"
+      :stroke="boardColors.wire"
       stroke-width="0.5"
       class="segment"
     />
@@ -80,7 +87,7 @@ function handleClick(event: MouseEvent) {
       :y="num.y"
       text-anchor="middle"
       dominant-baseline="central"
-      :fill="COLORS.numberText"
+      :fill="boardColors.numberText"
       font-size="12"
       font-weight="bold"
       font-family="Arial, sans-serif"
