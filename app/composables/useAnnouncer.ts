@@ -27,6 +27,34 @@ const SCORE_NICKNAMES: Record<number, string> = {
 const enabled = ref(false)
 let initialized = false
 
+/** Cached voice selection — resolved once and updated on voiceschanged */
+let cachedVoice: SpeechSynthesisVoice | null = null
+let voiceListenerAttached = false
+
+function selectVoice(): SpeechSynthesisVoice | null {
+  const voices = window.speechSynthesis.getVoices()
+  if (voices.length === 0) return null
+  return voices.find(v => v.lang === 'en-GB' && /male/i.test(v.name))
+    ?? voices.find(v => v.lang === 'en-GB')
+    ?? voices.find(v => v.lang.startsWith('en-'))
+    ?? voices[0]
+    ?? null
+}
+
+function initVoiceCache() {
+  if (!import.meta.client || !('speechSynthesis' in window)) return
+  if (voiceListenerAttached) return
+  voiceListenerAttached = true
+
+  // Attempt initial selection (may already be populated)
+  cachedVoice = selectVoice()
+
+  // Re-select when the browser finishes loading voices asynchronously
+  window.speechSynthesis.addEventListener('voiceschanged', () => {
+    cachedVoice = selectVoice()
+  })
+}
+
 function loadPreference() {
   if (!import.meta.client || initialized) return
   initialized = true
@@ -43,6 +71,9 @@ function speak(text: string, options?: { rate?: number; pitch?: number }) {
   if (!import.meta.client || !enabled.value) return
   if (!('speechSynthesis' in window)) return
 
+  // Ensure the voice cache is initialized
+  initVoiceCache()
+
   // Cancel any ongoing speech before starting new
   window.speechSynthesis.cancel()
 
@@ -51,15 +82,9 @@ function speak(text: string, options?: { rate?: number; pitch?: number }) {
   utterance.pitch = options?.pitch ?? 0.8
   utterance.volume = 1
 
-  // Prefer English UK male voice, fallback chain
-  const voices = window.speechSynthesis.getVoices()
-  const preferred = voices.find(v => v.lang === 'en-GB' && /male/i.test(v.name))
-    ?? voices.find(v => v.lang === 'en-GB')
-    ?? voices.find(v => v.lang.startsWith('en-'))
-    ?? voices[0]
-
-  if (preferred) {
-    utterance.voice = preferred
+  // Use cached voice selection
+  if (cachedVoice) {
+    utterance.voice = cachedVoice
   }
 
   window.speechSynthesis.speak(utterance)
