@@ -20,7 +20,7 @@ const SCORE_NICKNAMES: Record<number, string> = {
   160: 'Ton sixty',
   170: 'Big fish!',
   171: 'Ton seventy one',
-  180: 'ONE HUNDRED AND EIGHTY!',
+  // 180 is handled separately with custom rate/pitch in announceScore()
 }
 
 /** Module-level state shared across all consumers */
@@ -50,9 +50,13 @@ function initVoiceCache() {
   cachedVoice = selectVoice()
 
   // Re-select when the browser finishes loading voices asynchronously
-  window.speechSynthesis.addEventListener('voiceschanged', () => {
-    cachedVoice = selectVoice()
-  })
+  window.speechSynthesis.addEventListener(
+    'voiceschanged',
+    () => {
+      cachedVoice = selectVoice()
+    },
+    { once: true },
+  )
 }
 
 function loadPreference() {
@@ -120,7 +124,7 @@ export function useAnnouncer() {
 
   function announceBust() {
     const phrases = ['Bust!', 'No score!']
-    speak(phrases[Math.floor(Math.random() * phrases.length)]!)
+    speak(phrases[Math.floor(Math.random() * phrases.length)] ?? 'Bust!')
   }
 
   function announceGameShot(name: string) {

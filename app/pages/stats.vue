@@ -1228,6 +1228,8 @@ function gameAverage(gameId: number): number | null {
   color: var(--gold);
 }
 
+
+
 /* Color utilities */
 .text-green {
   color: rgba(34, 197, 94, 0.9);
