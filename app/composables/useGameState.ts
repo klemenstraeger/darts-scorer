@@ -2,6 +2,7 @@ import { GameEngine } from '#shared/game-engine'
 import { GameEvent, detectThrowEvent } from '#shared/game-events'
 import { throwPoints } from '#shared/game-models'
 import type { CheckoutMode, GameMode, Multiplier, PlayerDescriptor } from '#shared/game-models'
+import { getCheckout } from '#shared/checkouts'
 
 const STORAGE_KEY = 'darts-scorer:active-game'
 const DB_SYNC_INTERVAL = 2000 // Throttled sync: at most every 2 seconds
@@ -182,6 +183,17 @@ export function useGameState() {
           }
         }
         break
+      }
+    }
+
+    // Announce checkout when a new turn begins and the current player is in checkout range
+    if (!engine.state.is_finished) {
+      const turnJustStarted = engine.state.turn_history.length > prevTurnCount
+      if (turnJustStarted) {
+        const currentScore = engine.state.players[engine.state.current_player_index]?.score
+        if (currentScore != null && getCheckout(currentScore, 3)) {
+          announcer.announceCheckout(currentScore)
+        }
       }
     }
 
