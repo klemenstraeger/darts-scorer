@@ -257,10 +257,6 @@ async function fetchAchievements() {
 const unlockedCount = computed(() => achievementList.value.filter(a => a.unlocked).length)
 const totalCount = computed(() => achievementList.value.length)
 
-function achievementUnlockedByPlayer(achievement: AchievementItem, playerName: string): boolean {
-  return achievement.unlockedBy.some(u => u.playerName === playerName)
-}
-
 function achievementUnlockDate(achievement: AchievementItem): string | null {
   if (achievement.unlockedBy.length === 0) return null
   const earliest = achievement.unlockedBy.reduce((a, b) =>

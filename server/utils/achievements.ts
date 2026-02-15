@@ -80,14 +80,12 @@ export async function checkAchievements(
       return turn.throws.reduce((sum, t) => sum + throwPoints(t), 0)
     })
 
-    const totalDarts = playerTurns.reduce((sum, t) => sum + t.throws.length, 0)
-    const totalPoints = turnTotals.reduce((sum, v) => sum + v, 0)
-    const completedTurns = playerTurns.filter((t) => t.throws.length >= 3 || t.busted)
-    const threeDartAvg = completedTurns.length > 0
-      ? completedTurns.reduce((sum, t) => {
+    const threeDartTurns = playerTurns.filter((t) => t.throws.length === 3)
+    const threeDartAvg = threeDartTurns.length > 0
+      ? threeDartTurns.reduce((sum, t) => {
         if (t.busted) return sum
         return sum + t.throws.reduce((s, th) => s + throwPoints(th), 0)
-      }, 0) / completedTurns.length
+      }, 0) / threeDartTurns.length
       : 0
 
     const isWinner = state.winner_index !== null && state.players[state.winner_index]?.name === playerName
@@ -135,11 +133,20 @@ export async function checkAchievements(
       { type: 'avg_80_plus', condition: threeDartAvg >= 80, metadata: { average: Math.round(threeDartAvg * 10) / 10 } },
       { type: 'avg_100_plus', condition: threeDartAvg >= 100, metadata: { average: Math.round(threeDartAvg * 10) / 10 } },
       { type: 'checkout_170', condition: checkoutScores.includes(170) },
-      { type: 'checkout_100plus', condition: checkoutScores.some((s) => s >= 100), metadata: checkoutScores.length > 0 ? { highestCheckout: Math.max(...checkoutScores) } : undefined },
       { type: 'first_win', condition: isWinner },
       { type: 'five_180s_game', condition: count180 >= 5, metadata: { count: count180 } },
       { type: 'no_bust_game', condition: isWinner && !hasBust },
     ]
+
+    // Check for 100+ checkout separately to avoid computing max on empty array
+    const checkout100Plus = checkoutScores.filter((s) => s >= 100)
+    if (checkout100Plus.length > 0) {
+      perGameChecks.push({
+        type: 'checkout_100plus',
+        condition: true,
+        metadata: { highestCheckout: Math.max(...checkout100Plus) },
+      })
+    }
 
     for (const check of perGameChecks) {
       if (check.condition) {
