@@ -121,17 +121,36 @@ export function useGameState() {
   ) {
     store.resetFlashes()
     engine = new GameEngine()
+    const resolvedMode = mode as GameMode
+    const resolvedCheckout = (options?.checkout ?? 'double_out') as CheckoutMode
+    const resolvedLegs = options?.legs_to_win ?? 1
+    const resolvedSets = options?.sets_to_win ?? 1
     engine.newGame(
-      mode as GameMode,
+      resolvedMode,
       players,
-      (options?.checkout ?? 'double_out') as CheckoutMode,
-      options?.legs_to_win ?? 1,
-      options?.sets_to_win ?? 1,
+      resolvedCheckout,
+      resolvedLegs,
+      resolvedSets,
     )
     syncToStore()
     persistToStorage()
     scheduleDatabaseSync()
     hasActiveGame.value = true
+
+    // Save last-used game settings for quick-start
+    if (players && players.length >= 2) {
+      const { saveLastGameSettings } = useSettings()
+      const descriptors: PlayerDescriptor[] = players.map(p =>
+        typeof p === 'string' ? { name: p } : p,
+      )
+      saveLastGameSettings({
+        mode: resolvedMode,
+        checkout: resolvedCheckout,
+        legs_to_win: resolvedLegs,
+        sets_to_win: resolvedSets,
+        players: descriptors,
+      })
+    }
   }
 
   function manualScore(segment: number, multiplier: number) {
