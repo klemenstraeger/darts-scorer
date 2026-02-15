@@ -1,6 +1,6 @@
 import { GameEngine } from '#shared/game-engine'
 import { GameEvent, detectThrowEvent } from '#shared/game-events'
-import type { CheckoutMode, GameMode, Multiplier, PlayerDescriptor } from '#shared/game-models'
+import { throwPoints, type CheckoutMode, type GameMode, type Multiplier, type PlayerDescriptor } from '#shared/game-models'
 
 const STORAGE_KEY = 'darts-scorer:active-game'
 const DB_SYNC_INTERVAL = 2000 // Throttled sync: at most every 2 seconds
@@ -88,6 +88,7 @@ function clearDatabaseState() {
 
 export function useGameState() {
   const store = useGameStore()
+  const { play, vibrate } = useAudio()
   const {
     setContext,
     clear: clearTournamentContext,
@@ -149,15 +150,38 @@ export function useGameState() {
 
     switch (event) {
       case GameEvent.BUST:
+        play('bust')
+        vibrate([50, 30, 50])
         store.triggerBust()
         break
       case GameEvent.LEG_WON:
+        play('leg-won')
+        vibrate([50, 30, 100])
         store.triggerLegWon()
         break
       case GameEvent.GAME_OVER:
+        play('game-won')
+        vibrate([50, 30, 50, 30, 200])
         store.triggerGameOver()
         hasActiveGame.value = false
         break
+      case GameEvent.DART_SCORED: {
+        play('throw', 0.5)
+        vibrate(15)
+        // Check for 180 or ton-plus (100+) on completed turns
+        if (engine.state.turn_history.length > prevTurnCount) {
+          const completedTurn = engine.state.turn_history[engine.state.turn_history.length - 1]!
+          const turnPts = completedTurn.throws.reduce((s, t) => s + throwPoints(t), 0)
+          if (turnPts === 180) {
+            play('180')
+            vibrate([30, 20, 30, 20, 100])
+          } else if (turnPts >= 100) {
+            play('ton-plus')
+            vibrate([30, 20, 60])
+          }
+        }
+        break
+      }
     }
 
     if (engine.state.is_finished) {
