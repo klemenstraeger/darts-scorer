@@ -2,6 +2,7 @@
 import type { CheckoutMode, BotDifficulty, PlayerDescriptor } from '~/types/game'
 
 const { newGame, hasActiveGame, checkActiveGame, hasGame } = useGameState()
+const { shouldShowTour, startTour } = useOnboarding()
 
 // ── Wizard state ──────────────────────────────────────────────────────
 const step = ref(1)
@@ -66,6 +67,58 @@ function buildDescriptors(): PlayerDescriptor[] {
 // Check for active game on mount
 onMounted(() => {
   checkActiveGame()
+
+  if (shouldShowTour('dashboard')) {
+    setTimeout(() => {
+      startTour([
+        {
+          element: '[data-tour="player-picker"]',
+          popover: {
+            title: 'Select Players',
+            description: 'Tap player cards to add them to the game. The selection order determines throw order.',
+            side: 'bottom',
+            align: 'center',
+          },
+        },
+        {
+          element: '[data-tour="add-bot"]',
+          popover: {
+            title: 'Play vs AI Bots',
+            description: 'Add AI opponents at different difficulty levels to practice or play solo.',
+            side: 'top',
+            align: 'center',
+          },
+        },
+        {
+          element: '[data-tour="quick-start"]',
+          popover: {
+            title: 'Quick Start',
+            description: 'Jump straight into a standard 501 Double Out game with one tap.',
+            side: 'top',
+            align: 'center',
+          },
+        },
+        {
+          element: '[data-tour="wizard"]',
+          popover: {
+            title: 'Game Setup Wizard',
+            description: 'Use Next to customize game mode, checkout rules, and match format before starting.',
+            side: 'top',
+            align: 'center',
+          },
+        },
+        {
+          element: '[data-tour="nav"]',
+          popover: {
+            title: 'Navigation',
+            description: 'Access Players management, Tournaments, and Statistics from the navigation bar.',
+            side: 'bottom',
+            align: 'center',
+          },
+        },
+      ], 'dashboard')
+    }, 800)
+  }
 })
 
 function resumeGame() {
@@ -155,6 +208,7 @@ function confirmAbandon() {
       :total-steps="3"
       :can-advance="step === 1 ? canAdvanceStep1 : true"
       :finish-label="'Start Game'"
+      data-tour="wizard"
       @finish="startGame"
     >
       <!-- Step 1: Select Players -->
@@ -166,10 +220,11 @@ function confirmAbandon() {
           v-model="humanSelection"
           :min="1"
           :max="4 - botPlayers.size"
+          data-tour="player-picker"
         />
 
         <!-- Add Bot section -->
-        <div v-if="selectedPlayers.length < 4" class="w-full flex flex-col items-center gap-sm">
+        <div v-if="selectedPlayers.length < 4" class="w-full flex flex-col items-center gap-sm" data-tour="add-bot">
           <span class="text-[0.8rem] font-bold text-fg-muted uppercase tracking-wide">Add a Bot</span>
           <div class="flex gap-xs flex-wrap justify-center">
             <button
@@ -201,6 +256,7 @@ function confirmAbandon() {
         <button
           v-if="canAdvanceStep1"
           class="quick-start-btn"
+          data-tour="quick-start"
           @click="quickStart"
         >
           Quick Start

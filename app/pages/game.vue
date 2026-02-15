@@ -17,11 +17,64 @@ const {
 const { isBotPlaying } = useBotPlay()
 const { isTournamentMatch, tournamentId, clear: clearTournamentContext } = useTournamentContext()
 const { ensureLoaded: ensurePlayers, getAvatarProps } = usePlayers()
+const { shouldShowTour, startTour } = useOnboarding()
 
 // Load game state from localStorage on mount (handles resume + tournament match transitions)
 onMounted(() => {
   loadState()
   ensurePlayers()
+
+  if (shouldShowTour('game')) {
+    setTimeout(() => {
+      startTour([
+        {
+          element: '[data-tour="score-display"]',
+          popover: {
+            title: 'Player Scores',
+            description: 'Each player\'s remaining score is shown here. The active player has a gold border.',
+            side: 'bottom',
+            align: 'center',
+          },
+        },
+        {
+          element: '[data-tour="throw-slots"]',
+          popover: {
+            title: 'Current Turn',
+            description: 'Your three darts for this turn appear here, along with the running total.',
+            side: 'bottom',
+            align: 'center',
+          },
+        },
+        {
+          element: '[data-tour="numpad"]',
+          popover: {
+            title: 'Score Input',
+            description: 'Tap a number to score. Use Single/Double/Triple to set the multiplier before tapping.',
+            side: 'top',
+            align: 'center',
+          },
+        },
+        {
+          element: '[data-tour="undo-btn"]',
+          popover: {
+            title: 'Undo',
+            description: 'Made a mistake? Tap Undo to remove the last throw.',
+            side: 'top',
+            align: 'center',
+          },
+        },
+        {
+          element: '[data-tour="dartboard-fab"]',
+          popover: {
+            title: 'Visual Dartboard',
+            description: 'Prefer clicking on a dartboard? Open the interactive dartboard overlay here.',
+            side: 'left',
+            align: 'center',
+          },
+        },
+      ], 'game')
+    }, 600)
+  }
 })
 
 const isMatch = computed(() => state.legs_to_win > 1 || state.sets_to_win > 1)
@@ -167,7 +220,7 @@ watch(hasGame, (active) => {
 <template>
   <div class="game-root flex flex-col overflow-hidden w-full px-sm md:px-md">
     <!-- Top bar: player score cards -->
-    <div class="flex gap-xs md:gap-sm py-[2px] md:py-sm shrink-0">
+    <div class="flex gap-xs md:gap-sm py-[2px] md:py-sm shrink-0" data-tour="score-display">
       <div
         v-for="(player, i) in state.players"
         :key="i"
@@ -193,7 +246,7 @@ watch(hasGame, (active) => {
     <!-- Current turn panel (full width) -->
     <div class="shrink-0 bg-glass border border-border-subtle rounded-md px-sm sm:px-md py-xs sm:py-sm flex flex-col gap-[2px] sm:grid sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:gap-md">
       <!-- Throw slots (center on desktop, first row on mobile) -->
-      <div class="flex justify-center sm:order-2">
+      <div class="flex justify-center sm:order-2" data-tour="throw-slots">
         <div class="flex items-center gap-sm">
           <span
             v-for="slot in 3"
@@ -268,6 +321,7 @@ watch(hasGame, (active) => {
 
         <ManualScoreInput
           :disabled="inputDisabled"
+          data-tour="numpad"
           @score="handleScore"
         />
 
@@ -275,6 +329,7 @@ watch(hasGame, (active) => {
         <div class="flex gap-sm shrink-0">
           <button
             class="btn btn-undo flex-1"
+            data-tour="undo-btn"
             :disabled="inputDisabled"
             @click="undoThrow"
           >
@@ -287,6 +342,7 @@ watch(hasGame, (active) => {
     <!-- Dartboard FAB -->
     <button
       class="dartboard-fab"
+      data-tour="dartboard-fab"
       @click="showDartboard = !showDartboard"
       :title="showDartboard ? 'Close dartboard' : 'Open dartboard'"
     >
