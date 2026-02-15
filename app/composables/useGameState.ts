@@ -11,9 +11,18 @@ interface PersistedGame {
   tournamentId: number | null
 }
 
+interface UnlockedAchievement {
+  type: string
+  name: string
+  description: string
+  icon: string
+  playerName: string
+}
+
 // Module-level state shared across all consumers
 let engine: GameEngine | null = null
 const hasActiveGame = ref(false)
+const recentAchievements = ref<UnlockedAchievement[]>([])
 let dbSyncTimer: ReturnType<typeof setTimeout> | null = null
 let dbSyncDirty = false
 
@@ -187,12 +196,16 @@ export function useGameState() {
     if (engine.state.is_finished) {
       // Save finished game to server
       const ctx = getTournamentContext()
-      $fetch('/api/game/save', {
+      $fetch<{ gameId: number; newAchievements: UnlockedAchievement[] }>('/api/game/save', {
         method: 'POST',
         body: {
           state: JSON.parse(JSON.stringify(engine.state)),
           tournamentMatchId: ctx.matchId ?? undefined,
         },
+      }).then((result) => {
+        if (result.newAchievements && result.newAchievements.length > 0) {
+          recentAchievements.value = result.newAchievements
+        }
       }).catch((err) => {
         console.warn('Failed to save finished game:', err)
       })
@@ -266,6 +279,10 @@ export function useGameState() {
     return active
   }
 
+  function clearAchievements() {
+    recentAchievements.value = []
+  }
+
   return {
     state: store.state,
     bustFlash: computed(() => store.bustFlash),
@@ -274,11 +291,13 @@ export function useGameState() {
     currentPlayer: store.currentPlayer,
     hasGame: computed(() => store.hasGame),
     hasActiveGame: readonly(hasActiveGame),
+    recentAchievements: readonly(recentAchievements),
     newGame,
     undoThrow,
     manualScore,
     stopGame,
     loadState,
     checkActiveGame,
+    clearAchievements,
   }
 }

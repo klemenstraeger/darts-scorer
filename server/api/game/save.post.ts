@@ -8,16 +8,16 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Game is not finished' })
   }
 
-  const gameId = await saveFinishedGame(userId, body.state)
+  const result = await saveFinishedGame(userId, body.state)
 
-  if (!gameId) {
+  if (!result) {
     throw createError({ statusCode: 500, message: 'Failed to save game' })
   }
 
   // Handle tournament match completion
   if (body.tournamentMatchId) {
-    await tournamentManager.completeMatch(userId, body.tournamentMatchId, body.state, gameId)
+    await tournamentManager.completeMatch(userId, body.tournamentMatchId, body.state, result.gameId)
   }
 
-  return { gameId }
+  return { gameId: result.gameId, newAchievements: result.newAchievements }
 })

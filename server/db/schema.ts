@@ -143,11 +143,24 @@ export const broadcastSessions = pgTable('broadcast_sessions', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }).enableRLS()
 
+export const achievements = pgTable('achievements', {
+  id: serial('id').primaryKey(),
+  userId: uuid('user_id').notNull().references(() => profiles.id, { onDelete: 'cascade' }),
+  playerName: text('player_name').notNull(),
+  type: text('type').notNull(),
+  gameId: integer('game_id').references(() => games.id, { onDelete: 'set null' }),
+  metadata: jsonb('metadata'),
+  unlockedAt: timestamp('unlocked_at').defaultNow().notNull(),
+}, (table) => [
+  unique().on(table.userId, table.playerName, table.type),
+]).enableRLS()
+
 // ── Relations (for relational query builder) ────────────
 
 export const profilesRelations = relations(profiles, ({ many }) => ({
   players: many(players),
   games: many(games),
+  achievements: many(achievements),
 }))
 
 export const playersRelations = relations(players, ({ one }) => ({
@@ -193,4 +206,11 @@ export const tournamentMatchesRelations = relations(tournamentMatches, ({ one })
 
 export const tournamentStandingsRelations = relations(tournamentStandings, ({ one }) => ({
   tournament: one(tournaments, { fields: [tournamentStandings.tournamentId], references: [tournaments.id] }),
+}))
+
+// ── Achievement Relations ──
+
+export const achievementsRelations = relations(achievements, ({ one }) => ({
+  profile: one(profiles, { fields: [achievements.userId], references: [profiles.id] }),
+  game: one(games, { fields: [achievements.gameId], references: [games.id] }),
 }))
