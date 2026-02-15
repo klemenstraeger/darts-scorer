@@ -64,7 +64,7 @@ function handleLogout() {
 </script>
 
 <template>
-  <nav class="app-nav glass-card sticky top-0 z-50 px-sm sm:px-lg py-sm mb-sm">
+  <nav class="app-nav glass-card sticky top-0 z-50 px-sm sm:px-lg py-sm mb-sm" data-tour="nav">
     <div class="flex items-center justify-between max-w-[1200px] mx-auto">
       <NuxtLink to="/dashboard" class="brand-link">
         <DartsLogo :size="26" />

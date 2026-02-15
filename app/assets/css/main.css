@@ -468,3 +468,105 @@
 .list-move {
   transition: transform var(--duration-normal) var(--ease-out);
 }
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Driver.js Onboarding Tour — Custom Dark Theme
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.driver-overlay {
+  background: rgba(0, 0, 0, 0.7) !important;
+}
+
+.darts-tour-popover.driver-popover {
+  background: var(--surface-1);
+  backdrop-filter: blur(var(--blur-glass-heavy));
+  -webkit-backdrop-filter: blur(var(--blur-glass-heavy));
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 0 30px var(--gold-glow), var(--shadow-lg);
+  color: var(--text-primary);
+  max-width: 340px;
+}
+
+.darts-tour-popover .driver-popover-title {
+  font-family: var(--font-sans);
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--gold);
+  letter-spacing: 0.3px;
+}
+
+.darts-tour-popover .driver-popover-description {
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+.darts-tour-popover .driver-popover-progress-text {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.darts-tour-popover .driver-popover-footer {
+  gap: 8px;
+}
+
+.darts-tour-popover .driver-popover-prev-btn,
+.darts-tour-popover .driver-popover-next-btn {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.8rem;
+  border-radius: var(--radius-md);
+  padding: 6px 16px;
+  border: none;
+  cursor: pointer;
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+  text-shadow: none;
+}
+
+.darts-tour-popover .driver-popover-prev-btn {
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+}
+
+.darts-tour-popover .driver-popover-prev-btn:hover {
+  background: var(--surface-3);
+  color: var(--text-primary);
+}
+
+.darts-tour-popover .driver-popover-next-btn {
+  background: var(--gold-gradient);
+  color: var(--text-inverse);
+}
+
+.darts-tour-popover .driver-popover-next-btn:hover {
+  box-shadow: var(--shadow-glow-gold);
+  transform: translateY(-1px);
+}
+
+.darts-tour-popover .driver-popover-close-btn {
+  color: var(--text-muted);
+  transition: color var(--duration-fast);
+}
+
+.darts-tour-popover .driver-popover-close-btn:hover {
+  color: var(--text-primary);
+}
+
+.darts-tour-popover .driver-popover-arrow-side-left .driver-popover-arrow,
+.darts-tour-popover .driver-popover-arrow-side-right .driver-popover-arrow,
+.darts-tour-popover .driver-popover-arrow-side-top .driver-popover-arrow,
+.darts-tour-popover .driver-popover-arrow-side-bottom .driver-popover-arrow {
+  border-color: var(--border-gold);
+}
+
+/* Highlighted element stage styling */
+.driver-active-element {
+  border-radius: var(--radius-md) !important;
+}
