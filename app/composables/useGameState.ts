@@ -1,6 +1,7 @@
 import { GameEngine } from '#shared/game-engine'
 import { GameEvent, detectThrowEvent } from '#shared/game-events'
 import { throwPoints, type CheckoutMode, type GameMode, type Multiplier, type PlayerDescriptor } from '#shared/game-models'
+import { getCheckout } from '#shared/checkouts'
 
 const STORAGE_KEY = 'darts-scorer:active-game'
 const DB_SYNC_INTERVAL = 2000 // Throttled sync: at most every 2 seconds
@@ -16,6 +17,7 @@ let engine: GameEngine | null = null
 const hasActiveGame = ref(false)
 let dbSyncTimer: ReturnType<typeof setTimeout> | null = null
 let dbSyncDirty = false
+let lastCheckoutAnnouncement: { playerIndex: number; score: number } | null = null
 
 function persistToStorage(tournamentMatchId: number | null = null, tournamentId: number | null = null) {
   if (!engine || !import.meta.client) return
@@ -95,6 +97,7 @@ export function useGameState() {
     tournamentMatchId: ctxMatchId,
     tournamentId: ctxTournamentId,
   } = useTournamentContext()
+  const announcer = useAnnouncer()
 
   function syncToStore() {
     if (!engine) return
@@ -136,6 +139,8 @@ export function useGameState() {
     persistToStorage()
     scheduleDatabaseSync()
     hasActiveGame.value = true
+    lastCheckoutAnnouncement = null
+    announcer.announceGameStart()
 
     // Save last-used game settings for quick-start
     if (players && players.length >= 2) {
@@ -172,22 +177,33 @@ export function useGameState() {
         play('bust')
         vibrate([50, 30, 50])
         store.triggerBust()
+        announcer.announceBust()
         break
-      case GameEvent.LEG_WON:
+      case GameEvent.LEG_WON: {
         play('leg-won')
         vibrate([50, 30, 100])
         store.triggerLegWon()
+        const lastTurn = engine.state.turn_history[engine.state.turn_history.length - 1]
+        const winnerIdx = lastTurn?.player_index ?? engine.state.current_player_index
+        const winnerName = engine.state.players[winnerIdx]?.name ?? ''
+        announcer.announceGameShot(winnerName)
         break
-      case GameEvent.GAME_OVER:
+      }
+      case GameEvent.GAME_OVER: {
         play('game-won')
         vibrate([50, 30, 50, 30, 200])
         store.triggerGameOver()
         hasActiveGame.value = false
+        const matchWinner = engine.state.winner_index != null
+          ? engine.state.players[engine.state.winner_index]?.name ?? ''
+          : ''
+        announcer.announceMatchWon(matchWinner)
         break
+      }
       case GameEvent.DART_SCORED: {
         play('throw', 0.5)
         vibrate(15)
-        // Check for 180 or ton-plus (100+) on completed turns
+        // Check for 180 or ton-plus (100+) on completed turns and announce score
         if (engine.state.turn_history.length > prevTurnCount) {
           const completedTurn = engine.state.turn_history[engine.state.turn_history.length - 1]!
           const turnPts = completedTurn.throws.reduce((s, t) => s + throwPoints(t), 0)
@@ -198,8 +214,30 @@ export function useGameState() {
             play('ton-plus')
             vibrate([30, 20, 60])
           }
+          if (!completedTurn.busted) {
+            announcer.announceScore(turnPts)
+          }
         }
         break
+      }
+    }
+
+    // Announce checkout when a new turn begins and the current player is in checkout range
+    if (!engine.state.is_finished) {
+      const turnJustStarted = engine.state.turn_history.length > prevTurnCount
+      if (turnJustStarted) {
+        const currentPlayerIdx = engine.state.current_player_index
+        const currentScore = engine.state.players[currentPlayerIdx]?.score
+        if (currentScore != null && getCheckout(currentScore, 3)) {
+          // Only announce if we haven't already announced for this player at this score
+          const shouldAnnounce = !lastCheckoutAnnouncement
+            || lastCheckoutAnnouncement.playerIndex !== currentPlayerIdx
+            || lastCheckoutAnnouncement.score !== currentScore
+          if (shouldAnnounce) {
+            lastCheckoutAnnouncement = { playerIndex: currentPlayerIdx, score: currentScore }
+            announcer.announceCheckout(currentScore)
+          }
+        }
       }
     }
 
