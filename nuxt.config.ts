@@ -49,6 +49,7 @@ export default defineNuxtConfig({
     '/stats': { ssr: false },
     '/profile-setup': { ssr: false },
     '/login': { ssr: false },
+    '/quick-start': { ssr: false },
   },
 
   alias: {
@@ -79,6 +80,20 @@ export default defineNuxtConfig({
         { src: '/pwa-192x192.png', sizes: '192x192', type: 'image/png' },
         { src: '/pwa-512x512.png', sizes: '512x512', type: 'image/png' },
         { src: '/pwa-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+      ],
+      shortcuts: [
+        {
+          name: 'Quick Game',
+          short_name: 'Quick Game',
+          url: '/quick-start',
+          icons: [{ src: '/pwa-192x192.png', sizes: '192x192', type: 'image/png' }],
+        },
+        {
+          name: 'Practice (501)',
+          short_name: 'Practice',
+          url: '/dashboard',
+          icons: [{ src: '/pwa-192x192.png', sizes: '192x192', type: 'image/png' }],
+        },
       ],
     },
     workbox: {
