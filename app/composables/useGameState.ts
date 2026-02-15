@@ -136,6 +136,8 @@ export function useGameState() {
   function manualScore(segment: number, multiplier: number) {
     if (!engine) return
 
+    const { play, vibrate } = useAudio()
+
     // Snapshot pre-throw state for event detection
     const prevTurnCount = engine.state.turn_history.length
     const prevLegs = engine.state.players.map(p => p.legs_won)
@@ -149,15 +151,40 @@ export function useGameState() {
 
     switch (event) {
       case GameEvent.BUST:
+        play('bust')
+        vibrate([50, 30, 50])
         store.triggerBust()
         break
       case GameEvent.LEG_WON:
+        play('leg-won')
+        vibrate([50, 30, 100])
         store.triggerLegWon()
         break
       case GameEvent.GAME_OVER:
+        play('game-won')
+        vibrate([50, 30, 50, 30, 200])
         store.triggerGameOver()
         hasActiveGame.value = false
         break
+      case GameEvent.DART_SCORED: {
+        play('throw', 0.5)
+        vibrate(15)
+        // Check for 180 or ton-plus (100+) on completed turns
+        if (engine.state.turn_history.length > prevTurnCount) {
+          const completedTurn = engine.state.turn_history[engine.state.turn_history.length - 1]!
+          const turnPts = completedTurn.throws.reduce((s, t) => {
+            return s + (t.segment === 25 ? 25 * t.multiplier : t.segment * t.multiplier)
+          }, 0)
+          if (turnPts === 180) {
+            play('180')
+            vibrate([30, 20, 30, 20, 100])
+          } else if (turnPts >= 100) {
+            play('ton-plus')
+            vibrate([30, 20, 60])
+          }
+        }
+        break
+      }
     }
 
     if (engine.state.is_finished) {

@@ -14,6 +14,8 @@ const {
   loadState,
 } = useGameState()
 
+const { audioEnabled, toggle: toggleAudio } = useAudio()
+
 const { isBotPlaying } = useBotPlay()
 const { isTournamentMatch, tournamentId, clear: clearTournamentContext } = useTournamentContext()
 const { ensureLoaded: ensurePlayers, getAvatarProps } = usePlayers()
@@ -284,6 +286,24 @@ watch(hasGame, (active) => {
       </div>
     </div>
 
+    <!-- Audio mute toggle FAB -->
+    <button
+      class="audio-fab"
+      :title="audioEnabled ? 'Mute sounds' : 'Unmute sounds'"
+      @click="toggleAudio()"
+    >
+      <svg v-if="audioEnabled" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+        <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+        <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+      </svg>
+      <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+        <line x1="23" y1="9" x2="17" y2="15" />
+        <line x1="17" y1="9" x2="23" y2="15" />
+      </svg>
+    </button>
+
     <!-- Dartboard FAB -->
     <button
       class="dartboard-fab"
@@ -463,6 +483,44 @@ watch(hasGame, (active) => {
   color: var(--gold);
   font-size: 0.9rem;
   font-weight: 700;
+}
+
+/* ── Audio toggle FAB ── */
+.audio-fab {
+  position: fixed;
+  bottom: var(--space-md, 12px);
+  right: calc(var(--space-md, 12px) + 56px);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--surface-glass);
+  backdrop-filter: blur(var(--blur-glass));
+  -webkit-backdrop-filter: blur(var(--blur-glass));
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition:
+    transform var(--duration-fast),
+    box-shadow var(--duration-fast),
+    border-color var(--duration-fast);
+}
+
+@media (min-width: 768px) {
+  .audio-fab {
+    bottom: var(--space-xl, 24px);
+    right: calc(var(--space-xl, 24px) + 60px);
+  }
+}
+
+.audio-fab:hover {
+  transform: scale(1.1);
+  border-color: var(--border-gold);
+  box-shadow: var(--shadow-glow-gold);
+  color: var(--gold);
 }
 
 /* ── Dartboard FAB: fixed position + hover glow ── */
