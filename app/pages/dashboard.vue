@@ -71,7 +71,7 @@ onMounted(() => {
 
   if (shouldShowTour('dashboard')) {
     tourTimeout = setTimeout(() => {
-      const tourSteps = [
+      const dashboardTourSteps = [
         {
           element: '[data-tour="player-picker"]',
           popover: {
@@ -94,7 +94,7 @@ onMounted(() => {
 
       // Only add quick-start step if the button is visible
       if (canAdvanceStep1.value) {
-        tourSteps.push({
+        dashboardTourSteps.push({
           element: '[data-tour="quick-start"]',
           popover: {
             title: 'Quick Start',
@@ -105,7 +105,7 @@ onMounted(() => {
         })
       }
 
-      tourSteps.push(
+      dashboardTourSteps.push(
         {
           element: '[data-tour="wizard"]',
           popover: {
@@ -126,7 +126,7 @@ onMounted(() => {
         },
       )
 
-      startTour(tourSteps, 'dashboard')
+      startTour(dashboardTourSteps, 'dashboard')
       tourTimeout = null
     }, 800)
   }

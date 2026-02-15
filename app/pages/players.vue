@@ -107,7 +107,6 @@ const resetConfirm = ref(false)
 function handleResetTours() {
   resetTours()
   resetConfirm.value = false
-  // Optional: Show a brief toast/confirmation (could be added later)
 }
 
 onMounted(() => {
