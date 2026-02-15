@@ -17,6 +17,7 @@ const {
 const { isBotPlaying } = useBotPlay()
 const { isTournamentMatch, tournamentId, clear: clearTournamentContext } = useTournamentContext()
 const { ensureLoaded: ensurePlayers, getAvatarProps } = usePlayers()
+const { enabled: announcerEnabled, toggle: toggleAnnouncer } = useAnnouncer()
 
 // Load game state from localStorage on mount (handles resume + tournament match transitions)
 onMounted(() => {
@@ -284,6 +285,22 @@ watch(hasGame, (active) => {
       </div>
     </div>
 
+    <!-- Announcer toggle FAB -->
+    <button
+      class="announcer-fab"
+      :class="{ active: announcerEnabled }"
+      @click="toggleAnnouncer"
+      :title="announcerEnabled ? 'Disable announcer' : 'Enable announcer'"
+    >
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+        <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+        <line x1="12" y1="19" x2="12" y2="23" />
+        <line x1="8" y1="23" x2="16" y2="23" />
+        <line v-if="!announcerEnabled" x1="1" y1="1" x2="23" y2="23" />
+      </svg>
+    </button>
+
     <!-- Dartboard FAB -->
     <button
       class="dartboard-fab"
@@ -463,6 +480,51 @@ watch(hasGame, (active) => {
   color: var(--gold);
   font-size: 0.9rem;
   font-weight: 700;
+}
+
+/* ── Announcer FAB: sits above dartboard FAB ── */
+.announcer-fab {
+  position: fixed;
+  bottom: calc(var(--space-md, 12px) + 56px);
+  right: var(--space-md, 12px);
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--surface-glass);
+  backdrop-filter: blur(var(--blur-glass));
+  -webkit-backdrop-filter: blur(var(--blur-glass));
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition:
+    transform var(--duration-fast),
+    box-shadow var(--duration-fast),
+    border-color var(--duration-fast),
+    color var(--duration-fast);
+}
+
+@media (min-width: 768px) {
+  .announcer-fab {
+    bottom: calc(var(--space-xl, 24px) + 60px);
+    right: var(--space-xl, 24px);
+  }
+}
+
+.announcer-fab:hover {
+  transform: scale(1.1);
+  border-color: var(--border-gold);
+  box-shadow: var(--shadow-glow-gold);
+  color: var(--gold);
+}
+
+.announcer-fab.active {
+  border-color: var(--gold);
+  color: var(--gold);
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.15);
 }
 
 /* ── Dartboard FAB: fixed position + hover glow ── */

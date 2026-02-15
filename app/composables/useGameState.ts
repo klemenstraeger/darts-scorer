@@ -1,5 +1,6 @@
 import { GameEngine } from '#shared/game-engine'
 import { GameEvent, detectThrowEvent } from '#shared/game-events'
+import { throwPoints } from '#shared/game-models'
 import type { CheckoutMode, GameMode, Multiplier, PlayerDescriptor } from '#shared/game-models'
 
 const STORAGE_KEY = 'darts-scorer:active-game'
@@ -94,6 +95,7 @@ export function useGameState() {
     tournamentMatchId: ctxMatchId,
     tournamentId: ctxTournamentId,
   } = useTournamentContext()
+  const announcer = useAnnouncer()
 
   function syncToStore() {
     if (!engine) return
@@ -131,6 +133,7 @@ export function useGameState() {
     persistToStorage()
     scheduleDatabaseSync()
     hasActiveGame.value = true
+    announcer.announceGameStart()
   }
 
   function manualScore(segment: number, multiplier: number) {
@@ -150,14 +153,36 @@ export function useGameState() {
     switch (event) {
       case GameEvent.BUST:
         store.triggerBust()
+        announcer.announceBust()
         break
-      case GameEvent.LEG_WON:
+      case GameEvent.LEG_WON: {
         store.triggerLegWon()
+        const winnerIdx = (engine.state.leg_starting_player - 1 + engine.state.players.length) % engine.state.players.length
+        const winnerName = engine.state.players[winnerIdx]?.name ?? ''
+        announcer.announceGameShot(winnerName)
         break
-      case GameEvent.GAME_OVER:
+      }
+      case GameEvent.GAME_OVER: {
         store.triggerGameOver()
         hasActiveGame.value = false
+        const matchWinner = engine.state.winner_index != null
+          ? engine.state.players[engine.state.winner_index]?.name ?? ''
+          : ''
+        announcer.announceMatchWon(matchWinner)
         break
+      }
+      case GameEvent.DART_SCORED: {
+        // Announce turn total when a turn completes (new entry in turn_history)
+        const newTurnCompleted = engine.state.turn_history.length > prevTurnCount
+        if (newTurnCompleted) {
+          const lastTurn = engine.state.turn_history[engine.state.turn_history.length - 1]
+          if (lastTurn && !lastTurn.busted) {
+            const total = lastTurn.throws.reduce((s, t) => s + throwPoints(t), 0)
+            announcer.announceScore(total)
+          }
+        }
+        break
+      }
     }
 
     if (engine.state.is_finished) {
