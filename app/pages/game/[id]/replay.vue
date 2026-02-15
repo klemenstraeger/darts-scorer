@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { throwLabel } from '#shared/game-models'
+import { GameEngine } from '#shared/game-engine'
 import type { DartMarker } from '~/components/DartBoard.vue'
 
 interface ReplayThrow {
@@ -91,81 +92,52 @@ const currentTurnIndex = computed(() => {
   return visibleDarts.value[visibleDarts.value.length - 1]!.turnIndex
 })
 
-// Compute scores for each player at current position
+// Compute scores for each player at current position using GameEngine
 const playerScores = computed(() => {
   if (!replayData.value) return new Map<string, number>()
   const scores = new Map<string, number>()
   const starting = startingScore.value
+  
+  // Initialize scores
   for (const p of replayData.value.players) {
     scores.set(p.playerName, starting)
   }
 
-  // Replay all complete turns before the current one
-  // Then replay individual darts in the current turn
   const darts = visibleDarts.value
   if (darts.length === 0) return scores
 
-  // Group visible darts by turn
-  let prevTurnIndex = -1
+  // Use GameEngine to reconstruct scores
+  const engine = new GameEngine()
+  const playerNames = replayData.value.players.map(p => p.playerName)
+  engine.newGame(
+    replayData.value.game.mode as '501' | '301',
+    playerNames,
+    'double_out',
+    1,
+    1,
+  )
+
+  // Replay all visible darts through the engine
   for (const dart of darts) {
     const turn = replayData.value.turns[dart.turnIndex]!
-    const playerName = turn.playerName
-
-    // If this is a new turn and the previous turn was busted,
-    // the busted turn's score was already reset (we handle below)
-    if (dart.turnIndex !== prevTurnIndex && prevTurnIndex >= 0) {
-      // Check if previous turn was busted - score resets to before that turn
-      const prevTurn = replayData.value.turns[prevTurnIndex]!
-      if (prevTurn.busted) {
-        // Recompute: score for that player goes back to what it was before the busted turn
-        // We need to recalculate from scratch for busted turns
-      }
-    }
-    prevTurnIndex = dart.turnIndex
-  }
-
-  // Simpler approach: replay turn by turn
-  scores.clear()
-  for (const p of replayData.value.players) {
-    scores.set(p.playerName, starting)
-  }
-
-  // Find which turns are fully visible and which is partially visible
-  const lastDart = darts[darts.length - 1]!
-  const lastTurnIndex = lastDart.turnIndex
-  const lastDartIndexInTurn = lastDart.dartIndex
-
-  // Process all fully completed turns before the current partial turn
-  for (let ti = 0; ti < lastTurnIndex; ti++) {
-    const turn = replayData.value.turns[ti]!
-    if (turn.busted) {
-      // Score stays the same (busted = no change)
+    const throwData = turn.throws[dart.dartIndex]!
+    
+    // Make sure we're on the correct player
+    const currentPlayerName = engine.state.players[engine.state.current_player_index]!.name
+    if (currentPlayerName !== turn.playerName) {
+      // This shouldn't happen if data is correct, but skip if misaligned
       continue
     }
-    const currentScore = scores.get(turn.playerName) ?? starting
-    scores.set(turn.playerName, currentScore - turn.totalPoints)
+    
+    engine.throw({
+      segment: throwData.segment,
+      multiplier: throwData.multiplier as 1 | 2 | 3,
+    })
   }
 
-  // Process darts in the current (possibly partial) turn
-  const currentTurn = replayData.value.turns[lastTurnIndex]!
-  if (currentTurn) {
-    // Check if this turn ends up being busted AND we're showing all its darts
-    const isFullyShown = lastDartIndexInTurn === currentTurn.throws.length - 1
-    if (currentTurn.busted && isFullyShown) {
-      // Busted: score stays the same as before this turn
-    } else {
-      // Subtract individual dart points shown so far
-      let dartPoints = 0
-      for (let di = 0; di <= lastDartIndexInTurn; di++) {
-        const t = currentTurn.throws[di]!
-        dartPoints += t.points
-      }
-      const currentScore = scores.get(currentTurn.playerName) ?? starting
-      const newScore = currentScore - dartPoints
-      // If this would go negative or be invalid, it means we're mid-bust
-      // but we still show the intermediate score for visual effect
-      scores.set(currentTurn.playerName, Math.max(0, newScore))
-    }
+  // Extract scores from engine state
+  for (const player of engine.state.players) {
+    scores.set(player.name, player.score)
   }
 
   return scores
@@ -290,6 +262,23 @@ function seek(position: number) {
 
 // Keyboard shortcuts
 function onKeydown(e: KeyboardEvent) {
+  // Ignore shortcuts when focus is on an input/textarea/select/button
+  const target = e.target as HTMLElement
+  if (
+    target.tagName === 'INPUT' ||
+    target.tagName === 'TEXTAREA' ||
+    target.tagName === 'SELECT' ||
+    target.tagName === 'BUTTON' ||
+    target.isContentEditable
+  ) {
+    return
+  }
+
+  // Ignore shortcuts when modifiers are pressed (except for built-in shortcuts)
+  if (e.ctrlKey || e.metaKey || e.altKey) {
+    return
+  }
+
   switch (e.key) {
     case ' ':
       e.preventDefault()
