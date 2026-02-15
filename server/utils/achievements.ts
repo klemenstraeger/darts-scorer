@@ -132,11 +132,20 @@ export async function checkAchievements(
       { type: 'avg_80_plus', condition: threeDartAvg >= 80, metadata: { average: Math.round(threeDartAvg * 10) / 10 } },
       { type: 'avg_100_plus', condition: threeDartAvg >= 100, metadata: { average: Math.round(threeDartAvg * 10) / 10 } },
       { type: 'checkout_170', condition: checkoutScores.includes(170) },
-      { type: 'checkout_100plus', condition: checkoutScores.some((s) => s >= 100), metadata: { highestCheckout: Math.max(...checkoutScores) } },
       { type: 'first_win', condition: isWinner },
       { type: 'five_180s_game', condition: count180 >= 5, metadata: { count: count180 } },
       { type: 'no_bust_game', condition: isWinner && !hasBust },
     ]
+
+    // Check for 100+ checkout separately to avoid computing max on empty array
+    const checkout100Plus = checkoutScores.filter((s) => s >= 100)
+    if (checkout100Plus.length > 0) {
+      perGameChecks.push({
+        type: 'checkout_100plus',
+        condition: true,
+        metadata: { highestCheckout: Math.max(...checkout100Plus) },
+      })
+    }
 
     for (const check of perGameChecks) {
       if (check.condition) {
