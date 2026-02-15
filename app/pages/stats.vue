@@ -198,6 +198,47 @@ function selectPlayer(name: string) {
   selectedPlayer.value = name
 }
 
+const showExportMenu = ref(false)
+const exporting = ref(false)
+
+function closeExportMenu(e: MouseEvent) {
+  const target = e.target as HTMLElement
+  if (!target.closest('.export-wrapper')) {
+    showExportMenu.value = false
+  }
+}
+
+onMounted(() => document.addEventListener('click', closeExportMenu))
+onUnmounted(() => document.removeEventListener('click', closeExportMenu))
+
+async function exportData(format: 'csv' | 'json') {
+  showExportMenu.value = false
+  exporting.value = true
+  try {
+    const params: string[] = [`format=${format}`]
+    if (selectedPlayer.value) params.push(`player=${encodeURIComponent(selectedPlayer.value)}`)
+    if (activeFilter.value.from) params.push(`from=${encodeURIComponent(activeFilter.value.from)}`)
+    if (activeFilter.value.to) params.push(`to=${encodeURIComponent(activeFilter.value.to)}`)
+    if (activeFilter.value.mode) params.push(`mode=${encodeURIComponent(activeFilter.value.mode)}`)
+
+    const response = await $fetch.raw(`/api/stats/export?${params.join('&')}`)
+    const blob = new Blob(
+      [typeof response._data === 'string' ? response._data : JSON.stringify(response._data, null, 2)],
+      { type: format === 'csv' ? 'text/csv' : 'application/json' },
+    )
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `darts-stats-${new Date().toISOString().slice(0, 10)}.${format}`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  } finally {
+    exporting.value = false
+  }
+}
+
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('en-GB', {
     day: 'numeric',
@@ -481,9 +522,22 @@ function gameAverage(gameId: number): number | null {
       :initial="{ opacity: 0, y: -10 }"
       :enter="{ opacity: 1, y: 0, transition: { duration: 300 } }"
     >
-      <div>
+      <div class="flex-1">
         <h2 class="text-[2rem] font-extrabold text-fg mb-xs">Performance Hub</h2>
         <p class="text-[0.9rem] text-fg-secondary max-w-[480px]">Track trends, accuracy, and game flow.</p>
+      </div>
+      <div class="export-wrapper" style="position: relative; z-index: 10;">
+        <button
+          class="export-btn"
+          :disabled="exporting"
+          @click="showExportMenu = !showExportMenu"
+        >
+          {{ exporting ? 'Exporting...' : 'Export' }}
+        </button>
+        <div v-if="showExportMenu" class="export-menu">
+          <button class="export-menu-item" @click="exportData('csv')">Download CSV</button>
+          <button class="export-menu-item" @click="exportData('json')">Download JSON</button>
+        </div>
       </div>
       <div class="stats-glow"></div>
     </div>
@@ -789,11 +843,14 @@ function gameAverage(gameId: number): number | null {
 <style scoped>
 .stats-hero {
   position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
   padding: var(--spacing-lg) var(--spacing-xl);
   border-radius: var(--radius-xl);
   background: linear-gradient(135deg, rgba(255, 215, 0, 0.08), rgba(59, 130, 246, 0.08));
   border: 1px solid var(--border-subtle);
-  overflow: hidden;
+  overflow: visible;
   margin-bottom: var(--spacing-xl);
 }
 
@@ -930,6 +987,67 @@ function gameAverage(gameId: number): number | null {
 .load-more-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Export button */
+.export-wrapper {
+  flex-shrink: 0;
+}
+
+.export-btn {
+  padding: var(--spacing-xs) var(--spacing-lg);
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background var(--duration-fast),
+    border-color var(--duration-fast);
+}
+
+.export-btn:hover:not(:disabled) {
+  background: var(--surface-3);
+  border-color: var(--border-default);
+}
+
+.export-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.export-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  min-width: 150px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.export-menu-item {
+  display: block;
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--duration-fast);
+}
+
+.export-menu-item:hover {
+  background: var(--surface-3);
 }
 
 /* Color utilities */
