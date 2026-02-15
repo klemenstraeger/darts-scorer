@@ -744,12 +744,24 @@ function gameAverage(gameId: number): number | null {
         :initial="{ opacity: 0, y: 20 }"
         :enter="{ opacity: 1, y: 0, transition: { duration: 300, delay: 550 } }"
       >
-        <h3 class="section-title">Head-to-Head</h3>
+        <div class="flex items-center justify-between gap-md">
+          <h3 class="section-title !mb-0">Head-to-Head</h3>
+          <NuxtLink
+            :to="{ path: '/stats/head-to-head', query: { player1: selectedPlayer } }"
+            class="h2h-compare-link"
+          >
+            Compare
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </NuxtLink>
+        </div>
         <div class="flex flex-col gap-sm">
-          <div
+          <NuxtLink
             v-for="h2h in headToHead"
             :key="h2h.opponent"
-            class="glass-card p-md flex items-center gap-md"
+            :to="{ path: '/stats/head-to-head', query: { player1: selectedPlayer, player2: h2h.opponent } }"
+            class="glass-card p-md flex items-center gap-md h2h-row-link"
           >
             <PlayerAvatar v-bind="getAvatarProps(h2h.opponent)" :size="28" />
             <div class="flex-1 min-w-0">
@@ -763,7 +775,7 @@ function gameAverage(gameId: number): number | null {
               </div>
               <span class="text-[0.9rem] font-bold tabular-nums" :class="h2h.losses > h2h.wins ? 'text-red' : 'text-fg-muted'">{{ h2h.losses }}</span>
             </div>
-          </div>
+          </NuxtLink>
         </div>
       </section>
 
@@ -1048,6 +1060,38 @@ function gameAverage(gameId: number): number | null {
 
 .export-menu-item:hover {
   background: var(--surface-3);
+}
+
+/* H2H row link */
+.h2h-row-link {
+  text-decoration: none;
+  transition:
+    border-color var(--duration-fast),
+    background var(--duration-fast);
+  cursor: pointer;
+}
+
+.h2h-row-link:hover {
+  border-color: var(--border-default);
+  background: var(--surface-3);
+}
+
+/* H2H compare link */
+.h2h-compare-link {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: color var(--duration-fast);
+}
+
+.h2h-compare-link:hover {
+  color: var(--gold);
 }
 
 /* Color utilities */
