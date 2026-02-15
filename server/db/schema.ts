@@ -81,6 +81,7 @@ export const players = pgTable('players', {
   userId: uuid('user_id').notNull().references(() => profiles.id, { onDelete: 'cascade' }),
   avatarStyle: text('avatar_style'),
   avatarSeed: text('avatar_seed'),
+  currentElo: integer('current_elo').notNull().default(1500),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 }, (table) => [
   unique().on(table.userId, table.name),
@@ -132,6 +133,18 @@ export const activeGames = pgTable('active_games', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }).enableRLS()
 
+export const eloHistory = pgTable('elo_history', {
+  id: serial('id').primaryKey(),
+  userId: uuid('user_id').notNull().references(() => profiles.id, { onDelete: 'cascade' }),
+  playerName: text('player_name').notNull(),
+  eloBefore: integer('elo_before').notNull(),
+  eloAfter: integer('elo_after').notNull(),
+  gameId: integer('game_id').notNull().references(() => games.id, { onDelete: 'cascade' }),
+  opponentName: text('opponent_name').notNull(),
+  result: text('result').notNull(), // 'win' | 'loss'
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}).enableRLS()
+
 export const broadcastSessions = pgTable('broadcast_sessions', {
   id: serial('id').primaryKey(),
   tournamentId: integer('tournament_id').notNull().unique().references(() => tournaments.id, { onDelete: 'cascade' }),
@@ -150,8 +163,9 @@ export const profilesRelations = relations(profiles, ({ many }) => ({
   games: many(games),
 }))
 
-export const playersRelations = relations(players, ({ one }) => ({
+export const playersRelations = relations(players, ({ one, many }) => ({
   profile: one(profiles, { fields: [players.userId], references: [profiles.id] }),
+  eloHistory: many(eloHistory),
 }))
 
 export const gamesRelations = relations(games, ({ one, many }) => ({
@@ -171,6 +185,11 @@ export const turnsRelations = relations(turns, ({ one, many }) => ({
 
 export const dartsThrowsRelations = relations(dartsThrows, ({ one }) => ({
   turn: one(turns, { fields: [dartsThrows.turnId], references: [turns.id] }),
+}))
+
+export const eloHistoryRelations = relations(eloHistory, ({ one }) => ({
+  profile: one(profiles, { fields: [eloHistory.userId], references: [profiles.id] }),
+  game: one(games, { fields: [eloHistory.gameId], references: [games.id] }),
 }))
 
 // ── Tournament Relations ──
