@@ -7,8 +7,14 @@ import { eq, and } from 'drizzle-orm'
 import { games, gamePlayers, turns, dartsThrows, players, eloHistory } from '../db/schema'
 import type { GameState } from '../../shared/game-models'
 import { computeElo } from './elo'
+import type { UnlockedAchievement } from './achievements'
 
-export async function saveFinishedGame(userId: string, state: GameState): Promise<number | null> {
+export interface SaveGameResult {
+  gameId: number
+  newAchievements: UnlockedAchievement[]
+}
+
+export async function saveFinishedGame(userId: string, state: GameState): Promise<SaveGameResult | null> {
   if (!state.is_finished || state.winner_index === null) return null
 
   try {
@@ -82,7 +88,18 @@ export async function saveFinishedGame(userId: string, state: GameState): Promis
     // Update Elo ratings for 2-player human games
     await updateEloRatings(userId, state, gameId)
 
-    return gameId
+    // Check for newly unlocked achievements
+    let newAchievements: UnlockedAchievement[] = []
+    try {
+      newAchievements = await checkAchievements(userId, gameId, state)
+      if (newAchievements.length > 0) {
+        console.log(`Unlocked ${newAchievements.length} achievement(s) for user ${userId}:`, newAchievements.map(a => a.name).join(', '))
+      }
+    } catch (achErr) {
+      console.warn('Failed to check achievements:', achErr)
+    }
+
+    return { gameId, newAchievements }
   } catch (err) {
     console.warn('Failed to save game to database', err)
     return null

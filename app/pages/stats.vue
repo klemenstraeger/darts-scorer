@@ -141,10 +141,20 @@ function eloTrendDelta(trend: EloTrendEntry[]): number {
   return trend[trend.length - 1]!.eloAfter - trend[0]!.eloAfter
 }
 
+interface AchievementItem {
+  id: string
+  name: string
+  description: string
+  icon: string
+  unlocked: boolean
+  unlockedBy: { playerName: string; unlockedAt: string; metadata: unknown }[]
+}
+
 const stats = ref<PlayerStats | null>(null)
 const trends = ref<TrendsData | null>(null)
 const history = ref<GameHistoryItem[]>([])
 const insights = ref<PlayerInsights | null>(null)
+const achievementList = ref<AchievementItem[]>([])
 const loading = ref(false)
 const loadingMore = ref(false)
 const hasMoreHistory = ref(true)
@@ -236,9 +246,29 @@ watch(selectedPlayer, (name) => {
   if (name) fetchStats(name)
 })
 
+async function fetchAchievements() {
+  try {
+    achievementList.value = await $fetch<AchievementItem[]>('/api/achievements')
+  } catch {
+    achievementList.value = []
+  }
+}
+
+const unlockedCount = computed(() => achievementList.value.filter(a => a.unlocked).length)
+const totalCount = computed(() => achievementList.value.length)
+
+function achievementUnlockDate(achievement: AchievementItem): string | null {
+  if (achievement.unlockedBy.length === 0) return null
+  const earliest = achievement.unlockedBy.reduce((a, b) =>
+    new Date(a.unlockedAt) < new Date(b.unlockedAt) ? a : b,
+  )
+  return formatDate(earliest.unlockedAt)
+}
+
 onMounted(async () => {
   await fetchPlayers()
   fetchHistory()
+  fetchAchievements()
   const playerParam = route.query.player as string | undefined
   if (playerParam && !selectedPlayer.value) {
     selectedPlayer.value = playerParam
@@ -982,6 +1012,48 @@ function gameAverage(gameId: number): number | null {
       Select a player to view their statistics
     </div>
 
+    <!-- Section 10: Achievements Gallery -->
+    <section
+      v-if="achievementList.length > 0"
+      class="mt-2xl"
+      v-motion
+      :initial="{ opacity: 0, y: 20 }"
+      :enter="{ opacity: 1, y: 0, transition: { duration: 300, delay: 600 } }"
+    >
+      <div class="flex items-baseline justify-between gap-md mb-md">
+        <h3 class="section-title !mb-0">Achievements</h3>
+        <span class="text-[0.7rem] text-fg-muted uppercase tracking-widest tabular-nums">
+          {{ unlockedCount }} / {{ totalCount }} unlocked
+        </span>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-md">
+        <div
+          v-for="achievement in achievementList"
+          :key="achievement.id"
+          class="achievement-card"
+          :class="{ unlocked: achievement.unlocked, locked: !achievement.unlocked }"
+        >
+          <div class="achievement-card-icon">{{ achievement.icon }}</div>
+          <div class="achievement-card-name">{{ achievement.name }}</div>
+          <div class="achievement-card-desc">{{ achievement.description }}</div>
+          <template v-if="achievement.unlocked">
+            <div class="achievement-card-players">
+              <span
+                v-for="u in achievement.unlockedBy"
+                :key="u.playerName"
+                class="achievement-player-tag"
+              >
+                {{ u.playerName }}
+              </span>
+            </div>
+            <div v-if="achievementUnlockDate(achievement)" class="achievement-card-date">
+              {{ achievementUnlockDate(achievement) }}
+            </div>
+          </template>
+        </div>
+      </div>
+    </section>
+
     </div><!-- end activeTab === 'stats' -->
   </div>
 </template>
@@ -1362,6 +1434,79 @@ function gameAverage(gameId: number): number | null {
 
 .spark-loss {
   background: rgba(239, 68, 68, 0.8);
+}
+
+/* Achievement cards */
+.achievement-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: var(--spacing-md) var(--spacing-sm);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-2);
+  text-align: center;
+  transition: transform var(--duration-fast), box-shadow var(--duration-fast);
+}
+
+.achievement-card.unlocked {
+  border-color: rgba(255, 215, 0, 0.25);
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.08), transparent);
+  box-shadow: 0 0 16px rgba(255, 215, 0, 0.08);
+}
+
+.achievement-card.unlocked:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(255, 215, 0, 0.15);
+}
+
+.achievement-card.locked {
+  opacity: 0.45;
+}
+
+.achievement-card-icon {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.achievement-card.locked .achievement-card-icon {
+  filter: grayscale(1);
+}
+
+.achievement-card-name {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.achievement-card-desc {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  line-height: 1.3;
+}
+
+.achievement-card-players {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+.achievement-player-tag {
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: var(--gold);
+  background: rgba(255, 215, 0, 0.1);
+  padding: 1px 6px;
+  border-radius: var(--radius-full);
+}
+
+.achievement-card-date {
+  font-size: 0.6rem;
+  color: var(--text-muted);
 }
 
 </style>
