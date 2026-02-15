@@ -1074,12 +1074,23 @@ function gameAverage(gameId: number): number | null {
               {{ game.players.map(p => p.final_score).join(' - ') }}
             </span>
           </div>
-          <div class="flex flex-col items-end gap-[2px]">
-            <span v-if="gameAverage(game.id) != null" class="text-[0.75rem] text-fg-secondary font-semibold tabular-nums">
-              avg {{ gameAverage(game.id)!.toFixed(1) }}
-            </span>
-            <span class="text-[0.75rem] text-fg-muted">{{ game.total_turns }} turns</span>
-            <span class="text-[0.7rem] text-fg-muted">{{ formatDate(game.created_at) }}</span>
+          <div class="flex items-center gap-md">
+            <div class="flex flex-col items-end gap-[2px]">
+              <span v-if="gameAverage(game.id) != null" class="text-[0.75rem] text-fg-secondary font-semibold tabular-nums">
+                avg {{ gameAverage(game.id)!.toFixed(1) }}
+              </span>
+              <span class="text-[0.75rem] text-fg-muted">{{ game.total_turns }} turns</span>
+              <span class="text-[0.7rem] text-fg-muted">{{ formatDate(game.created_at) }}</span>
+            </div>
+            <NuxtLink
+              :to="`/game/${game.id}/replay`"
+              class="replay-link"
+              title="Watch replay"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <polygon points="6 3 20 12 6 21 6 3" />
+              </svg>
+            </NuxtLink>
           </div>
         </div>
       </div>
@@ -1654,5 +1665,30 @@ function gameAverage(gameId: number): number | null {
 .achievement-card-date {
   font-size: 0.6rem;
   color: var(--text-muted);
+}
+
+.replay-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition:
+    background var(--duration-fast),
+    color var(--duration-fast),
+    border-color var(--duration-fast),
+    transform var(--duration-fast);
+}
+
+.replay-link:hover {
+  background: var(--surface-3);
+  color: var(--gold);
+  border-color: var(--border-gold);
+  transform: translateY(-1px);
 }
 </style>
