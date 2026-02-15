@@ -61,10 +61,20 @@ export default defineEventHandler(async (event) => {
   }
 
   // CSV format
+  const escapeCsvField = (value: string): string => {
+    // Escape internal double quotes by doubling them
+    let escaped = value.replace(/"/g, '""')
+    // Prefix formula-injection characters with a single quote to prevent Excel formula execution
+    if (/^[=+\-@]/.test(escaped)) {
+      escaped = `'${escaped}`
+    }
+    // Always wrap in double quotes for safety
+    return `"${escaped}"`
+  }
+
   const header = 'Date,Mode,Player,Result,Final Score'
   const csvRows = rows.map((r) => {
-    const escapedName = r.player_name.includes(',') ? `"${r.player_name}"` : r.player_name
-    return `${r.date},${r.mode},${escapedName},${r.result},${r.final_score}`
+    return `${escapeCsvField(r.date)},${escapeCsvField(r.mode)},${escapeCsvField(r.player_name)},${escapeCsvField(r.result)},${r.final_score}`
   })
   const csv = [header, ...csvRows].join('\n')
 
