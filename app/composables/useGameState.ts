@@ -18,6 +18,7 @@ let engine: GameEngine | null = null
 const hasActiveGame = ref(false)
 let dbSyncTimer: ReturnType<typeof setTimeout> | null = null
 let dbSyncDirty = false
+let lastCheckoutAnnouncement: { playerIndex: number; score: number } | null = null
 
 function persistToStorage(tournamentMatchId: number | null = null, tournamentId: number | null = null) {
   if (!engine || !import.meta.client) return
@@ -134,6 +135,7 @@ export function useGameState() {
     persistToStorage()
     scheduleDatabaseSync()
     hasActiveGame.value = true
+    lastCheckoutAnnouncement = null
     announcer.announceGameStart()
   }
 
@@ -158,7 +160,8 @@ export function useGameState() {
         break
       case GameEvent.LEG_WON: {
         store.triggerLegWon()
-        const winnerIdx = (engine.state.leg_starting_player - 1 + engine.state.players.length) % engine.state.players.length
+        const lastTurn = engine.state.turn_history[engine.state.turn_history.length - 1]
+        const winnerIdx = lastTurn?.player_index ?? engine.state.current_player_index
         const winnerName = engine.state.players[winnerIdx]?.name ?? ''
         announcer.announceGameShot(winnerName)
         break
@@ -190,9 +193,17 @@ export function useGameState() {
     if (!engine.state.is_finished) {
       const turnJustStarted = engine.state.turn_history.length > prevTurnCount
       if (turnJustStarted) {
-        const currentScore = engine.state.players[engine.state.current_player_index]?.score
+        const currentPlayerIdx = engine.state.current_player_index
+        const currentScore = engine.state.players[currentPlayerIdx]?.score
         if (currentScore != null && getCheckout(currentScore, 3)) {
-          announcer.announceCheckout(currentScore)
+          // Only announce if we haven't already announced for this player at this score
+          const shouldAnnounce = !lastCheckoutAnnouncement
+            || lastCheckoutAnnouncement.playerIndex !== currentPlayerIdx
+            || lastCheckoutAnnouncement.score !== currentScore
+          if (shouldAnnounce) {
+            lastCheckoutAnnouncement = { playerIndex: currentPlayerIdx, score: currentScore }
+            announcer.announceCheckout(currentScore)
+          }
         }
       }
     }
