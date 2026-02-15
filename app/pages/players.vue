@@ -4,6 +4,7 @@ import type { AvatarStyle } from '~/utils/avatar'
 import type { PlayerRecord } from '~/composables/usePlayers'
 
 const { players, fetchPlayers } = usePlayers()
+const { resetTours } = useOnboarding()
 
 // ── Create form ──
 const newName = ref('')
@@ -98,6 +99,15 @@ async function confirmDelete() {
   } finally {
     deleting.value = false
   }
+}
+
+// ── Tour reset ──
+const resetConfirm = ref(false)
+
+function handleResetTours() {
+  resetTours()
+  resetConfirm.value = false
+  // Optional: Show a brief toast/confirmation (could be added later)
 }
 
 onMounted(() => {
@@ -286,6 +296,50 @@ onMounted(() => {
         </div>
       </TransitionGroup>
     </section>
+
+    <!-- Settings section -->
+    <section
+      class="glass-card p-xl mt-xl"
+      v-motion
+      :initial="{ opacity: 0, y: 10 }"
+      :enter="{ opacity: 1, y: 0, transition: { duration: 300, delay: 200 } }"
+    >
+      <h3 class="section-title mb-lg">Settings</h3>
+      <div class="flex flex-col gap-md">
+        <div class="flex items-start justify-between gap-md max-sm:flex-col">
+          <div class="flex-1">
+            <div class="text-[0.95rem] font-bold text-fg mb-xs">Replay Onboarding Tour</div>
+            <div class="text-[0.8rem] text-fg-muted">
+              Re-trigger the guided tours on the Dashboard and Game pages to see the feature highlights again.
+            </div>
+          </div>
+          <button
+            class="btn btn-secondary shrink-0 whitespace-nowrap"
+            @click="resetConfirm = true"
+          >
+            Replay Tours
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Reset tours confirmation modal -->
+    <Transition name="fade">
+      <div v-if="resetConfirm" class="modal-overlay" @click.self="resetConfirm = false">
+        <div class="modal-card">
+          <h3 class="text-[1rem] font-bold text-fg mb-sm">Reset Tours</h3>
+          <p class="text-[0.85rem] text-fg-muted mb-lg">
+            The onboarding tours will be shown again the next time you visit the Dashboard and Game pages.
+          </p>
+          <div class="flex gap-sm justify-end">
+            <button class="btn btn-secondary" @click="resetConfirm = false">Cancel</button>
+            <button class="btn btn-gold" @click="handleResetTours">
+              Reset Tours
+            </button>
+          </div>
+        </div>
+      </div>
+    </Transition>
 
     <!-- Delete confirmation modal -->
     <Transition name="fade">

@@ -29,6 +29,7 @@ const canAdvanceStep1 = computed(() => {
 })
 
 let botCounter = 0
+let tourTimeout: ReturnType<typeof setTimeout> | null = null
 
 function addBot(difficulty: BotDifficulty) {
   if (selectedPlayers.value.length >= 4) return
@@ -69,8 +70,8 @@ onMounted(() => {
   checkActiveGame()
 
   if (shouldShowTour('dashboard')) {
-    setTimeout(() => {
-      startTour([
+    tourTimeout = setTimeout(() => {
+      const tourSteps = [
         {
           element: '[data-tour="player-picker"]',
           popover: {
@@ -89,7 +90,11 @@ onMounted(() => {
             align: 'center',
           },
         },
-        {
+      ]
+
+      // Only add quick-start step if the button is visible
+      if (canAdvanceStep1.value) {
+        tourSteps.push({
           element: '[data-tour="quick-start"]',
           popover: {
             title: 'Quick Start',
@@ -97,7 +102,10 @@ onMounted(() => {
             side: 'top',
             align: 'center',
           },
-        },
+        })
+      }
+
+      tourSteps.push(
         {
           element: '[data-tour="wizard"]',
           popover: {
@@ -116,8 +124,18 @@ onMounted(() => {
             align: 'center',
           },
         },
-      ], 'dashboard')
+      )
+
+      startTour(tourSteps, 'dashboard')
+      tourTimeout = null
     }, 800)
+  }
+})
+
+onBeforeUnmount(() => {
+  if (tourTimeout !== null) {
+    clearTimeout(tourTimeout)
+    tourTimeout = null
   }
 })
 

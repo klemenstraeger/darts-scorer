@@ -44,28 +44,34 @@ export function useOnboarding() {
     page: keyof OnboardingState,
     options?: Partial<Config>,
   ) {
-    const [{ driver }] = await Promise.all([
-      import('driver.js'),
-      import('driver.js/dist/driver.css'),
-    ])
+    try {
+      const [{ driver }] = await Promise.all([
+        import('driver.js'),
+        import('driver.js/dist/driver.css'),
+      ])
 
-    const driverObj = driver({
-      showProgress: true,
-      animate: true,
-      allowClose: true,
-      overlayColor: 'rgba(0, 0, 0, 0.7)',
-      stagePadding: 8,
-      stageRadius: 12,
-      popoverClass: 'darts-tour-popover',
-      ...options,
-      steps,
-      onDestroyed: (element, step, opts) => {
-        completeTour(page)
-        options?.onDestroyed?.(element, step, opts)
-      },
-    })
+      const driverObj = driver({
+        showProgress: true,
+        animate: true,
+        allowClose: true,
+        overlayColor: 'rgba(0, 0, 0, 0.7)',
+        stagePadding: 8,
+        stageRadius: 12,
+        popoverClass: 'darts-tour-popover',
+        ...options,
+        steps,
+        onDestroyed: (element, step, opts) => {
+          completeTour(page)
+          options?.onDestroyed?.(element, step, opts)
+        },
+      })
 
-    driverObj.drive()
+      driverObj.drive()
+    } catch (error) {
+      console.error('Failed to load or initialize tour:', error)
+      // Still mark tour as complete to avoid retrying on every page load
+      completeTour(page)
+    }
   }
 
   return {

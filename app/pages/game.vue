@@ -19,13 +19,15 @@ const { isTournamentMatch, tournamentId, clear: clearTournamentContext } = useTo
 const { ensureLoaded: ensurePlayers, getAvatarProps } = usePlayers()
 const { shouldShowTour, startTour } = useOnboarding()
 
+let tourTimeout: ReturnType<typeof setTimeout> | null = null
+
 // Load game state from localStorage on mount (handles resume + tournament match transitions)
 onMounted(() => {
   loadState()
   ensurePlayers()
 
   if (shouldShowTour('game')) {
-    setTimeout(() => {
+    tourTimeout = setTimeout(() => {
       startTour([
         {
           element: '[data-tour="score-display"]',
@@ -73,7 +75,15 @@ onMounted(() => {
           },
         },
       ], 'game')
+      tourTimeout = null
     }, 600)
+  }
+})
+
+onBeforeUnmount(() => {
+  if (tourTimeout !== null) {
+    clearTimeout(tourTimeout)
+    tourTimeout = null
   }
 })
 
