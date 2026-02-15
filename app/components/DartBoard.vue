@@ -44,8 +44,17 @@ const SEGMENT_ANGLE = 360 / 20
 function markerPosition(marker: DartMarker): { x: number; y: number } {
   // Bull
   if (marker.segment === 25) {
-    const r = marker.multiplier === 2 ? R.doubleBull * 0.5 : (R.doubleBull + R.singleBull) / 2
-    return { x: CX + r * 0.15, y: CY - r * 0.15 }
+    const r =
+      marker.multiplier === 2
+        ? R.doubleBull * 0.5
+        : (R.doubleBull + R.singleBull) / 2
+    // Place bull markers at distance r from the center along a fixed angle
+    const bullAngleDeg = -90
+    const bullRad = bullAngleDeg * (Math.PI / 180)
+    return {
+      x: CX + r * Math.cos(bullRad),
+      y: CY + r * Math.sin(bullRad),
+    }
   }
 
   // Miss
