@@ -27,6 +27,7 @@ onMounted(() => {
   ensurePlayers()
 })
 
+const isCricket = computed(() => state.mode === 'cricket')
 const isMatch = computed(() => state.legs_to_win > 1 || state.sets_to_win > 1)
 const hasSets = computed(() => state.sets_to_win > 1)
 
@@ -180,7 +181,7 @@ watch(hasGame, (active) => {
         <svg v-if="player.isBot" class="hidden md:block w-[28px] h-[28px] text-gold shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2" /><circle cx="8.5" cy="16" r="1.5" /><circle cx="15.5" cy="16" r="1.5" /><path d="M12 2v5M7 7h10" /></svg>
         <PlayerAvatar v-else v-bind="getAvatarProps(player.name)" :size="28" class="hidden md:block" />
         <span class="pc-name text-xs font-bold text-fg-muted uppercase tracking-wide whitespace-nowrap overflow-hidden text-ellipsis max-w-[100px]">{{ player.name }}</span>
-        <span class="pc-score text-[1.9rem] md:text-[2rem] lg:text-[2.8rem] font-black text-fg tabular-nums leading-none ml-auto md:ml-0">{{ displayScores[i] ?? player.score }}</span>
+        <span class="pc-score text-[1.9rem] md:text-[2rem] lg:text-[2.8rem] font-black text-fg tabular-nums leading-none ml-auto md:ml-0">{{ isCricket ? player.score : (displayScores[i] ?? player.score) }}</span>
         <span v-if="isMatch" class="md:hidden text-[0.65rem] font-bold text-fg-muted tabular-nums whitespace-nowrap">
           <template v-if="hasSets">S{{ state.sets_won[i] ?? 0 }} </template>L{{ state.current_set_legs[i] ?? 0 }}
         </span>
@@ -226,11 +227,14 @@ watch(hasGame, (active) => {
           </div>
         </div>
         <div class="flex justify-end sm:order-3">
-          <div v-if="checkoutHint" class="flex items-center gap-sm">
+          <div v-if="!isCricket && checkoutHint" class="flex items-center gap-sm">
             <span class="text-[0.65rem] font-bold text-fg-muted uppercase tracking-wide shrink-0">Checkout</span>
             <span class="flex gap-[4px]">
               <span v-for="(dart, i) in checkoutHint" :key="i" class="ct-checkout-dart text-[0.85rem] font-bold text-gold px-sm py-[2px] rounded-sm">{{ dart }}</span>
             </span>
+          </div>
+          <div v-if="isCricket" class="flex items-center">
+            <span class="text-[0.75rem] font-bold text-gold uppercase tracking-wide">Cricket</span>
           </div>
         </div>
       </div>
@@ -248,10 +252,27 @@ watch(hasGame, (active) => {
       </template>
     </div>
 
+    <!-- Cricket scoreboard (mobile only) -->
+    <div v-if="isCricket && state.cricket" class="md:hidden shrink-0 px-xs">
+      <CricketScoreBoard
+        :players="state.players"
+        :cricket-states="state.cricket.player_states"
+        :current-player-index="state.current_player_index"
+      />
+    </div>
+
     <!-- Main area: 2-column layout -->
     <div class="flex-1 min-h-0 grid grid-cols-1 md:grid-cols-[260px_1fr] lg:grid-cols-[300px_1fr] gap-md pt-0 pb-xs md:pt-xs md:pb-sm">
       <!-- Left: Context sidebar -->
       <div class="hidden md:flex flex-col gap-sm min-h-0 overflow-hidden">
+        <!-- Cricket scoreboard (desktop sidebar) -->
+        <div v-if="isCricket && state.cricket" class="shrink-0 rounded-md bg-glass border border-border-subtle p-sm">
+          <CricketScoreBoard
+            :players="state.players"
+            :cricket-states="state.cricket.player_states"
+            :current-player-index="state.current_player_index"
+          />
+        </div>
         <!-- Throw history (scrollable) -->
         <div class="flex-1 min-h-0 overflow-hidden rounded-md bg-glass border border-border-subtle p-sm">
           <ThrowHistory

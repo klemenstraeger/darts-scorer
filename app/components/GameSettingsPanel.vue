@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import type { CheckoutMode } from '~/types/game'
+import type { CheckoutMode, GameMode } from '~/types/game'
 
-const gameMode = defineModel<'501' | '301'>('gameMode', { required: true })
+const gameMode = defineModel<GameMode>('gameMode', { required: true })
 const checkout = defineModel<CheckoutMode>('checkout', { required: true })
 const legsToWin = defineModel<number>('legsToWin', { required: true })
 const setsToWin = defineModel<number>('setsToWin', { required: true })
 
 const legOptions = [1, 3, 5, 7]
 const setOptions = [1, 3, 5]
+
+const isCricket = computed(() => gameMode.value === 'cricket')
 </script>
 
 <template>
@@ -15,7 +17,7 @@ const setOptions = [1, 3, 5]
     <!-- Game mode -->
     <div class="glass-card w-full p-lg flex flex-col items-center gap-md">
       <span class="settings-label">Game Mode</span>
-      <div class="mode-toggle">
+      <div class="mode-toggle multi">
         <button
           class="mode-option"
           :class="{ active: gameMode === '501' }"
@@ -30,15 +32,25 @@ const setOptions = [1, 3, 5]
         >
           301
         </button>
+        <button
+          class="mode-option"
+          :class="{ active: gameMode === 'cricket' }"
+          @click="gameMode = 'cricket'"
+        >
+          Cricket
+        </button>
         <div
           class="mode-pill"
-          :style="{ transform: gameMode === '301' ? 'translateX(100%)' : 'translateX(0)' }"
+          :style="{
+            width: 'calc(33.333% - 2px)',
+            transform: `translateX(${gameMode === '301' ? '100%' : gameMode === 'cricket' ? '200%' : '0'})`
+          }"
         />
       </div>
     </div>
 
-    <!-- Checkout mode -->
-    <div class="glass-card w-full p-lg flex flex-col items-center gap-md">
+    <!-- Checkout mode (not applicable for Cricket) -->
+    <div v-if="!isCricket" class="glass-card w-full p-lg flex flex-col items-center gap-md">
       <span class="settings-label">Checkout</span>
       <div class="mode-toggle">
         <button

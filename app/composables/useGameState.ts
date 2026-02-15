@@ -1,4 +1,4 @@
-import { GameEngine } from '#shared/game-engine'
+import { createEngine, type IGameEngine } from '#shared/game-engine'
 import { GameEvent, detectThrowEvent } from '#shared/game-events'
 import { throwPoints, type CheckoutMode, type GameMode, type Multiplier, type PlayerDescriptor } from '#shared/game-models'
 
@@ -6,13 +6,13 @@ const STORAGE_KEY = 'darts-scorer:active-game'
 const DB_SYNC_INTERVAL = 2000 // Throttled sync: at most every 2 seconds
 
 interface PersistedGame {
-  state: ReturnType<GameEngine['newGame']>
+  state: ReturnType<IGameEngine['newGame']>
   tournamentMatchId: number | null
   tournamentId: number | null
 }
 
 // Module-level state shared across all consumers
-let engine: GameEngine | null = null
+let engine: IGameEngine | null = null
 const hasActiveGame = ref(false)
 let dbSyncTimer: ReturnType<typeof setTimeout> | null = null
 let dbSyncDirty = false
@@ -120,7 +120,7 @@ export function useGameState() {
     },
   ) {
     store.resetFlashes()
-    engine = new GameEngine()
+    engine = createEngine(undefined, mode)
     engine.newGame(
       mode as GameMode,
       players,
@@ -220,7 +220,7 @@ export function useGameState() {
     if (!persisted?.state || persisted.state.players.length === 0) {
       return
     }
-    engine = new GameEngine(persisted.state)
+    engine = createEngine(persisted.state)
     syncToStore()
     hasActiveGame.value = true
 

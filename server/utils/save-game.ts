@@ -20,6 +20,12 @@ export async function saveFinishedGame(userId: string, state: GameState): Promis
         .onConflictDoNothing()
     }
 
+    // Build game data for mode-specific info
+    const gameData: Record<string, unknown> = {}
+    if (state.mode === 'cricket' && state.cricket) {
+      gameData.cricket = state.cricket
+    }
+
     // Create game with userId
     const [game] = await db
       .insert(games)
@@ -28,6 +34,7 @@ export async function saveFinishedGame(userId: string, state: GameState): Promis
         winnerName,
         totalTurns: state.turn_history.length,
         userId,
+        ...(Object.keys(gameData).length > 0 ? { gameData } : {}),
       })
       .returning({ id: games.id })
 

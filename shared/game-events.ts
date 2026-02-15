@@ -7,6 +7,7 @@ export const GameEvent = {
   LEG_WON: 'leg_won',
   GAME_OVER: 'game_over',
   DART_SCORED: 'dart_scored',
+  CRICKET_CLOSED: 'cricket_closed',
 } as const
 
 export type GameEventType = (typeof GameEvent)[keyof typeof GameEvent]

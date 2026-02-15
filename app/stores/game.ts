@@ -58,7 +58,7 @@ export const useGameStore = defineStore('game', () => {
 })
 
 function parseGameState(data: GameState | Record<string, unknown>): GameState {
-  return {
+  const parsed: GameState = {
     mode: (data.mode as GameState['mode']) ?? '501',
     checkout: (data.checkout as GameState['checkout']) ?? 'double_out',
     legs_to_win: (data.legs_to_win as number) ?? 1,
@@ -74,4 +74,11 @@ function parseGameState(data: GameState | Record<string, unknown>): GameState {
     sets_won: (data.sets_won as number[]) ?? [],
     leg_starting_player: (data.leg_starting_player as number) ?? 0,
   }
+
+  // Preserve cricket state if present
+  if ('cricket' in data && data.cricket) {
+    parsed.cricket = data.cricket as GameState['cricket']
+  }
+
+  return parsed
 }

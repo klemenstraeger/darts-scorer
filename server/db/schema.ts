@@ -92,6 +92,7 @@ export const games = pgTable('games', {
   winnerName: text('winner_name'),
   totalTurns: integer('total_turns').notNull(),
   userId: uuid('user_id').references(() => profiles.id, { onDelete: 'set null' }),
+  gameData: jsonb('game_data'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 }).enableRLS()
 

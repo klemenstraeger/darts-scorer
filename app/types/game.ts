@@ -10,6 +10,8 @@ export type {
   GameState,
   BotDifficulty,
   PlayerDescriptor,
+  CricketPlayerState,
+  CricketState,
 } from '#shared/game-models'
 
 export {
@@ -19,4 +21,5 @@ export {
   turnIsComplete,
   createDefaultGameState,
   threeDartAverage,
+  CRICKET_TARGETS,
 } from '#shared/game-models'

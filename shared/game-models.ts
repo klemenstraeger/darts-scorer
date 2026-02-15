@@ -1,6 +1,6 @@
 /** Domain models for the darts scoring application. */
 
-export type GameMode = '501' | '301'
+export type GameMode = '501' | '301' | 'cricket'
 
 export type CheckoutMode = 'single_out' | 'double_out'
 
@@ -24,6 +24,8 @@ export interface Turn {
   throws: ThrowResult[]
   busted: boolean
   score_before: number | null
+  /** Cricket: snapshot of marks before this turn for undo support */
+  marks_before?: Record<number, number>
 }
 
 export interface Player {
@@ -35,6 +37,22 @@ export interface Player {
   isBot?: boolean
   botDifficulty?: BotDifficulty
 }
+
+/** Cricket-specific per-player state */
+export interface CricketPlayerState {
+  /** Marks per target: { 20: 3, 19: 2, ... } */
+  marks: Record<number, number>
+  /** Accumulated scoring points */
+  cricket_score: number
+}
+
+/** Cricket-specific game state extension */
+export interface CricketState {
+  player_states: CricketPlayerState[]
+}
+
+/** The 7 cricket targets in standard order */
+export const CRICKET_TARGETS = [20, 19, 18, 17, 16, 15, 25] as const
 
 export interface GameState {
   mode: GameMode
@@ -51,6 +69,8 @@ export interface GameState {
   current_set_legs: number[]
   sets_won: number[]
   leg_starting_player: number
+  /** Cricket-specific state, present only when mode === 'cricket' */
+  cricket?: CricketState
 }
 
 // ── Helper functions ──

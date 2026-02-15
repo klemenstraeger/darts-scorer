@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CheckoutMode, BotDifficulty, PlayerDescriptor } from '~/types/game'
+import type { CheckoutMode, BotDifficulty, GameMode, PlayerDescriptor } from '~/types/game'
 
 const { newGame, hasActiveGame, checkActiveGame, hasGame } = useGameState()
 
@@ -9,7 +9,7 @@ const step = ref(1)
 // ── Game settings ─────────────────────────────────────────────────────
 const selectedPlayers = ref<string[]>([])
 const botPlayers = ref<Map<string, BotDifficulty>>(new Map())
-const gameMode = ref<'501' | '301'>('501')
+const gameMode = ref<GameMode>('501')
 const checkout = ref<CheckoutMode>('double_out')
 const legsToWin = ref(1)
 const setsToWin = ref(1)

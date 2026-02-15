@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { CheckoutMode } from '~/types/game'
+import type { CheckoutMode, GameMode } from '~/types/game'
 
 const props = defineProps<{
   players: string[]
-  gameMode: '501' | '301'
+  gameMode: GameMode
   checkout: CheckoutMode
   legsToWin: number
   setsToWin: number
@@ -11,9 +11,16 @@ const props = defineProps<{
 
 const { getAvatarProps } = usePlayers()
 
+const isCricket = computed(() => props.gameMode === 'cricket')
+
 const checkoutLabel = computed(() =>
   props.checkout === 'double_out' ? 'Double Out' : 'Single Out'
 )
+
+const modeLabel = computed(() => {
+  if (props.gameMode === 'cricket') return 'Cricket'
+  return props.gameMode
+})
 </script>
 
 <template>
@@ -31,8 +38,8 @@ const checkoutLabel = computed(() =>
 
     <!-- Settings tags -->
     <div class="settings-tags">
-      <span class="tag tag-gold">{{ gameMode }}</span>
-      <span class="tag">{{ checkoutLabel }}</span>
+      <span class="tag tag-gold">{{ modeLabel }}</span>
+      <span v-if="!isCricket" class="tag">{{ checkoutLabel }}</span>
       <span class="tag">{{ legsToWin }} {{ legsToWin === 1 ? 'Leg' : 'Legs' }}</span>
       <span v-if="setsToWin > 1" class="tag">{{ setsToWin }} Sets</span>
     </div>
