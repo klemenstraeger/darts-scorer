@@ -83,6 +83,7 @@ export async function checkAchievements(
     const threeDartTurns = playerTurns.filter((t) => t.throws.length === 3)
     const threeDartAvg = threeDartTurns.length > 0
       ? threeDartTurns.reduce((sum, t) => {
+        if (t.busted) return sum
         return sum + t.throws.reduce((s, th) => s + throwPoints(th), 0)
       }, 0) / threeDartTurns.length
       : 0
