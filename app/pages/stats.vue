@@ -1,0 +1,944 @@
+<script setup lang="ts">
+const route = useRoute()
+const selectedPlayer = ref('')
+const { players, fetchPlayers, getAvatarProps } = usePlayers()
+
+interface FilterState {
+  from: string | null
+  to: string | null
+  mode: string | null
+}
+
+interface PlayerStats {
+  player_name: string
+  total_games: number
+  games_won: number
+  three_dart_average: number
+  total_points: number
+  total_darts: number
+  total_turns: number
+  busts: number
+  best_leg_turns: number | null
+  win_rate: number
+  count_180: number
+  count_140_plus: number
+  count_100_plus: number
+  highest_turn: number | null
+  scoring_average: number
+  first_9_average: number | null
+  miss_rate: number
+  best_game_darts: number | null
+  points_per_dart: number
+  avg_darts_per_leg: number | null
+}
+
+interface GameHistoryItem {
+  id: number
+  mode: string
+  winner_name: string
+  players: { player_name: string; position: number; final_score: number }[]
+  total_turns: number
+  created_at: string
+}
+
+interface InsightTurn {
+  id: number
+  game_id: number
+  turn_number: number
+  total_points: number
+  busted: boolean
+  game_created_at: string
+}
+
+interface InsightThrow {
+  segment: number
+  multiplier: number
+  points: number
+}
+
+interface PlayerInsights {
+  player_name: string
+  turns: InsightTurn[]
+  throws: InsightThrow[]
+}
+
+interface GameAverage {
+  game_id: number
+  created_at: string
+  average: number
+  won: boolean
+  opponent: string | null
+}
+
+interface HeadToHead {
+  opponent: string
+  games_played: number
+  wins: number
+  losses: number
+}
+
+interface CheckoutDart {
+  segment: number
+  multiplier: number
+  label: string
+  count: number
+}
+
+interface TrendsData {
+  game_averages: GameAverage[]
+  head_to_head: HeadToHead[]
+  checkout_darts: CheckoutDart[]
+}
+
+const stats = ref<PlayerStats | null>(null)
+const trends = ref<TrendsData | null>(null)
+const history = ref<GameHistoryItem[]>([])
+const insights = ref<PlayerInsights | null>(null)
+const loading = ref(false)
+const loadingMore = ref(false)
+const hasMoreHistory = ref(true)
+const activeFilter = ref<FilterState>({ from: null, to: null, mode: null })
+
+const filterLabel = computed(() => {
+  const { from, mode } = activeFilter.value
+  const parts: string[] = []
+  if (from) {
+    const days = Math.round((Date.now() - new Date(from).getTime()) / 86400000)
+    if (days <= 8) parts.push('Last 7 days')
+    else if (days <= 31) parts.push('Last 30 days')
+    else parts.push('Last 90 days')
+  }
+  if (mode) parts.push(mode)
+  return parts.length > 0 ? parts.join(' \u00b7 ') : 'All games'
+})
+
+function buildFilterParams(filter: FilterState): string {
+  const parts: string[] = []
+  if (filter.from) parts.push(`from=${encodeURIComponent(filter.from)}`)
+  if (filter.to) parts.push(`to=${encodeURIComponent(filter.to)}`)
+  if (filter.mode) parts.push(`mode=${encodeURIComponent(filter.mode)}`)
+  return parts.length > 0 ? `&${parts.join('&')}` : ''
+}
+
+async function fetchStats(name: string) {
+  loading.value = true
+  const fp = buildFilterParams(activeFilter.value)
+  try {
+    const [s, t, h, i] = await Promise.all([
+      $fetch<PlayerStats>(`/api/stats?player=${encodeURIComponent(name)}${fp}`),
+      $fetch<TrendsData>(`/api/stats/trends?player=${encodeURIComponent(name)}${fp}`),
+      $fetch<GameHistoryItem[]>(`/api/history?player=${encodeURIComponent(name)}&limit=20${fp}`),
+      $fetch<PlayerInsights>(`/api/stats/insights?player=${encodeURIComponent(name)}&turn_limit=40&throw_limit=300${fp}`),
+    ])
+    stats.value = s
+    trends.value = t
+    history.value = h
+    hasMoreHistory.value = h.length >= 20
+    insights.value = i
+  } catch {
+    stats.value = null
+    trends.value = null
+  } finally {
+    loading.value = false
+  }
+}
+
+async function fetchHistory() {
+  const fp = buildFilterParams(activeFilter.value)
+  try {
+    const h = await $fetch<GameHistoryItem[]>(`/api/history?limit=20${fp}`)
+    history.value = h
+    hasMoreHistory.value = h.length >= 20
+  } catch {
+    history.value = []
+  }
+}
+
+async function loadMoreHistory() {
+  if (loadingMore.value || !hasMoreHistory.value) return
+  loadingMore.value = true
+  const fp = buildFilterParams(activeFilter.value)
+  const playerParam = selectedPlayer.value ? `&player=${encodeURIComponent(selectedPlayer.value)}` : ''
+  try {
+    const more = await $fetch<GameHistoryItem[]>(
+      `/api/history?limit=20&offset=${history.value.length}${playerParam}${fp}`
+    )
+    history.value = [...history.value, ...more]
+    hasMoreHistory.value = more.length >= 20
+  } catch {
+    hasMoreHistory.value = false
+  } finally {
+    loadingMore.value = false
+  }
+}
+
+function onFilterUpdate(filter: FilterState) {
+  activeFilter.value = filter
+  if (selectedPlayer.value) {
+    fetchStats(selectedPlayer.value)
+  } else {
+    fetchHistory()
+  }
+}
+
+watch(selectedPlayer, (name) => {
+  if (name) fetchStats(name)
+})
+
+onMounted(async () => {
+  await fetchPlayers()
+  fetchHistory()
+  const playerParam = route.query.player as string | undefined
+  if (playerParam && !selectedPlayer.value) {
+    selectedPlayer.value = playerParam
+  }
+})
+
+function selectPlayer(name: string) {
+  selectedPlayer.value = name
+}
+
+function formatDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  })
+}
+
+function formatShortDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+  })
+}
+
+// Overview cards (now 9 cards with avg_darts_per_leg)
+const statCards = computed(() => [
+  { key: 'total_games', label: 'Games', icon: '#' },
+  { key: 'games_won', label: 'Wins', icon: 'W' },
+  { key: 'win_rate', label: 'Win %', icon: '%', suffix: '%' },
+  { key: 'three_dart_average', label: '3-Dart Avg', icon: 'x\u0304' },
+  { key: 'scoring_average', label: 'Scoring Avg', icon: 'S' },
+  { key: 'first_9_average', label: 'First 9 Avg', icon: '9' },
+  { key: 'bust_rate', label: 'Bust Rate', icon: 'BR', suffix: '%' },
+  { key: 'best_game_darts', label: 'Best Game', icon: 'D', sublabel: 'darts' },
+  { key: 'avg_darts_per_leg', label: 'Avg Darts/Leg', icon: 'A' },
+])
+
+const bustRate = computed(() => {
+  if (!stats.value || stats.value.total_turns === 0) return 0
+  return Math.round((stats.value.busts / stats.value.total_turns) * 1000) / 10
+})
+
+// Milestone cards
+const milestoneCards = computed(() => {
+  if (!stats.value) return []
+  return [
+    { label: '180s', value: stats.value.count_180, accent: 'gold' as const },
+    { label: '140+', value: stats.value.count_140_plus, accent: 'muted' as const },
+    { label: '100+', value: stats.value.count_100_plus, accent: 'muted' as const },
+    { label: 'Highest Turn', value: stats.value.highest_turn ?? '\u2014', accent: 'muted' as const },
+  ]
+})
+
+// Recent form dots (last 10 games)
+const recentForm = computed(() => {
+  if (!trends.value || trends.value.game_averages.length === 0) return []
+  return trends.value.game_averages.slice(-10).map(g => g.won)
+})
+
+// Performance trend data
+const trendValues = computed(() => {
+  if (!trends.value) return []
+  return trends.value.game_averages.map(g => g.average)
+})
+
+const trendXLabels = computed(() => {
+  if (!trends.value) return []
+  return trends.value.game_averages.map(g => formatShortDate(g.created_at))
+})
+
+const overallAverage = computed(() => stats.value?.three_dart_average ?? 0)
+
+// Win rate trend (cumulative)
+const winRateTrendValues = computed(() => {
+  if (!trends.value || trends.value.game_averages.length < 2) return []
+  let wins = 0
+  return trends.value.game_averages.map((g, i) => {
+    if (g.won) wins++
+    return Math.round((wins / (i + 1)) * 1000) / 10
+  })
+})
+
+const winRateTrendLabels = computed(() => {
+  if (!trends.value) return []
+  return trends.value.game_averages.map(g => formatShortDate(g.created_at))
+})
+
+const overallWinRate = computed(() => stats.value?.win_rate ?? 0)
+
+// Turn distribution
+const recentTurnTotals = computed(() => {
+  if (!insights.value) return []
+  return insights.value.turns
+    .slice(0, 16)
+    .map((turn) => (turn.busted ? 0 : turn.total_points))
+    .reverse()
+})
+
+const turnDistribution = computed(() => {
+  const buckets = [0, 20, 40, 60, 80, 100, 120, 140]
+  const labels = buckets.map((b, i) => (
+    i === buckets.length - 1 ? '140+' : `${b}-${b + 19}`
+  ))
+  const values = new Array(labels.length).fill(0) as number[]
+  if (!insights.value) return { labels, values }
+  insights.value.turns.forEach((turn) => {
+    const total = turn.busted ? 0 : turn.total_points
+    const idx = buckets.findIndex((b, i) => (
+      i === buckets.length - 1
+        ? total >= b
+        : total >= b && total < buckets[i + 1]!
+    ))
+    if (idx >= 0) values[idx]! += 1
+  })
+  return { labels, values }
+})
+
+// Ring accuracy (with misses)
+const ringBreakdown = computed(() => {
+  const labels = ['Miss', 'S', 'D', 'T', 'Bull']
+  const values = [0, 0, 0, 0, 0]
+  if (!insights.value) return { labels, values, percentages: labels.map(() => '0') }
+  insights.value.throws.forEach((t) => {
+    if (t.segment === 0) {
+      values[0]! += 1
+    } else if (t.segment === 25) {
+      values[4]! += 1
+    } else if (t.multiplier === 1) {
+      values[1]! += 1
+    } else if (t.multiplier === 2) {
+      values[2]! += 1
+    } else if (t.multiplier === 3) {
+      values[3]! += 1
+    }
+  })
+  const total = values.reduce((a, v) => a + v, 0)
+  const percentages = values.map(v => total > 0 ? ((v / total) * 100).toFixed(1) : '0')
+  return { labels, values, percentages }
+})
+
+// Scoring by number (darts per board number 1-20 + Bull)
+const scoringByNumber = computed(() => {
+  const counts = new Map<number, number>()
+  if (!insights.value) return { labels: [] as string[], values: [] as number[] }
+  insights.value.throws.forEach((t) => {
+    if (t.segment === 0) return
+    counts.set(t.segment, (counts.get(t.segment) ?? 0) + 1)
+  })
+  // Sort by segment number (1-20, then 25 as Bull)
+  const segments = [...counts.entries()].sort((a, b) => a[0] - b[0])
+  return {
+    labels: segments.map(([seg]) => seg === 25 ? 'Bull' : String(seg)),
+    values: segments.map(([, count]) => count),
+  }
+})
+
+// Heatmap
+const segmentHeat = computed(() => {
+  const counts: Record<string, number> = {}
+  if (!insights.value) return counts
+  insights.value.throws.forEach((t) => {
+    if (t.segment === 0) return
+    if (t.segment === 25) {
+      const key = `25-${t.multiplier === 2 ? 'double' : 'single'}`
+      counts[key] = (counts[key] ?? 0) + 1
+      return
+    }
+    const ring = t.multiplier === 3 ? 'treble' : t.multiplier === 2 ? 'double' : 'single'
+    const key = `${t.segment}-${ring}`
+    counts[key] = (counts[key] ?? 0) + 1
+  })
+  return counts
+})
+
+// Checkout analysis
+const checkoutBars = computed(() => {
+  if (!trends.value || trends.value.checkout_darts.length === 0) return { labels: [] as string[], values: [] as number[] }
+  const top = trends.value.checkout_darts.slice(0, 8)
+  return {
+    labels: top.map(c => c.label),
+    values: top.map(c => c.count),
+  }
+})
+
+// Head-to-head
+const headToHead = computed(() => {
+  if (!trends.value) return []
+  return trends.value.head_to_head
+})
+
+// Top segments
+const topSegments = computed(() => {
+  if (!insights.value) return []
+  const map = new Map<string, number>()
+  insights.value.throws.forEach((t) => {
+    if (t.segment === 0) return
+    const label = t.segment === 25
+      ? (t.multiplier === 2 ? 'DB' : 'SB')
+      : `${t.multiplier === 3 ? 'T' : t.multiplier === 2 ? 'D' : 'S'}${t.segment}`
+    map.set(label, (map.get(label) ?? 0) + 1)
+  })
+  return [...map.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3)
+})
+
+const consistencyScore = computed(() => {
+  if (!insights.value || insights.value.turns.length === 0) return 0
+  const totals = insights.value.turns.map((t) => (t.busted ? 0 : t.total_points))
+  const avg = totals.reduce((a, v) => a + v, 0) / totals.length
+  const variance = totals.reduce((a, v) => a + Math.pow(v - avg, 2), 0) / totals.length
+  const score = Math.max(0, 100 - Math.sqrt(variance))
+  return Math.round(score)
+})
+
+const insightCards = computed(() => {
+  const cards: { title: string; detail: string; tone?: 'gold' | 'blue' | 'green' }[] = []
+  if (!stats.value) return cards
+
+  // Opening form insight (first-9 vs overall)
+  if (stats.value.first_9_average != null && stats.value.three_dart_average > 0) {
+    const diff = stats.value.first_9_average - stats.value.three_dart_average
+    const pct = ((diff / stats.value.three_dart_average) * 100).toFixed(0)
+    cards.push({
+      title: 'Opening form',
+      detail: diff >= 0
+        ? `First 9 avg ${stats.value.first_9_average.toFixed(1)} (+${pct}% vs overall)`
+        : `First 9 avg ${stats.value.first_9_average.toFixed(1)} (${pct}% vs overall)`,
+      tone: diff >= 0 ? 'green' : 'gold',
+    })
+  }
+
+  cards.push({
+    title: 'Consistency',
+    detail: `${consistencyScore.value}/100 based on recent turns`,
+    tone: consistencyScore.value >= 60 ? 'blue' : 'gold',
+  })
+
+  if (topSegments.value.length > 0) {
+    const detail = topSegments.value.map(([label]) => label).join(', ')
+    cards.push({ title: 'Top targets', detail, tone: 'gold' })
+  }
+
+  // Checkout variety
+  if (trends.value && trends.value.checkout_darts.length > 0) {
+    const uniqueCheckouts = trends.value.checkout_darts.length
+    cards.push({
+      title: 'Checkout variety',
+      detail: `${uniqueCheckouts} different checkout${uniqueCheckouts !== 1 ? 's' : ''} used`,
+      tone: uniqueCheckouts >= 4 ? 'green' : 'blue',
+    })
+  }
+
+  // Opponent spotlight (worst H2H)
+  if (trends.value && trends.value.head_to_head.length > 0) {
+    const worst = trends.value.head_to_head
+      .filter(h => h.games_played >= 2)
+      .sort((a, b) => (a.wins / a.games_played) - (b.wins / b.games_played))[0]
+    if (worst && worst.wins < worst.losses) {
+      cards.push({
+        title: 'Rival alert',
+        detail: `${worst.wins}-${worst.losses} vs ${worst.opponent}`,
+        tone: 'gold',
+      })
+    }
+  }
+
+  const bustPct = bustRate.value
+  cards.push({
+    title: 'Bust control',
+    detail: `${bustPct.toFixed(1)}% bust rate`,
+    tone: bustPct < 10 ? 'green' : 'blue',
+  })
+
+  return cards
+})
+
+// Per-game average for history items
+function gameAverage(gameId: number): number | null {
+  if (!trends.value) return null
+  const g = trends.value.game_averages.find(ga => ga.game_id === gameId)
+  return g ? g.average : null
+}
+</script>
+
+<template>
+  <div class="px-lg py-xl max-w-[1100px] mx-auto w-full">
+    <!-- Section 1: Hero -->
+    <div
+      class="stats-hero"
+      v-motion
+      :initial="{ opacity: 0, y: -10 }"
+      :enter="{ opacity: 1, y: 0, transition: { duration: 300 } }"
+    >
+      <div>
+        <h2 class="text-[2rem] font-extrabold text-fg mb-xs">Performance Hub</h2>
+        <p class="text-[0.9rem] text-fg-secondary max-w-[480px]">Track trends, accuracy, and game flow.</p>
+      </div>
+      <div class="stats-glow"></div>
+    </div>
+
+    <!-- Player chips -->
+    <div
+      class="flex flex-wrap gap-sm justify-center mb-md"
+      v-motion
+      :initial="{ opacity: 0 }"
+      :enter="{ opacity: 1, transition: { duration: 300, delay: 100 } }"
+    >
+      <button
+        v-for="player in players"
+        :key="player.id"
+        class="player-chip"
+        :class="{ active: player.name === selectedPlayer }"
+        @click="selectPlayer(player.name)"
+      >
+        <PlayerAvatar v-bind="getAvatarProps(player.name)" :size="22" />
+        {{ player.name }}
+      </button>
+      <div v-if="players.length === 0" class="text-fg-muted italic text-[0.9rem]">
+        No players yet. Play a game first!
+      </div>
+    </div>
+
+    <!-- Filter bar -->
+    <div
+      v-if="selectedPlayer"
+      class="flex justify-center mb-xl"
+      v-motion
+      :initial="{ opacity: 0 }"
+      :enter="{ opacity: 1, transition: { duration: 300, delay: 150 } }"
+    >
+      <StatsFilterBar @update="onFilterUpdate" />
+    </div>
+
+    <div v-if="loading" class="text-center text-fg-muted p-2xl">Loading stats...</div>
+
+    <div v-if="stats && !loading" class="flex flex-col gap-2xl">
+      <!-- Section 2: Overview Cards -->
+      <section class="flex flex-col gap-md">
+        <div class="flex items-center justify-between gap-md mb-md flex-wrap">
+          <div class="flex items-center gap-md">
+            <h3 class="section-title !mb-0">Overview</h3>
+            <!-- Recent form dots -->
+            <div v-if="recentForm.length > 0" class="flex items-center gap-[4px]">
+              <span
+                v-for="(won, i) in recentForm"
+                :key="i"
+                class="form-dot"
+                :class="won ? 'form-win' : 'form-loss'"
+              ></span>
+            </div>
+          </div>
+          <span class="text-[0.7rem] text-fg-muted uppercase tracking-widest">{{ filterLabel }}</span>
+        </div>
+        <div class="grid grid-cols-3 gap-md max-sm:grid-cols-2">
+          <div
+            v-for="(card, i) in statCards"
+            :key="card.key"
+            class="glass-card p-lg text-center flex flex-col items-center gap-xs"
+            v-motion
+            :initial="{ opacity: 0, y: 20 }"
+            :enter="{ opacity: 1, y: 0, transition: { duration: 300, delay: 150 + i * 40 } }"
+          >
+            <div class="text-[1rem] text-fg-muted">{{ card.icon }}</div>
+            <div class="text-[1.8rem] font-extrabold text-fg tabular-nums">
+              <template v-if="card.key === 'bust_rate'">{{ bustRate.toFixed(1) }}</template>
+              <template v-else>{{ (stats as any)[card.key] ?? '\u2014' }}</template>
+              <span v-if="card.suffix" class="text-[1rem]">{{ card.suffix }}</span>
+            </div>
+            <div class="text-[0.7rem] font-semibold text-fg-muted uppercase tracking-wide">
+              {{ card.label }}
+              <span v-if="card.sublabel" class="text-fg-muted font-normal">({{ card.sublabel }})</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 3: Scoring Milestones -->
+      <section
+        class="flex flex-col gap-md"
+        v-motion
+        :initial="{ opacity: 0 }"
+        :enter="{ opacity: 1, transition: { duration: 300, delay: 400 } }"
+      >
+        <h3 class="section-title">Scoring Milestones</h3>
+        <div class="grid grid-cols-4 gap-md max-sm:grid-cols-2">
+          <div
+            v-for="m in milestoneCards"
+            :key="m.label"
+            class="milestone-card"
+            :class="m.accent"
+          >
+            <div class="text-[2rem] font-extrabold tabular-nums">{{ m.value }}</div>
+            <div class="text-[0.7rem] font-semibold uppercase tracking-wide opacity-70">{{ m.label }}</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 4: Performance Trend (full width) -->
+      <section
+        v-if="trendValues.length >= 2"
+        class="glass-card p-lg"
+        v-motion
+        :initial="{ opacity: 0, y: 20 }"
+        :enter="{ opacity: 1, y: 0, transition: { duration: 300, delay: 450 } }"
+      >
+        <div class="flex items-baseline justify-between gap-md mb-md">
+          <h3 class="section-title !mb-0">Performance Trend</h3>
+          <span class="text-[0.7rem] text-fg-muted uppercase tracking-widest">Per-game 3-dart avg</span>
+        </div>
+        <StatsAreaChart
+          :values="trendValues"
+          :rolling="5"
+          :x-labels="trendXLabels"
+          :height="200"
+        />
+      </section>
+
+      <!-- Section 4b: Win Rate Trend -->
+      <section
+        v-if="winRateTrendValues.length >= 2"
+        class="glass-card p-lg"
+        v-motion
+        :initial="{ opacity: 0, y: 20 }"
+        :enter="{ opacity: 1, y: 0, transition: { duration: 300, delay: 470 } }"
+      >
+        <div class="flex items-baseline justify-between gap-md mb-md">
+          <h3 class="section-title !mb-0">Win Rate Trend</h3>
+          <span class="text-[0.7rem] text-fg-muted uppercase tracking-widest">Cumulative win %</span>
+        </div>
+        <StatsAreaChart
+          :values="winRateTrendValues"
+          :x-labels="winRateTrendLabels"
+          :height="180"
+        />
+      </section>
+
+      <!-- Section 5: Momentum + Turn Distribution -->
+      <section class="grid grid-cols-2 gap-lg max-sm:grid-cols-1">
+        <div class="glass-card p-lg">
+          <h3 class="section-title">Momentum</h3>
+          <StatsAreaChart :values="recentTurnTotals" :rolling="4" label="Last 16 turns" />
+        </div>
+        <div class="glass-card p-lg">
+          <h3 class="section-title">Turn Distribution</h3>
+          <StatsBarChart :labels="turnDistribution.labels" :values="turnDistribution.values" accent="gold" />
+        </div>
+      </section>
+
+      <!-- Section 5b: Scoring by Number -->
+      <section
+        v-if="scoringByNumber.labels.length > 0"
+        class="glass-card p-lg"
+        v-motion
+        :initial="{ opacity: 0, y: 20 }"
+        :enter="{ opacity: 1, y: 0, transition: { duration: 300, delay: 480 } }"
+      >
+        <div class="flex items-baseline justify-between gap-md mb-md">
+          <h3 class="section-title !mb-0">Scoring by Number</h3>
+          <span class="text-[0.7rem] text-fg-muted uppercase tracking-widest">Darts per board number</span>
+        </div>
+        <StatsBarChart :labels="scoringByNumber.labels" :values="scoringByNumber.values" accent="blue" />
+      </section>
+
+      <!-- Section 6: Ring Accuracy + Heatmap / Checkout -->
+      <section class="grid grid-cols-2 gap-lg max-sm:grid-cols-1">
+        <div class="glass-card p-lg">
+          <h3 class="section-title">Ring Accuracy</h3>
+          <StatsBarChart :labels="ringBreakdown.labels" :values="ringBreakdown.values" accent="blue" />
+          <div class="grid grid-cols-5 gap-xs mt-md text-center">
+            <div v-for="(pct, i) in ringBreakdown.percentages" :key="ringBreakdown.labels[i]" class="text-[0.65rem] text-fg-muted tabular-nums">
+              {{ pct }}%
+            </div>
+          </div>
+        </div>
+        <div class="glass-card p-lg flex flex-col items-center gap-md">
+          <h3 class="section-title">Target Heatmap</h3>
+          <StatsDartboardHeatmap :hits="segmentHeat" :size="220" />
+          <p class="text-[0.7rem] text-fg-muted">Segment frequency from recent throws.</p>
+        </div>
+      </section>
+
+      <!-- Section 6b: Checkout Analysis -->
+      <section
+        v-if="checkoutBars.labels.length > 0"
+        class="glass-card p-lg"
+        v-motion
+        :initial="{ opacity: 0, y: 20 }"
+        :enter="{ opacity: 1, y: 0, transition: { duration: 300, delay: 500 } }"
+      >
+        <h3 class="section-title">Favorite Checkouts</h3>
+        <StatsBarChart :labels="checkoutBars.labels" :values="checkoutBars.values" accent="green" />
+        <p class="text-[0.7rem] text-fg-muted mt-sm">Most-used finishing doubles.</p>
+      </section>
+
+      <!-- Section 7: Head-to-Head Records -->
+      <section
+        v-if="headToHead.length > 0"
+        class="flex flex-col gap-md"
+        v-motion
+        :initial="{ opacity: 0, y: 20 }"
+        :enter="{ opacity: 1, y: 0, transition: { duration: 300, delay: 550 } }"
+      >
+        <h3 class="section-title">Head-to-Head</h3>
+        <div class="flex flex-col gap-sm">
+          <div
+            v-for="h2h in headToHead"
+            :key="h2h.opponent"
+            class="glass-card p-md flex items-center gap-md"
+          >
+            <PlayerAvatar v-bind="getAvatarProps(h2h.opponent)" :size="28" />
+            <div class="flex-1 min-w-0">
+              <div class="text-[0.85rem] font-semibold text-fg truncate">{{ h2h.opponent }}</div>
+              <div class="text-[0.7rem] text-fg-muted">{{ h2h.games_played }} game{{ h2h.games_played !== 1 ? 's' : '' }}</div>
+            </div>
+            <div class="flex items-center gap-sm">
+              <span class="text-[0.9rem] font-bold tabular-nums" :class="h2h.wins >= h2h.losses ? 'text-green' : 'text-fg-muted'">{{ h2h.wins }}</span>
+              <div class="h2h-bar" :style="{ '--win-pct': `${(h2h.wins / h2h.games_played) * 100}%` }">
+                <div class="h2h-bar-fill"></div>
+              </div>
+              <span class="text-[0.9rem] font-bold tabular-nums" :class="h2h.losses > h2h.wins ? 'text-red' : 'text-fg-muted'">{{ h2h.losses }}</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 8: Recommendations -->
+      <section class="flex flex-col gap-md">
+        <div class="flex items-baseline justify-between gap-md mb-md">
+          <h3 class="section-title !mb-0">Recommendations</h3>
+          <span class="text-[0.7rem] text-fg-muted uppercase tracking-widest">Based on recent trends</span>
+        </div>
+        <div class="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-md">
+          <StatsInsightCard
+            v-for="card in insightCards"
+            :key="card.title"
+            :title="card.title"
+            :detail="card.detail"
+            :tone="card.tone"
+          />
+        </div>
+      </section>
+    </div>
+
+    <!-- Section 9: Game History -->
+    <div
+      v-if="history.length > 0"
+      v-motion
+      :initial="{ opacity: 0 }"
+      :enter="{ opacity: 1, transition: { duration: 300, delay: 500 } }"
+    >
+      <h3 class="section-title mt-2xl">Game History</h3>
+      <div class="flex flex-col gap-sm">
+        <div
+          v-for="game in history"
+          :key="game.id"
+          class="glass-card p-md flex justify-between items-center max-sm:flex-wrap max-sm:gap-sm"
+        >
+          <div class="flex items-center gap-md">
+            <span class="text-[0.75rem] font-bold text-gold bg-gold-tint px-[8px] py-[2px] rounded-sm">{{ game.mode }}</span>
+            <span class="text-[0.85rem] text-fg-secondary">
+              <template v-for="(p, i) in game.players" :key="p.player_name">
+                <span v-if="i > 0" class="text-fg-muted mx-xs text-[0.75rem]">vs</span>
+                <span :class="{ 'text-gold font-semibold': game.winner_name === p.player_name }">
+                  {{ p.player_name }}
+                </span>
+              </template>
+            </span>
+            <span class="text-[0.85rem] font-semibold text-fg tabular-nums">
+              {{ game.players.map(p => p.final_score).join(' - ') }}
+            </span>
+          </div>
+          <div class="flex flex-col items-end gap-[2px]">
+            <span v-if="gameAverage(game.id) != null" class="text-[0.75rem] text-fg-secondary font-semibold tabular-nums">
+              avg {{ gameAverage(game.id)!.toFixed(1) }}
+            </span>
+            <span class="text-[0.75rem] text-fg-muted">{{ game.total_turns }} turns</span>
+            <span class="text-[0.7rem] text-fg-muted">{{ formatDate(game.created_at) }}</span>
+          </div>
+        </div>
+      </div>
+      <!-- Load more button -->
+      <div v-if="hasMoreHistory" class="flex justify-center mt-lg">
+        <button
+          class="load-more-btn"
+          :disabled="loadingMore"
+          @click="loadMoreHistory"
+        >
+          {{ loadingMore ? 'Loading...' : 'Load more' }}
+        </button>
+      </div>
+    </div>
+
+    <div v-if="!selectedPlayer && history.length === 0 && !loading" class="text-center text-fg-muted p-2xl text-[0.95rem]">
+      Select a player to view their statistics
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.stats-hero {
+  position: relative;
+  padding: var(--spacing-lg) var(--spacing-xl);
+  border-radius: var(--radius-xl);
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.08), rgba(59, 130, 246, 0.08));
+  border: 1px solid var(--border-subtle);
+  overflow: hidden;
+  margin-bottom: var(--spacing-xl);
+}
+
+.stats-glow {
+  position: absolute;
+  top: -60px;
+  right: -40px;
+  width: 220px;
+  height: 220px;
+  background: radial-gradient(circle, rgba(255, 215, 0, 0.25), transparent 70%);
+  filter: blur(6px);
+}
+
+.section-title {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: var(--spacing-md);
+}
+
+.player-chip {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-lg);
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background var(--duration-fast),
+    border-color var(--duration-fast),
+    color var(--duration-fast),
+    transform var(--duration-fast);
+}
+
+.player-chip:hover {
+  background: var(--surface-3);
+  transform: translateY(-1px);
+}
+
+.player-chip.active {
+  background: rgba(255, 215, 0, 0.12);
+  border-color: var(--border-gold);
+  color: var(--gold);
+  font-weight: 600;
+}
+
+/* Milestone cards */
+.milestone-card {
+  padding: var(--spacing-lg);
+  text-align: center;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-2);
+}
+
+.milestone-card.gold {
+  border-color: rgba(255, 215, 0, 0.25);
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.08), transparent);
+  color: var(--gold);
+  box-shadow: 0 0 24px rgba(255, 215, 0, 0.1);
+}
+
+.milestone-card.muted {
+  color: var(--text-primary);
+}
+
+/* Head-to-head bar */
+.h2h-bar {
+  width: 60px;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  position: relative;
+}
+
+.h2h-bar-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: var(--win-pct);
+  border-radius: 3px;
+  background: linear-gradient(90deg, rgba(34, 197, 94, 0.8), rgba(34, 197, 94, 0.4));
+  transition: width var(--duration-normal) var(--ease-out);
+}
+
+/* Recent form dots */
+.form-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.form-win {
+  background: rgba(34, 197, 94, 0.9);
+  box-shadow: 0 0 6px rgba(34, 197, 94, 0.4);
+}
+
+.form-loss {
+  background: rgba(239, 68, 68, 0.9);
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.4);
+}
+
+/* Load more button */
+.load-more-btn {
+  padding: var(--spacing-sm) var(--spacing-xl);
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background var(--duration-fast),
+    border-color var(--duration-fast);
+}
+
+.load-more-btn:hover:not(:disabled) {
+  background: var(--surface-3);
+  border-color: var(--border-default);
+}
+
+.load-more-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Color utilities */
+.text-green {
+  color: rgba(34, 197, 94, 0.9);
+}
+
+.text-red {
+  color: rgba(239, 68, 68, 0.9);
+}
+
+</style>

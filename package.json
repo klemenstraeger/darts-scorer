@@ -1,0 +1,53 @@
+{
+  "name": "darts-scorer-nuxt",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "generate:pwa-icons": "node scripts/generate-pwa-icons.mjs"
+  },
+  "dependencies": {
+    "@nuxtjs/color-mode": "^4.0.0",
+    "@nuxtjs/supabase": "2.0.3",
+    "@pinia/nuxt": "^0.11.3",
+    "@supabase/supabase-js": "^2.95.3",
+    "@tailwindcss/vite": "^4.1.18",
+    "@unovis/ts": "^1.6.4",
+    "@unovis/vue": "^1.6.4",
+    "@vite-pwa/nuxt": "^1.1.1",
+    "@vueuse/core": "^14.2.1",
+    "@vueuse/motion": "^3.0.3",
+    "@vueuse/nuxt": "^14.2.0",
+    "clsx": "^2.1.1",
+    "drizzle-orm": "^0.45.1",
+    "nuxt": "^4.3.0",
+    "pinia": "^3.0.4",
+    "postgres": "^3.4.8",
+    "reka-ui": "^2.8.0",
+    "shadcn-nuxt": "2.4.3",
+    "tailwind-merge": "^3.4.0",
+    "tailwindcss": "^4.1.18",
+    "vue": "^3.5.27",
+    "vue-router": "^4.6.4"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.31.8",
+    "sharp": "^0.34.5",
+    "vitest": "^4.0.18"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "sharp"
+    ]
+  }
+}

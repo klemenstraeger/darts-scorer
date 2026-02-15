@@ -1,0 +1,12 @@
+User-Agent: *
+Allow: /
+Allow: /login
+Disallow: /dashboard
+Disallow: /game
+Disallow: /players
+Disallow: /tournaments
+Disallow: /stats
+Disallow: /profile-setup
+Disallow: /api/
+
+Sitemap: /sitemap.xml

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="64" fill="#0a0a14"/>
+  <!-- Outer ring -->
+  <circle cx="256" cy="256" r="200" fill="none" stroke="#FFD700" stroke-width="24"/>
+  <!-- Middle ring -->
+  <circle cx="256" cy="256" r="140" fill="none" stroke="#22C55E" stroke-width="20"/>
+  <!-- Inner ring -->
+  <circle cx="256" cy="256" r="80" fill="none" stroke="#FFD700" stroke-width="16"/>
+  <!-- Bullseye outer -->
+  <circle cx="256" cy="256" r="36" fill="#22C55E"/>
+  <!-- Bullseye inner -->
+  <circle cx="256" cy="256" r="14" fill="#FFD700"/>
+  <!-- Crosshair lines -->
+  <line x1="256" y1="32" x2="256" y2="480" stroke="#FFD700" stroke-width="3" opacity="0.3"/>
+  <line x1="32" y1="256" x2="480" y2="256" stroke="#FFD700" stroke-width="3" opacity="0.3"/>
+</svg>

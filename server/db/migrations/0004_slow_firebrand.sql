@@ -1,0 +1,2 @@
+ALTER TABLE "tournament_matches" DROP CONSTRAINT "tournament_matches_tournament_id_phase_round_position_unique";--> statement-breakpoint
+ALTER TABLE "tournament_matches" ADD CONSTRAINT "tournament_matches_tournament_id_phase_round_position_group_index_unique" UNIQUE("tournament_id","phase","round","position","group_index");
