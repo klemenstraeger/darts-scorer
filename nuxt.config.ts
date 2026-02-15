@@ -47,6 +47,7 @@ export default defineNuxtConfig({
     '/players': { ssr: false },
     '/tournaments/**': { ssr: false },
     '/stats': { ssr: false },
+    '/game/**': { ssr: false },
     '/profile-setup': { ssr: false },
     '/login': { ssr: false },
   },
