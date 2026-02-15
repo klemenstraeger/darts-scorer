@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const route = useRoute()
 const selectedPlayer = ref('')
+const activeTab = ref<'stats' | 'rankings'>('stats')
 const { players, fetchPlayers, getAvatarProps } = usePlayers()
 
 interface FilterState {
@@ -88,6 +89,56 @@ interface TrendsData {
   game_averages: GameAverage[]
   head_to_head: HeadToHead[]
   checkout_darts: CheckoutDart[]
+}
+
+interface EloTrendEntry {
+  eloAfter: number
+  result: string
+  createdAt: string
+}
+
+interface RankedPlayer {
+  rank: number
+  name: string
+  currentElo: number
+  avatarStyle: string | null
+  avatarSeed: string | null
+  trend: EloTrendEntry[]
+}
+
+const rankings = ref<RankedPlayer[]>([])
+const loadingRankings = ref(false)
+
+async function fetchRankings() {
+  loadingRankings.value = true
+  try {
+    rankings.value = await $fetch<RankedPlayer[]>('/api/stats/rankings')
+  } catch {
+    rankings.value = []
+  } finally {
+    loadingRankings.value = false
+  }
+}
+
+function switchTab(tab: 'stats' | 'rankings') {
+  activeTab.value = tab
+  if (tab === 'rankings') {
+    fetchRankings()
+  }
+}
+
+function eloTrendDirection(trend: EloTrendEntry[]): 'up' | 'down' | 'neutral' {
+  if (trend.length < 2) return 'neutral'
+  const last = trend[trend.length - 1]!.eloAfter
+  const first = trend[0]!.eloAfter
+  if (last > first) return 'up'
+  if (last < first) return 'down'
+  return 'neutral'
+}
+
+function eloTrendDelta(trend: EloTrendEntry[]): number {
+  if (trend.length < 2) return 0
+  return trend[trend.length - 1]!.eloAfter - trend[0]!.eloAfter
 }
 
 const stats = ref<PlayerStats | null>(null)
@@ -196,6 +247,47 @@ onMounted(async () => {
 
 function selectPlayer(name: string) {
   selectedPlayer.value = name
+}
+
+const showExportMenu = ref(false)
+const exporting = ref(false)
+
+function closeExportMenu(e: MouseEvent) {
+  const target = e.target as HTMLElement
+  if (!target.closest('.export-wrapper')) {
+    showExportMenu.value = false
+  }
+}
+
+onMounted(() => document.addEventListener('click', closeExportMenu))
+onUnmounted(() => document.removeEventListener('click', closeExportMenu))
+
+async function exportData(format: 'csv' | 'json') {
+  showExportMenu.value = false
+  exporting.value = true
+  try {
+    const params: string[] = [`format=${format}`]
+    if (selectedPlayer.value) params.push(`player=${encodeURIComponent(selectedPlayer.value)}`)
+    if (activeFilter.value.from) params.push(`from=${encodeURIComponent(activeFilter.value.from)}`)
+    if (activeFilter.value.to) params.push(`to=${encodeURIComponent(activeFilter.value.to)}`)
+    if (activeFilter.value.mode) params.push(`mode=${encodeURIComponent(activeFilter.value.mode)}`)
+
+    const response = await $fetch.raw(`/api/stats/export?${params.join('&')}`)
+    const blob = new Blob(
+      [typeof response._data === 'string' ? response._data : JSON.stringify(response._data, null, 2)],
+      { type: format === 'csv' ? 'text/csv' : 'application/json' },
+    )
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `darts-stats-${new Date().toISOString().slice(0, 10)}.${format}`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  } finally {
+    exporting.value = false
+  }
 }
 
 function formatDate(dateStr: string): string {
@@ -481,12 +573,106 @@ function gameAverage(gameId: number): number | null {
       :initial="{ opacity: 0, y: -10 }"
       :enter="{ opacity: 1, y: 0, transition: { duration: 300 } }"
     >
-      <div>
+      <div class="flex-1">
         <h2 class="text-[2rem] font-extrabold text-fg mb-xs">Performance Hub</h2>
         <p class="text-[0.9rem] text-fg-secondary max-w-[480px]">Track trends, accuracy, and game flow.</p>
       </div>
+      <div class="export-wrapper" style="position: relative; z-index: 10;">
+        <button
+          class="export-btn"
+          :disabled="exporting"
+          @click="showExportMenu = !showExportMenu"
+        >
+          {{ exporting ? 'Exporting...' : 'Export' }}
+        </button>
+        <div v-if="showExportMenu" class="export-menu">
+          <button class="export-menu-item" @click="exportData('csv')">Download CSV</button>
+          <button class="export-menu-item" @click="exportData('json')">Download JSON</button>
+        </div>
+      </div>
       <div class="stats-glow"></div>
     </div>
+
+    <!-- Tab switcher -->
+    <div
+      class="flex justify-center gap-sm mb-xl"
+      v-motion
+      :initial="{ opacity: 0 }"
+      :enter="{ opacity: 1, transition: { duration: 300, delay: 80 } }"
+    >
+      <button
+        class="tab-btn"
+        :class="{ active: activeTab === 'stats' }"
+        @click="switchTab('stats')"
+      >
+        Player Stats
+      </button>
+      <button
+        class="tab-btn"
+        :class="{ active: activeTab === 'rankings' }"
+        @click="switchTab('rankings')"
+      >
+        Rankings
+      </button>
+    </div>
+
+    <!-- Rankings view -->
+    <div v-if="activeTab === 'rankings'">
+      <div v-if="loadingRankings" class="text-center text-fg-muted p-2xl">Loading rankings...</div>
+      <div v-else-if="rankings.length === 0" class="text-center text-fg-muted p-2xl text-[0.95rem]">
+        No rankings yet. Play some 2-player games to generate Elo ratings!
+      </div>
+      <div v-else class="flex flex-col gap-sm">
+        <div
+          v-for="player in rankings"
+          :key="player.name"
+          class="glass-card p-md flex items-center gap-md rankings-row"
+          :class="{ 'rank-gold': player.rank === 1, 'rank-silver': player.rank === 2, 'rank-bronze': player.rank === 3 }"
+          v-motion
+          :initial="{ opacity: 0, x: -10 }"
+          :enter="{ opacity: 1, x: 0, transition: { duration: 300, delay: 80 + player.rank * 50 } }"
+        >
+          <div class="rank-badge" :class="{ 'rank-1': player.rank === 1, 'rank-2': player.rank === 2, 'rank-3': player.rank === 3 }">
+            {{ player.rank }}
+          </div>
+          <PlayerAvatar :name="player.name" :avatar-seed="player.avatarSeed" :avatar-style="player.avatarStyle" :size="36" />
+          <div class="flex-1 min-w-0">
+            <div class="text-[0.95rem] font-semibold text-fg truncate">{{ player.name }}</div>
+            <div class="flex items-center gap-xs">
+              <span
+                v-if="player.trend.length >= 2"
+                class="elo-trend"
+                :class="{
+                  'trend-up': eloTrendDirection(player.trend) === 'up',
+                  'trend-down': eloTrendDirection(player.trend) === 'down',
+                  'trend-neutral': eloTrendDirection(player.trend) === 'neutral',
+                }"
+              >
+                <template v-if="eloTrendDirection(player.trend) === 'up'">+{{ eloTrendDelta(player.trend) }}</template>
+                <template v-else-if="eloTrendDirection(player.trend) === 'down'">{{ eloTrendDelta(player.trend) }}</template>
+                <template v-else>=</template>
+              </span>
+              <!-- Mini sparkline dots -->
+              <span v-if="player.trend.length > 0" class="flex items-center gap-[3px]">
+                <span
+                  v-for="(entry, i) in player.trend"
+                  :key="i"
+                  class="sparkline-dot"
+                  :class="entry.result === 'win' ? 'spark-win' : 'spark-loss'"
+                ></span>
+              </span>
+            </div>
+          </div>
+          <div class="text-right">
+            <div class="text-[1.4rem] font-extrabold tabular-nums text-fg">{{ player.currentElo }}</div>
+            <div class="text-[0.65rem] font-semibold text-fg-muted uppercase tracking-wide">Elo</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Player stats view -->
+    <div v-if="activeTab === 'stats'">
 
     <!-- Player chips -->
     <div
@@ -690,12 +876,24 @@ function gameAverage(gameId: number): number | null {
         :initial="{ opacity: 0, y: 20 }"
         :enter="{ opacity: 1, y: 0, transition: { duration: 300, delay: 550 } }"
       >
-        <h3 class="section-title">Head-to-Head</h3>
+        <div class="flex items-center justify-between gap-md">
+          <h3 class="section-title !mb-0">Head-to-Head</h3>
+          <NuxtLink
+            :to="{ path: '/stats/head-to-head', query: { player1: selectedPlayer } }"
+            class="h2h-compare-link"
+          >
+            Compare
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </NuxtLink>
+        </div>
         <div class="flex flex-col gap-sm">
-          <div
+          <NuxtLink
             v-for="h2h in headToHead"
             :key="h2h.opponent"
-            class="glass-card p-md flex items-center gap-md"
+            :to="{ path: '/stats/head-to-head', query: { player1: selectedPlayer, player2: h2h.opponent } }"
+            class="glass-card p-md flex items-center gap-md h2h-row-link"
           >
             <PlayerAvatar v-bind="getAvatarProps(h2h.opponent)" :size="28" />
             <div class="flex-1 min-w-0">
@@ -709,7 +907,7 @@ function gameAverage(gameId: number): number | null {
               </div>
               <span class="text-[0.9rem] font-bold tabular-nums" :class="h2h.losses > h2h.wins ? 'text-red' : 'text-fg-muted'">{{ h2h.losses }}</span>
             </div>
-          </div>
+          </NuxtLink>
         </div>
       </section>
 
@@ -783,17 +981,22 @@ function gameAverage(gameId: number): number | null {
     <div v-if="!selectedPlayer && history.length === 0 && !loading" class="text-center text-fg-muted p-2xl text-[0.95rem]">
       Select a player to view their statistics
     </div>
+
+    </div><!-- end activeTab === 'stats' -->
   </div>
 </template>
 
 <style scoped>
 .stats-hero {
   position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
   padding: var(--spacing-lg) var(--spacing-xl);
   border-radius: var(--radius-xl);
   background: linear-gradient(135deg, rgba(255, 215, 0, 0.08), rgba(59, 130, 246, 0.08));
   border: 1px solid var(--border-subtle);
-  overflow: hidden;
+  overflow: visible;
   margin-bottom: var(--spacing-xl);
 }
 
@@ -932,6 +1135,99 @@ function gameAverage(gameId: number): number | null {
   cursor: not-allowed;
 }
 
+/* Export button */
+.export-wrapper {
+  flex-shrink: 0;
+}
+
+.export-btn {
+  padding: var(--spacing-xs) var(--spacing-lg);
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background var(--duration-fast),
+    border-color var(--duration-fast);
+}
+
+.export-btn:hover:not(:disabled) {
+  background: var(--surface-3);
+  border-color: var(--border-default);
+}
+
+.export-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.export-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  min-width: 150px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.export-menu-item {
+  display: block;
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--duration-fast);
+}
+
+.export-menu-item:hover {
+  background: var(--surface-3);
+}
+
+/* H2H row link */
+.h2h-row-link {
+  text-decoration: none;
+  transition:
+    border-color var(--duration-fast),
+    background var(--duration-fast);
+  cursor: pointer;
+}
+
+.h2h-row-link:hover {
+  border-color: var(--border-default);
+  background: var(--surface-3);
+}
+
+/* H2H compare link */
+.h2h-compare-link {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: color var(--duration-fast);
+}
+
+.h2h-compare-link:hover {
+  color: var(--gold);
+}
+
 /* Color utilities */
 .text-green {
   color: rgba(34, 197, 94, 0.9);
@@ -939,6 +1235,131 @@ function gameAverage(gameId: number): number | null {
 
 .text-red {
   color: rgba(239, 68, 68, 0.9);
+}
+
+/* Tab buttons */
+.tab-btn {
+  padding: var(--spacing-xs) var(--spacing-xl);
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background var(--duration-fast),
+    border-color var(--duration-fast),
+    color var(--duration-fast);
+}
+
+.tab-btn:hover {
+  background: var(--surface-3);
+}
+
+.tab-btn.active {
+  background: rgba(255, 215, 0, 0.12);
+  border-color: var(--border-gold);
+  color: var(--gold);
+  font-weight: 600;
+}
+
+/* Rankings */
+.rankings-row {
+  transition: transform var(--duration-fast), box-shadow var(--duration-fast);
+}
+
+.rankings-row:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.rank-gold {
+  border-color: rgba(255, 215, 0, 0.25);
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.06), transparent);
+}
+
+.rank-silver {
+  border-color: rgba(192, 192, 192, 0.2);
+  background: linear-gradient(135deg, rgba(192, 192, 192, 0.04), transparent);
+}
+
+.rank-bronze {
+  border-color: rgba(205, 127, 50, 0.2);
+  background: linear-gradient(135deg, rgba(205, 127, 50, 0.04), transparent);
+}
+
+.rank-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  background: var(--surface-3);
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
+}
+
+.rank-badge.rank-1 {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 215, 0, 0.1));
+  color: var(--gold);
+  border-color: rgba(255, 215, 0, 0.4);
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.2);
+}
+
+.rank-badge.rank-2 {
+  background: linear-gradient(135deg, rgba(192, 192, 192, 0.25), rgba(192, 192, 192, 0.08));
+  color: #c0c0c0;
+  border-color: rgba(192, 192, 192, 0.3);
+}
+
+.rank-badge.rank-3 {
+  background: linear-gradient(135deg, rgba(205, 127, 50, 0.25), rgba(205, 127, 50, 0.08));
+  color: #cd7f32;
+  border-color: rgba(205, 127, 50, 0.3);
+}
+
+.elo-trend {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 4px;
+  tabular-nums: true;
+}
+
+.trend-up {
+  color: rgba(34, 197, 94, 0.9);
+  background: rgba(34, 197, 94, 0.1);
+}
+
+.trend-down {
+  color: rgba(239, 68, 68, 0.9);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.trend-neutral {
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.sparkline-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.spark-win {
+  background: rgba(34, 197, 94, 0.8);
+}
+
+.spark-loss {
+  background: rgba(239, 68, 68, 0.8);
 }
 
 </style>

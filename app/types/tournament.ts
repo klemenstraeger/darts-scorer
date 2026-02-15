@@ -50,6 +50,7 @@ export interface TournamentMatch {
   gameId: number | null
   player1LegsWon: number
   player2LegsWon: number
+  scheduledAt: string | null
   createdAt: string
 }
 

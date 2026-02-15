@@ -13,6 +13,7 @@ const navItems = [
   { path: '/players', label: 'Players', name: 'players' },
   { path: '/tournaments', label: 'Tourneys', name: 'tournaments' },
   { path: '/stats', label: 'Stats', name: 'stats' },
+  { path: '/settings', label: 'Settings', name: 'settings' },
 ]
 
 const isGamePage = computed(() => route.name === 'game')
