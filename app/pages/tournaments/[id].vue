@@ -19,6 +19,15 @@ const confirmMatchId = ref<number | null>(null)
 const spectateUrlCopied = ref(false)
 const cameraUrlCopied = ref(false)
 
+// Fixtures / scheduling state
+const leagueTab = ref<'standings' | 'fixtures' | 'matches'>('standings')
+const showScheduleModal = ref(false)
+const scheduleStartDate = ref('')
+const scheduleIntervalDays = ref(7)
+const scheduleMatchesPerDay = ref(4)
+const scheduling = ref(false)
+const scheduleError = ref('')
+
 function copySpectateUrl() {
   const url = `${window.location.origin}/spectate/${tournamentId.value}`
   navigator.clipboard.writeText(url)
@@ -49,6 +58,11 @@ onMounted(() => {
   fetchTournament()
   checkActiveGame()
   ensurePlayers()
+
+  // Default schedule start date to tomorrow
+  const tomorrow = new Date()
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  scheduleStartDate.value = tomorrow.toISOString().split('T')[0]!
 })
 
 // Computed helpers
@@ -85,6 +99,10 @@ const leagueStandings = computed(() =>
 const hasKnockoutPhase = computed(() => knockoutMatches.value.length > 0)
 const groupPhaseDone = computed(() =>
   groupMatches.value.length > 0 && groupMatches.value.every(m => m.status === 'completed'),
+)
+
+const hasScheduledFixtures = computed(() =>
+  leagueMatches.value.some(m => m.scheduledAt != null),
 )
 
 // Settings summary
@@ -133,6 +151,29 @@ async function doPlayMatch(matchId: number) {
   } catch (e: any) {
     error.value = e.data?.message || 'Failed to start match'
     playingMatch.value = false
+  }
+}
+
+async function applySchedule() {
+  if (scheduling.value) return
+  scheduling.value = true
+  scheduleError.value = ''
+  try {
+    tournament.value = await $fetch<TournamentDetail>(`/api/tournament/${tournamentId.value}/schedule`, {
+      method: 'POST',
+      body: {
+        startDate: scheduleStartDate.value,
+        intervalDays: scheduleIntervalDays.value,
+        matchesPerDay: scheduleMatchesPerDay.value,
+      },
+    })
+    showScheduleModal.value = false
+    // Switch to fixtures tab to show results
+    leagueTab.value = 'fixtures'
+  } catch (e: any) {
+    scheduleError.value = e.data?.message || 'Failed to schedule fixtures'
+  } finally {
+    scheduling.value = false
   }
 }
 
@@ -220,14 +261,60 @@ async function deleteTournament() {
 
       <!-- League format -->
       <template v-if="isLeague">
-        <div class="w-full flex flex-col gap-lg">
-          <span class="text-[0.75rem] font-semibold text-fg-muted uppercase tracking-widest">Standings</span>
+        <!-- League tab navigation -->
+        <div class="w-full">
+          <div class="league-tabs">
+            <button
+              class="league-tab"
+              :class="{ active: leagueTab === 'standings' }"
+              @click="leagueTab = 'standings'"
+            >
+              Standings
+            </button>
+            <button
+              class="league-tab"
+              :class="{ active: leagueTab === 'fixtures' }"
+              @click="leagueTab = 'fixtures'"
+            >
+              Fixtures
+            </button>
+            <button
+              class="league-tab"
+              :class="{ active: leagueTab === 'matches' }"
+              @click="leagueTab = 'matches'"
+            >
+              All Matches
+            </button>
+          </div>
+        </div>
+
+        <!-- Standings tab -->
+        <div v-if="leagueTab === 'standings'" class="w-full flex flex-col gap-lg">
           <div class="glass-card p-md">
             <StandingsTable :standings="leagueStandings" />
           </div>
         </div>
 
-        <div class="w-full flex flex-col gap-md">
+        <!-- Fixtures tab -->
+        <div v-if="leagueTab === 'fixtures'" class="w-full flex flex-col gap-lg">
+          <div class="flex items-center justify-between">
+            <span class="text-[0.75rem] font-semibold text-fg-muted uppercase tracking-widest">Fixture Calendar</span>
+            <button
+              class="btn btn-secondary text-[0.75rem]"
+              @click="showScheduleModal = true"
+            >
+              {{ hasScheduledFixtures ? 'Reschedule' : 'Schedule Fixtures' }}
+            </button>
+          </div>
+          <FixtureCalendar
+            :matches="leagueMatches"
+            show-play-button
+            @play="playMatch"
+          />
+        </div>
+
+        <!-- All Matches tab (flat list) -->
+        <div v-if="leagueTab === 'matches'" class="w-full flex flex-col gap-md">
           <span class="text-[0.75rem] font-semibold text-fg-muted uppercase tracking-widest">Matches</span>
           <div class="flex flex-col gap-sm">
             <MatchCard
@@ -334,6 +421,65 @@ async function deleteTournament() {
         </div>
       </div>
     </Teleport>
+
+    <!-- Schedule fixtures modal -->
+    <Teleport to="body">
+      <div v-if="showScheduleModal" class="modal-overlay" @click.self="showScheduleModal = false">
+        <div class="glass-card-heavy w-full max-w-[420px] p-2xl flex flex-col gap-lg">
+          <h3 class="text-[1.1rem] font-bold text-fg">Schedule Fixtures</h3>
+          <p class="text-fg-secondary text-[0.85rem] leading-relaxed">
+            Distribute matches across dates. Existing schedules will be overwritten.
+          </p>
+
+          <div class="flex flex-col gap-md">
+            <div class="schedule-field">
+              <label class="schedule-label">Start Date</label>
+              <input
+                v-model="scheduleStartDate"
+                type="date"
+                class="schedule-input"
+              />
+            </div>
+
+            <div class="schedule-field">
+              <label class="schedule-label">Days Between Match Days</label>
+              <select v-model.number="scheduleIntervalDays" class="schedule-input">
+                <option :value="1">Every day</option>
+                <option :value="2">Every 2 days</option>
+                <option :value="3">Every 3 days</option>
+                <option :value="7">Weekly</option>
+                <option :value="14">Every 2 weeks</option>
+              </select>
+            </div>
+
+            <div class="schedule-field">
+              <label class="schedule-label">Matches Per Day</label>
+              <select v-model.number="scheduleMatchesPerDay" class="schedule-input">
+                <option :value="1">1</option>
+                <option :value="2">2</option>
+                <option :value="3">3</option>
+                <option :value="4">4</option>
+                <option :value="6">6</option>
+                <option :value="8">8</option>
+              </select>
+            </div>
+          </div>
+
+          <div v-if="scheduleError" class="text-red text-[0.8rem] font-semibold">{{ scheduleError }}</div>
+
+          <div class="flex gap-md justify-end">
+            <button class="btn btn-secondary" @click="showScheduleModal = false">Cancel</button>
+            <button
+              class="btn btn-gold"
+              :disabled="scheduling || !scheduleStartDate"
+              @click="applySchedule"
+            >
+              {{ scheduling ? 'Scheduling...' : 'Apply Schedule' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -348,6 +494,82 @@ async function deleteTournament() {
   z-index: 100;
   padding: var(--spacing-lg);
 }
+
+/* ── League tabs ── */
+.league-tabs {
+  display: flex;
+  gap: 0;
+  background: var(--surface-2);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  overflow: hidden;
+}
+
+.league-tab {
+  flex: 1;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: color var(--duration-normal), background var(--duration-normal);
+  text-align: center;
+  position: relative;
+}
+
+.league-tab:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 25%;
+  height: 50%;
+  width: 1px;
+  background: var(--border-subtle);
+}
+
+.league-tab.active {
+  color: var(--text-inverse);
+  background: var(--gold-gradient);
+}
+
+.league-tab:hover:not(.active) {
+  color: var(--text-primary);
+}
+
+/* ── Schedule modal fields ── */
+.schedule-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.schedule-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.schedule-input {
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  outline: none;
+  transition: border-color var(--duration-fast);
+}
+
+.schedule-input:focus {
+  border-color: var(--gold);
+}
+
 /* ── Mode toggle (reused pattern) ── */
 .mode-toggle {
   position: relative;

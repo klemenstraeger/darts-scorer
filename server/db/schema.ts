@@ -46,6 +46,7 @@ export const tournamentMatches = pgTable('tournament_matches', {
   gameId: integer('game_id').references(() => games.id),
   player1LegsWon: integer('player1_legs_won').notNull().default(0),
   player2LegsWon: integer('player2_legs_won').notNull().default(0),
+  scheduledAt: timestamp('scheduled_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 }, (table) => [
   unique().on(table.tournamentId, table.phase, table.round, table.position, table.groupIndex),

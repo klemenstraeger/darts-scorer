@@ -8,9 +8,40 @@ const props = defineProps<{
   advanceCount?: number
 }>()
 
-const sorted = computed(() =>
-  [...props.standings].sort((a, b) => b.points - a.points || b.legDifference - a.legDifference),
-)
+type SortColumn = 'points' | 'played' | 'won' | 'lost' | 'legsWon' | 'legsLost' | 'legDifference'
+
+const sortColumn = ref<SortColumn>('points')
+const sortAsc = ref(false)
+
+function toggleSort(col: SortColumn) {
+  if (sortColumn.value === col) {
+    sortAsc.value = !sortAsc.value
+  } else {
+    sortColumn.value = col
+    // Default to descending for most columns, ascending for losses
+    sortAsc.value = col === 'lost' || col === 'legsLost'
+  }
+}
+
+function sortIndicator(col: SortColumn): string {
+  if (sortColumn.value !== col) return ''
+  return sortAsc.value ? ' \u25B2' : ' \u25BC'
+}
+
+const sorted = computed(() => {
+  const col = sortColumn.value
+  const dir = sortAsc.value ? 1 : -1
+  return [...props.standings].sort((a, b) => {
+    const diff = (a[col] - b[col]) * dir
+    if (diff !== 0) return diff
+    // Tiebreaker: points then leg difference
+    if (col !== 'points') {
+      const ptsDiff = b.points - a.points
+      if (ptsDiff !== 0) return ptsDiff
+    }
+    return b.legDifference - a.legDifference
+  })
+})
 </script>
 
 <template>
@@ -20,13 +51,13 @@ const sorted = computed(() =>
         <tr>
           <th class="col-pos">#</th>
           <th class="col-name">Player</th>
-          <th class="col-num">P</th>
-          <th class="col-num">W</th>
-          <th class="col-num">L</th>
-          <th class="col-num">Pts</th>
-          <th class="col-num">+/-</th>
-          <th class="col-num hide-sm">LW</th>
-          <th class="col-num hide-sm">LL</th>
+          <th class="col-num sortable" @click="toggleSort('played')">P{{ sortIndicator('played') }}</th>
+          <th class="col-num sortable" @click="toggleSort('won')">W{{ sortIndicator('won') }}</th>
+          <th class="col-num sortable" @click="toggleSort('lost')">L{{ sortIndicator('lost') }}</th>
+          <th class="col-num sortable" @click="toggleSort('legsWon')">F{{ sortIndicator('legsWon') }}</th>
+          <th class="col-num sortable" @click="toggleSort('legsLost')">A{{ sortIndicator('legsLost') }}</th>
+          <th class="col-num sortable" @click="toggleSort('legDifference')">+/-{{ sortIndicator('legDifference') }}</th>
+          <th class="col-num sortable" @click="toggleSort('points')">Pts{{ sortIndicator('points') }}</th>
         </tr>
       </thead>
       <tbody>
@@ -40,12 +71,12 @@ const sorted = computed(() =>
           <td class="col-num">{{ s.played }}</td>
           <td class="col-num">{{ s.won }}</td>
           <td class="col-num">{{ s.lost }}</td>
-          <td class="col-num font-bold">{{ s.points }}</td>
+          <td class="col-num">{{ s.legsWon }}</td>
+          <td class="col-num">{{ s.legsLost }}</td>
           <td class="col-num" :class="{ positive: s.legDifference > 0, negative: s.legDifference < 0 }">
             {{ s.legDifference > 0 ? '+' : '' }}{{ s.legDifference }}
           </td>
-          <td class="col-num hide-sm">{{ s.legsWon }}</td>
-          <td class="col-num hide-sm">{{ s.legsLost }}</td>
+          <td class="col-num font-bold">{{ s.points }}</td>
         </tr>
       </tbody>
     </table>
@@ -72,6 +103,17 @@ const sorted = computed(() =>
   letter-spacing: 0.5px;
   text-align: left;
   border-bottom: 1px solid var(--border-subtle);
+  white-space: nowrap;
+}
+
+.standings-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: color var(--duration-fast);
+}
+
+.standings-table th.sortable:hover {
+  color: var(--text-primary);
 }
 
 .standings-table td {
@@ -113,6 +155,13 @@ tr.advancing .col-name {
 .negative { color: var(--red); }
 
 @media (max-width: 480px) {
-  .hide-sm { display: none; }
+  .col-num {
+    width: 28px;
+  }
+
+  .standings-table th,
+  .standings-table td {
+    padding: var(--spacing-xs) 3px;
+  }
 }
 </style>
