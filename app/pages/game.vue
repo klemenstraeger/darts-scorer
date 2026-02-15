@@ -17,6 +17,7 @@ const {
 const { isBotPlaying } = useBotPlay()
 const { isTournamentMatch, tournamentId, clear: clearTournamentContext } = useTournamentContext()
 const { ensureLoaded: ensurePlayers, getAvatarProps } = usePlayers()
+const { dartboardTheme } = useSettings()
 
 // Load game state from localStorage on mount (handles resume + tournament match transitions)
 onMounted(() => {
@@ -303,6 +304,7 @@ watch(hasGame, (active) => {
         <div class="dartboard-container">
           <DartBoard
             :disabled="inputDisabled"
+            :theme="dartboardTheme"
             @score="handleScore"
           />
           <button class="dartboard-close" @click="showDartboard = false">&times;</button>
