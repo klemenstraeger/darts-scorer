@@ -12,6 +12,8 @@ const {
   undoThrow,
   manualScore,
   loadState,
+  recentAchievements,
+  clearAchievements,
 } = useGameState()
 
 const { audioEnabled, toggle: toggleAudio } = useAudio()
@@ -425,6 +427,13 @@ watch(hasGame, (active) => {
         </div>
       </div>
     </Transition>
+
+    <!-- Achievement toast notifications -->
+    <AchievementToast
+      v-if="recentAchievements.length > 0"
+      :achievements="recentAchievements"
+      @dismiss="clearAchievements()"
+    />
   </div>
 </template>
 
