@@ -1,7 +1,6 @@
 import { GameEngine } from '#shared/game-engine'
 import { GameEvent, detectThrowEvent } from '#shared/game-events'
-import { throwPoints } from '#shared/game-models'
-import type { CheckoutMode, GameMode, Multiplier, PlayerDescriptor } from '#shared/game-models'
+import { throwPoints, type CheckoutMode, type GameMode, type Multiplier, type PlayerDescriptor } from '#shared/game-models'
 import { getCheckout } from '#shared/checkouts'
 
 const STORAGE_KEY = 'darts-scorer:active-game'
@@ -91,6 +90,7 @@ function clearDatabaseState() {
 
 export function useGameState() {
   const store = useGameStore()
+  const { play, vibrate } = useAudio()
   const {
     setContext,
     clear: clearTournamentContext,
@@ -124,12 +124,16 @@ export function useGameState() {
   ) {
     store.resetFlashes()
     engine = new GameEngine()
+    const resolvedMode = mode as GameMode
+    const resolvedCheckout = (options?.checkout ?? 'double_out') as CheckoutMode
+    const resolvedLegs = options?.legs_to_win ?? 1
+    const resolvedSets = options?.sets_to_win ?? 1
     engine.newGame(
-      mode as GameMode,
+      resolvedMode,
       players,
-      (options?.checkout ?? 'double_out') as CheckoutMode,
-      options?.legs_to_win ?? 1,
-      options?.sets_to_win ?? 1,
+      resolvedCheckout,
+      resolvedLegs,
+      resolvedSets,
     )
     syncToStore()
     persistToStorage()
@@ -137,6 +141,21 @@ export function useGameState() {
     hasActiveGame.value = true
     lastCheckoutAnnouncement = null
     announcer.announceGameStart()
+
+    // Save last-used game settings for quick-start
+    if (players && players.length >= 2) {
+      const { saveLastGameSettings } = useSettings()
+      const descriptors: PlayerDescriptor[] = players.map(p =>
+        typeof p === 'string' ? { name: p } : p,
+      )
+      saveLastGameSettings({
+        mode: resolvedMode,
+        checkout: resolvedCheckout,
+        legs_to_win: resolvedLegs,
+        sets_to_win: resolvedSets,
+        players: descriptors,
+      })
+    }
   }
 
   function manualScore(segment: number, multiplier: number) {
@@ -155,10 +174,14 @@ export function useGameState() {
 
     switch (event) {
       case GameEvent.BUST:
+        play('bust')
+        vibrate([50, 30, 50])
         store.triggerBust()
         announcer.announceBust()
         break
       case GameEvent.LEG_WON: {
+        play('leg-won')
+        vibrate([50, 30, 100])
         store.triggerLegWon()
         const lastTurn = engine.state.turn_history[engine.state.turn_history.length - 1]
         const winnerIdx = lastTurn?.player_index ?? engine.state.current_player_index
@@ -167,6 +190,8 @@ export function useGameState() {
         break
       }
       case GameEvent.GAME_OVER: {
+        play('game-won')
+        vibrate([50, 30, 50, 30, 200])
         store.triggerGameOver()
         hasActiveGame.value = false
         const matchWinner = engine.state.winner_index != null
@@ -176,7 +201,21 @@ export function useGameState() {
         break
       }
       case GameEvent.DART_SCORED: {
-        // Announce turn total when a turn completes (new entry in turn_history)
+        play('throw', 0.5)
+        vibrate(15)
+        // Check for 180 or ton-plus (100+) on completed turns
+        if (engine.state.turn_history.length > prevTurnCount) {
+          const completedTurn = engine.state.turn_history[engine.state.turn_history.length - 1]!
+          const turnPts = completedTurn.throws.reduce((s, t) => s + throwPoints(t), 0)
+          if (turnPts === 180) {
+            play('180')
+            vibrate([30, 20, 30, 20, 100])
+          } else if (turnPts >= 100) {
+            play('ton-plus')
+            vibrate([30, 20, 60])
+          }
+        }
+        // Announce turn total when a turn completes
         const newTurnCompleted = engine.state.turn_history.length > prevTurnCount
         if (newTurnCompleted) {
           const lastTurn = engine.state.turn_history[engine.state.turn_history.length - 1]

@@ -554,6 +554,67 @@ class TournamentManager {
     return { deleted: true }
   }
 
+  async scheduleFixtures(
+    userId: string,
+    tournamentId: number,
+    startDate: string,
+    intervalDays: number = 7,
+    matchesPerDay: number = 4,
+  ) {
+    // Verify ownership
+    const [tournament] = await db
+      .select()
+      .from(tournaments)
+      .where(and(eq(tournaments.id, tournamentId), eq(tournaments.userId, userId)))
+
+    if (!tournament) {
+      throw createError({ statusCode: 404, message: 'Tournament not found' })
+    }
+
+    // Only schedule league / group formats (they have fixed match lists)
+    if (tournament.format === 'knockout') {
+      throw createError({ statusCode: 400, message: 'Knockout tournaments do not support fixture scheduling' })
+    }
+
+    // Load all pending/in_progress matches (don't reschedule completed ones)
+    const matches = await db
+      .select()
+      .from(tournamentMatches)
+      .where(and(
+        eq(tournamentMatches.tournamentId, tournamentId),
+      ))
+
+    // Sort matches by round then position for deterministic ordering
+    const sortedMatches = [...matches].sort((a, b) => {
+      if (a.round !== b.round) return a.round - b.round
+      return a.position - b.position
+    })
+
+    // Distribute matches across dates
+    const start = new Date(startDate)
+    if (isNaN(start.getTime())) {
+      throw createError({ statusCode: 400, message: 'Invalid start date' })
+    }
+
+    let currentDate = new Date(start)
+    let matchesOnCurrentDate = 0
+
+    for (const match of sortedMatches) {
+      if (matchesOnCurrentDate >= matchesPerDay) {
+        currentDate = new Date(currentDate.getTime() + intervalDays * 24 * 60 * 60 * 1000)
+        matchesOnCurrentDate = 0
+      }
+
+      await db.update(tournamentMatches)
+        .set({ scheduledAt: new Date(currentDate) })
+        .where(eq(tournamentMatches.id, match.id))
+
+      matchesOnCurrentDate++
+    }
+
+    return this.getTournament(userId, tournamentId)
+  }
+
   async getMatchTournamentId(matchId: number): Promise<number | null> {
     const [row] = await db
       .select({ tournamentId: tournamentMatches.tournamentId })

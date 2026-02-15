@@ -5,14 +5,21 @@ import {
   CX,
   CY,
   COLORS,
+  colorsFromTheme,
 } from '~/utils/dartboard-geometry'
 import type { ThrowResult } from '~/types/game'
+import type { DartboardTheme } from '~/utils/dartboard-themes'
 
 const props = defineProps<{
   throws: ThrowResult[]
+  theme?: DartboardTheme
 }>()
 
-const segments = computed(() => generateSegmentPaths())
+const boardColors = computed(() =>
+  props.theme ? colorsFromTheme(props.theme.colors) : COLORS,
+)
+
+const segments = computed(() => generateSegmentPaths(boardColors.value))
 
 // Build set of hit segments with their rings for highlighting
 const hitSegments = computed(() => {
@@ -61,12 +68,12 @@ function isHit(segment: number, ring: string): boolean {
     <!-- Bull -->
     <circle
       :cx="CX" :cy="CY" :r="R.singleBull"
-      :fill="COLORS.bullGreen"
+      :fill="boardColors.bullGreen"
       :opacity="hitSegments.has('bull-1') ? 0.9 : 0.15"
     />
     <circle
       :cx="CX" :cy="CY" :r="R.doubleBull"
-      :fill="COLORS.bullRed"
+      :fill="boardColors.bullRed"
       :opacity="hitSegments.has('bull-2') ? 0.9 : 0.15"
     />
   </svg>
