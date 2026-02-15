@@ -113,8 +113,8 @@ const playerScores = computed(() => {
     replayData.value.game.mode as '501' | '301',
     playerNames,
     'double_out',
-    1,
-    1,
+    1, // legsToWin
+    1, // setsToWin
   )
 
   // Replay all visible darts through the engine
@@ -126,6 +126,7 @@ const playerScores = computed(() => {
     const currentPlayerName = engine.state.players[engine.state.current_player_index]!.name
     if (currentPlayerName !== turn.playerName) {
       // This shouldn't happen if data is correct, but skip if misaligned
+      console.warn(`Player mismatch in replay: expected ${currentPlayerName}, got ${turn.playerName}`)
       continue
     }
     
