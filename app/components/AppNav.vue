@@ -12,6 +12,7 @@ const navItems = [
   { path: '/dashboard', label: 'Home', name: 'dashboard' },
   { path: '/players', label: 'Players', name: 'players' },
   { path: '/tournaments', label: 'Tourneys', name: 'tournaments' },
+  { path: '/training', label: 'Training', name: 'training' },
   { path: '/stats', label: 'Stats', name: 'stats' },
   { path: '/settings', label: 'Settings', name: 'settings' },
 ]
@@ -83,7 +84,7 @@ function handleLogout() {
           :key="item.path"
           :to="item.path"
           class="nav-link"
-          :class="{ active: item.name === route.name || (item.name === 'tournaments' && String(route.name ?? '').startsWith('tournaments')) || (item.name === 'players' && String(route.name ?? '').startsWith('players')) }"
+          :class="{ active: item.name === route.name || (item.name === 'tournaments' && String(route.name ?? '').startsWith('tournaments')) || (item.name === 'players' && String(route.name ?? '').startsWith('players')) || (item.name === 'training' && String(route.name ?? '').startsWith('training')) }"
         >
           {{ item.label }}
         </NuxtLink>
@@ -170,7 +171,7 @@ function handleLogout() {
           :key="item.path"
           :to="item.path"
           class="nav-dropdown-link"
-          :class="{ active: item.name === route.name || (item.name === 'tournaments' && String(route.name ?? '').startsWith('tournaments')) || (item.name === 'players' && String(route.name ?? '').startsWith('players')) }"
+          :class="{ active: item.name === route.name || (item.name === 'tournaments' && String(route.name ?? '').startsWith('tournaments')) || (item.name === 'players' && String(route.name ?? '').startsWith('players')) || (item.name === 'training' && String(route.name ?? '').startsWith('training')) }"
           @click="closeNav"
         >
           {{ item.label }}

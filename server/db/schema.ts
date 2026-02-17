@@ -169,12 +169,38 @@ export const achievements = pgTable('achievements', {
   unique().on(table.userId, table.playerName, table.type),
 ]).enableRLS()
 
+// ── Training Tables ──────────────────────────────────────
+
+export const trainingSessions = pgTable('training_sessions', {
+  id: serial('id').primaryKey(),
+  userId: uuid('user_id').notNull().references(() => profiles.id, { onDelete: 'cascade' }),
+  mode: text('mode').notNull(),
+  variant: text('variant'),
+  config: jsonb('config').notNull(),
+  stats: jsonb('stats'),
+  totalDarts: integer('total_darts').notNull(),
+  completed: boolean('completed').notNull().default(false),
+  startedAt: timestamp('started_at').notNull(),
+  completedAt: timestamp('completed_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}).enableRLS()
+
+export const trainingThrows = pgTable('training_throws', {
+  id: serial('id').primaryKey(),
+  sessionId: integer('session_id').notNull().references(() => trainingSessions.id, { onDelete: 'cascade' }),
+  throwNumber: integer('throw_number').notNull(),
+  segment: integer('segment').notNull(),
+  multiplier: integer('multiplier').notNull(),
+  points: integer('points').notNull(),
+}).enableRLS()
+
 // ── Relations (for relational query builder) ────────────
 
 export const profilesRelations = relations(profiles, ({ many }) => ({
   players: many(players),
   games: many(games),
   achievements: many(achievements),
+  trainingSessions: many(trainingSessions),
 }))
 
 export const playersRelations = relations(players, ({ one, many }) => ({
@@ -233,4 +259,15 @@ export const tournamentStandingsRelations = relations(tournamentStandings, ({ on
 export const achievementsRelations = relations(achievements, ({ one }) => ({
   profile: one(profiles, { fields: [achievements.userId], references: [profiles.id] }),
   game: one(games, { fields: [achievements.gameId], references: [games.id] }),
+}))
+
+// ── Training Relations ──
+
+export const trainingSessionsRelations = relations(trainingSessions, ({ one, many }) => ({
+  profile: one(profiles, { fields: [trainingSessions.userId], references: [profiles.id] }),
+  throws: many(trainingThrows),
+}))
+
+export const trainingThrowsRelations = relations(trainingThrows, ({ one }) => ({
+  session: one(trainingSessions, { fields: [trainingThrows.sessionId], references: [trainingSessions.id] }),
 }))
