@@ -202,6 +202,23 @@ function confirmAbandon() {
       <button class="btn btn-gold" @click="resumeGame">Resume</button>
     </div>
 
+    <!-- Solo Training link -->
+    <NuxtLink
+      to="/training"
+      class="training-card glass-card w-full px-xl py-lg flex items-center justify-between"
+    >
+      <div class="flex items-center gap-md">
+        <span class="text-[1.5rem]">🎯</span>
+        <div class="flex flex-col gap-[2px]">
+          <span class="text-[0.9rem] font-bold text-fg">Solo Training</span>
+          <span class="text-[0.75rem] text-fg-muted">Practice drills to sharpen your game</span>
+        </div>
+      </div>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-fg-muted">
+        <polyline points="9 18 15 12 9 6" />
+      </svg>
+    </NuxtLink>
+
     <!-- Wizard -->
     <WizardShell
       v-model:current-step="step"
@@ -436,6 +453,17 @@ function confirmAbandon() {
 
 .bot-chip-remove:hover {
   color: var(--red);
+}
+
+/* ── Training card ──────────────────────────────────────────── */
+.training-card {
+  text-decoration: none;
+  transition: border-color var(--duration-fast), transform var(--duration-fast);
+}
+
+.training-card:hover {
+  border-color: var(--border-gold);
+  transform: translateY(-1px);
 }
 
 /* ── Modal overlay ───────────────────────────────────────────── */

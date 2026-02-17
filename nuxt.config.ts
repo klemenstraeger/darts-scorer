@@ -18,6 +18,8 @@ export default defineNuxtConfig({
   components: [
     { path: '~/components/tournament', pathPrefix: false },
     { path: '~/components/spectate', pathPrefix: false },
+    { path: '~/components/training', pathPrefix: false },
+    { path: '~/components/training/modes', pathPrefix: false },
     '~/components',
   ],
 
@@ -51,6 +53,8 @@ export default defineNuxtConfig({
     '/profile-setup': { ssr: false },
     '/login': { ssr: false },
     '/quick-start': { ssr: false },
+    '/training/**': { ssr: false },
+    '/training': { ssr: false },
   },
 
   alias: {
