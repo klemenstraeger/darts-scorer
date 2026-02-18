@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Turn } from '~/types/game'
-import { turnTotal } from '~/types/game'
+import { turnTotal, isVisitScoreTurn } from '~/types/game'
 
 const { getAvatarProps } = usePlayers()
 
@@ -32,7 +32,10 @@ const recentTurns = computed(() => {
         <span class="text-[0.65rem] font-bold text-fg-muted uppercase whitespace-nowrap min-w-[36px]">
           {{ playerNames[turn.player_index] ?? 'P' + (turn.player_index + 1) }}
         </span>
-        <div class="throw-badges">
+        <div v-if="isVisitScoreTurn(turn)" class="throw-badges">
+          <span class="visit-badge">{{ turnTotal(turn) }} pts</span>
+        </div>
+        <div v-else class="throw-badges">
           <ThrowBadge
             v-for="(t, j) in turn.throws"
             :key="j"
@@ -92,6 +95,17 @@ const recentTurns = computed(() => {
 
 .throw-badges :deep(.badge-points) {
   font-size: 0.6rem;
+}
+
+.visit-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 215, 0, 0.08);
+  border: 1px solid rgba(255, 215, 0, 0.15);
+  color: var(--gold);
+  white-space: nowrap;
 }
 
 /* List transition */

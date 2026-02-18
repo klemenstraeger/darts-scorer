@@ -1,6 +1,6 @@
 import { GameEngine } from '#shared/game-engine'
 import { GameEvent, detectThrowEvent } from '#shared/game-events'
-import { throwPoints, type CheckoutMode, type GameMode, type Multiplier, type PlayerDescriptor } from '#shared/game-models'
+import { throwPoints, turnTotalPoints, type CheckoutMode, type GameMode, type Multiplier, type PlayerDescriptor } from '#shared/game-models'
 import { getCheckout } from '#shared/checkouts'
 
 const STORAGE_KEY = 'darts-scorer:active-game'
@@ -218,18 +218,9 @@ export function useGameState() {
     scheduleDatabaseSync()
   }
 
-  function manualScore(segment: number, multiplier: number) {
+  /** Shared post-action logic: event detection, sounds, announcements, persistence. */
+  function handlePostAction(prevTurnCount: number, prevLegs: number[], prevSets: number[]) {
     if (!engine) return
-
-    // Snapshot pre-throw state for event detection
-    const prevTurnCount = engine.state.turn_history.length
-    const prevLegs = engine.state.players.map(p => p.legs_won)
-    const prevSets = [...engine.state.sets_won]
-
-    // Snapshot full state before throw so we can restore on cancel
-    preFinishSnapshot = JSON.stringify(engine.state)
-
-    engine.manualScore(segment, multiplier as Multiplier)
 
     const event = detectThrowEvent(prevTurnCount, prevLegs, prevSets, engine.state)
 
@@ -272,7 +263,7 @@ export function useGameState() {
         // Check for 180 or ton-plus (100+) on completed turns and announce score
         if (engine.state.turn_history.length > prevTurnCount) {
           const completedTurn = engine.state.turn_history[engine.state.turn_history.length - 1]!
-          const turnPts = completedTurn.throws.reduce((s, t) => s + throwPoints(t), 0)
+          const turnPts = turnTotalPoints(completedTurn)
           if (turnPts === 180) {
             play('180')
             vibrate([30, 20, 30, 20, 100])
@@ -313,6 +304,36 @@ export function useGameState() {
       persistToStorage(ctx.matchId, ctx.tournamentId)
       scheduleDatabaseSync()
     }
+  }
+
+  function manualScore(segment: number, multiplier: number) {
+    if (!engine) return
+
+    // Snapshot pre-throw state for event detection
+    const prevTurnCount = engine.state.turn_history.length
+    const prevLegs = engine.state.players.map(p => p.legs_won)
+    const prevSets = [...engine.state.sets_won]
+
+    // Snapshot full state before throw so we can restore on cancel
+    preFinishSnapshot = JSON.stringify(engine.state)
+
+    engine.manualScore(segment, multiplier as Multiplier)
+
+    handlePostAction(prevTurnCount, prevLegs, prevSets)
+  }
+
+  function visitScore(score: number) {
+    if (!engine) return
+
+    const prevTurnCount = engine.state.turn_history.length
+    const prevLegs = engine.state.players.map(p => p.legs_won)
+    const prevSets = [...engine.state.sets_won]
+
+    preFinishSnapshot = JSON.stringify(engine.state)
+
+    engine.applyVisitScore(score)
+
+    handlePostAction(prevTurnCount, prevLegs, prevSets)
   }
 
   function undoThrow() {
@@ -403,6 +424,7 @@ export function useGameState() {
     newGame,
     undoThrow,
     manualScore,
+    visitScore,
     stopGame,
     loadState,
     checkActiveGame,

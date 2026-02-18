@@ -8,6 +8,8 @@ export type Multiplier = 1 | 2 | 3
 
 export type BotDifficulty = 'easy' | 'medium' | 'hard' | 'pro'
 
+export type InputMode = 'per_dart' | 'per_visit'
+
 export interface PlayerDescriptor {
   name: string
   isBot?: boolean
@@ -24,6 +26,7 @@ export interface Turn {
   throws: ThrowResult[]
   busted: boolean
   score_before: number | null
+  visitScore?: number  // Set when turn was entered as per-visit total (0-180)
 }
 
 export interface Player {
@@ -69,11 +72,16 @@ export function throwLabel(t: ThrowResult): string {
 
 export function turnTotalPoints(turn: Turn): number {
   if (turn.busted) return 0
+  if (turn.visitScore !== undefined) return turn.visitScore
   return turn.throws.reduce((sum, t) => sum + throwPoints(t), 0)
 }
 
 export function turnIsComplete(turn: Turn): boolean {
-  return turn.throws.length >= 3 || turn.busted
+  return turn.visitScore !== undefined || turn.throws.length >= 3 || turn.busted
+}
+
+export function isVisitScoreTurn(turn: Turn): boolean {
+  return turn.visitScore !== undefined
 }
 
 export function createDefaultGameState(): GameState {
@@ -96,7 +104,7 @@ export function createDefaultGameState(): GameState {
 }
 
 export function threeDartAverage(player: Player): number {
-  const completed = player.turns.filter(t => t.throws.length >= 3 || t.busted)
+  const completed = player.turns.filter(t => t.visitScore !== undefined || t.throws.length >= 3 || t.busted)
   if (completed.length === 0) return 0
   const total = completed.reduce((sum, t) => sum + turnTotalPoints(t), 0)
   return total / completed.length
@@ -119,13 +127,9 @@ export function getCheckoutDart(player: Player): ThrowResult | null {
 }
 
 export function count180s(player: Player): number {
-  return player.turns.filter(t =>
-    !t.busted && t.throws.reduce((s, th) => s + throwPoints(th), 0) === 180,
-  ).length
+  return player.turns.filter(t => !t.busted && turnTotalPoints(t) === 180).length
 }
 
 export function countTonPlus(player: Player): number {
-  return player.turns.filter(t =>
-    !t.busted && t.throws.reduce((s, th) => s + throwPoints(th), 0) >= 100,
-  ).length
+  return player.turns.filter(t => !t.busted && turnTotalPoints(t) >= 100).length
 }

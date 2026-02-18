@@ -10,6 +10,7 @@ export type {
   GameState,
   BotDifficulty,
   PlayerDescriptor,
+  InputMode,
 } from '#shared/game-models'
 
 export {
@@ -17,6 +18,7 @@ export {
   throwLabel,
   turnTotalPoints as turnTotal,
   turnIsComplete,
+  isVisitScoreTurn,
   createDefaultGameState,
   threeDartAverage,
   highestTurnScore,

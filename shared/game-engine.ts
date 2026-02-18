@@ -13,7 +13,8 @@ import type {
   Turn,
   Player,
 } from './game-models'
-import { throwPoints, turnIsComplete, createDefaultGameState } from './game-models'
+import { throwPoints, turnIsComplete, turnTotalPoints, createDefaultGameState } from './game-models'
+import { isAchievableScore, validateVisitScore } from './visit-score-validation'
 
 export class GameEngine {
   state: GameState
@@ -135,15 +136,22 @@ export class GameEngine {
       // Use stored score_before to restore accurately
       const scoreAtTurnStart = prevTurn.score_before ?? this._recomputeScore(prevTurn.player_index)
 
-      // Remove last throw from the turn
-      prevTurn.throws.pop()
-      if (prevTurn.busted) {
+      if (prevTurn.visitScore !== undefined) {
+        // Visit-score turn: undo the entire turn at once — restore to empty turn
+        prevTurn.visitScore = undefined
         prevTurn.busted = false
         prevPlayer.score = scoreAtTurnStart
       } else {
-        // Recompute score: start + points from remaining throws
-        const totalRemaining = prevTurn.throws.reduce((sum, t) => sum + throwPoints(t), 0)
-        prevPlayer.score = scoreAtTurnStart - totalRemaining
+        // Per-dart turn: remove last throw
+        prevTurn.throws.pop()
+        if (prevTurn.busted) {
+          prevTurn.busted = false
+          prevPlayer.score = scoreAtTurnStart
+        } else {
+          // Recompute score: start + points from remaining throws
+          const totalRemaining = prevTurn.throws.reduce((sum, t) => sum + throwPoints(t), 0)
+          prevPlayer.score = scoreAtTurnStart - totalRemaining
+        }
       }
 
       // Switch back to previous player
@@ -158,6 +166,44 @@ export class GameEngine {
   manualScore(segment: number, multiplier: Multiplier): GameState {
     const dart: ThrowResult = { segment, multiplier }
     return this.throw(dart)
+  }
+
+  applyVisitScore(score: number): GameState {
+    if (this.state.is_finished) return this.state
+
+    const turn = this.state.current_turn
+    // Reject if mid-turn (already has per-dart throws)
+    if (turn.throws.length > 0) return this.state
+
+    if (!isAchievableScore(score)) return this.state
+
+    const player = this.state.players[this.state.current_player_index]!
+    const result = validateVisitScore(score, player.score, this.state.checkout)
+
+    switch (result) {
+      case 'invalid_score':
+        return this.state
+      case 'bust':
+      case 'invalid_checkout': {
+        turn.visitScore = score
+        turn.busted = true
+        player.score = this.state.score_before_turn!
+        this._endTurn()
+        return this.state
+      }
+      case 'checkout': {
+        turn.visitScore = score
+        player.score = 0
+        this._winLeg()
+        return this.state
+      }
+      case 'valid': {
+        turn.visitScore = score
+        player.score -= score
+        this._endTurn()
+        return this.state
+      }
+    }
   }
 
   private _bust(turn: Turn, dart: ThrowResult): void {
@@ -252,7 +298,7 @@ export class GameEngine {
     const starting = parseInt(this.state.mode, 10)
     const player = this.state.players[playerIndex]!
     const scored = player.turns.reduce(
-      (sum, t) => sum + (t.busted ? 0 : t.throws.reduce((s, th) => s + throwPoints(th), 0)),
+      (sum, t) => sum + turnTotalPoints(t),
       0,
     )
     return starting - scored

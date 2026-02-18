@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ThrowResult } from '~/types/game'
-import { throwLabel, throwPoints, threeDartAverage, turnTotal } from '~/types/game'
+import { throwLabel, throwPoints, threeDartAverage, turnTotal, isVisitScoreTurn } from '~/types/game'
 import { getCheckout } from '~/utils/checkouts'
 
 const {
@@ -11,6 +11,7 @@ const {
   hasGame,
   undoThrow,
   manualScore,
+  visitScore,
   loadState,
   recentAchievements,
   clearAchievements,
@@ -25,7 +26,7 @@ const { audioEnabled, toggle: toggleAudio } = useAudio()
 const { isBotPlaying } = useBotPlay()
 const { isTournamentMatch, tournamentId, clear: clearTournamentContext } = useTournamentContext()
 const { ensureLoaded: ensurePlayers, getAvatarProps } = usePlayers()
-const { dartboardTheme } = useSettings()
+const { dartboardTheme, inputMode, setInputMode } = useSettings()
 const { enabled: announcerEnabled, toggle: toggleAnnouncer } = useAnnouncer()
 const { shouldShowTour, startTour } = useOnboarding()
 
@@ -170,7 +171,8 @@ const checkoutHint = computed(() => {
   if (state.is_finished) return null
   const player = state.players[state.current_player_index]
   if (!player) return null
-  const dartsRemaining = 3 - state.current_turn.throws.length
+  // In per-visit mode, always show checkout for full 3 darts
+  const dartsRemaining = isPerVisit.value ? 3 : 3 - state.current_turn.throws.length
   return getCheckout(player.score, dartsRemaining)
 })
 
@@ -181,7 +183,8 @@ function playerAvg(idx: number): string {
 
 function playerDarts(idx: number): number {
   const p = state.players[idx]
-  return p ? p.turns.reduce((s, t) => s + t.throws.length, 0) : 0
+  if (!p) return 0
+  return p.turns.reduce((s, t) => s + (isVisitScoreTurn(t) ? 3 : t.throws.length), 0)
 }
 
 const lastTurn = computed(() => {
@@ -206,6 +209,21 @@ const currentPlayerIsBot = computed(() => {
 function handleScore(segment: number, multiplier: number) {
   if (inputDisabled.value) return
   manualScore(segment, multiplier)
+}
+
+function handleVisitScore(score: number) {
+  if (inputDisabled.value) return
+  visitScore(score)
+}
+
+const isPerVisit = computed(() => inputMode.value === 'per_visit')
+
+// Disable mode toggle when mid-turn (per-dart throws already entered)
+const canToggleMode = computed(() => state.current_turn.throws.length === 0)
+
+function toggleInputMode() {
+  if (!canToggleMode.value) return
+  setInputMode(isPerVisit.value ? 'per_dart' : 'per_visit')
 }
 
 function dismissGameOver() {
@@ -250,7 +268,12 @@ watch(hasGame, (active) => {
     <div class="shrink-0 bg-glass border border-border-subtle rounded-md px-sm sm:px-md py-xs sm:py-sm flex flex-col gap-[2px] sm:grid sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:gap-md">
       <!-- Throw slots (center on desktop, first row on mobile) -->
       <div class="flex justify-center sm:order-2" data-tour="throw-slots">
-        <div class="flex items-center gap-sm">
+        <!-- Per-visit mode: simple label -->
+        <div v-if="isPerVisit" class="flex items-center gap-sm px-md py-xs">
+          <span class="text-[0.85rem] font-bold text-fg-muted uppercase tracking-wide">Enter 3-dart total</span>
+        </div>
+        <!-- Per-dart mode: 3 throw slots -->
+        <div v-else class="flex items-center gap-sm">
           <span
             v-for="slot in 3"
             :key="slot"
@@ -295,6 +318,9 @@ watch(hasGame, (active) => {
       <template v-if="lastTurn.busted">
         <span class="font-bold text-red">BUST</span>
       </template>
+      <template v-else-if="isVisitScoreTurn(lastTurn)">
+        <span class="font-extrabold text-fg tabular-nums ml-auto">= {{ turnTotal(lastTurn) }}</span>
+      </template>
       <template v-else>
         <span v-for="(t, i) in lastTurn.throws" :key="i" :class="throwColor(t)" class="font-semibold">{{ throwLabel(t) }}</span>
         <span class="font-extrabold text-fg tabular-nums ml-auto">= {{ turnTotal(lastTurn) }}</span>
@@ -322,7 +348,16 @@ watch(hasGame, (active) => {
           Bot is throwing...
         </div>
 
+        <VisitScoreInput
+          v-if="isPerVisit"
+          :disabled="inputDisabled"
+          :current-score="state.players[state.current_player_index]?.score"
+          :checkout-mode="state.checkout"
+          data-tour="numpad"
+          @visit-score="handleVisitScore"
+        />
         <ManualScoreInput
+          v-else
           :disabled="inputDisabled"
           data-tour="numpad"
           @score="handleScore"
@@ -337,6 +372,14 @@ watch(hasGame, (active) => {
             @click="undoThrow"
           >
             Undo
+          </button>
+          <button
+            class="btn btn-mode-toggle"
+            :disabled="!canToggleMode || inputDisabled"
+            :title="isPerVisit ? 'Switch to per-dart input' : 'Switch to per-visit input'"
+            @click="toggleInputMode"
+          >
+            {{ isPerVisit ? 'Per Dart' : 'Per Visit' }}
           </button>
         </div>
       </div>
@@ -539,6 +582,48 @@ watch(hasGame, (active) => {
 .btn-undo:hover:not(:disabled) {
   background: var(--surface-3);
   border-color: var(--border-default);
+}
+
+/* ── Mode toggle button: matches undo styling with gold accent ── */
+.btn-mode-toggle {
+  min-height: 48px;
+  border-radius: var(--radius-lg);
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  color: var(--gold);
+  padding: 0 var(--spacing-lg);
+  white-space: nowrap;
+  transition:
+    transform 50ms var(--ease-out),
+    background var(--duration-fast),
+    box-shadow var(--duration-fast);
+}
+
+@media (min-width: 768px) {
+  .btn-mode-toggle {
+    min-height: 52px;
+  }
+}
+
+.btn-mode-toggle:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.btn-mode-toggle:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-mode-toggle:hover:not(:disabled) {
+  background: var(--surface-3);
+  border-color: var(--border-gold);
+  box-shadow: 0 0 12px var(--gold-glow);
 }
 
 /* ── Bot throwing indicator ── */
