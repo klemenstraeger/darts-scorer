@@ -19,4 +19,9 @@ export {
   turnIsComplete,
   createDefaultGameState,
   threeDartAverage,
+  highestTurnScore,
+  totalDartsThrown,
+  getCheckoutDart,
+  count180s,
+  countTonPlus,
 } from '#shared/game-models'

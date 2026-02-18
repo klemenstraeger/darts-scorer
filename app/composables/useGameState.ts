@@ -23,6 +23,8 @@ interface UnlockedAchievement {
 // Module-level state shared across all consumers
 let engine: GameEngine | null = null
 const hasActiveGame = ref(false)
+const pendingGameOver = ref(false)
+let preFinishSnapshot: string | null = null
 const recentAchievements = ref<UnlockedAchievement[]>([])
 let dbSyncTimer: ReturnType<typeof setTimeout> | null = null
 let dbSyncDirty = false
@@ -167,6 +169,55 @@ export function useGameState() {
     }
   }
 
+  /** Shared finalization: sounds, announcements, save to DB, clear storage. */
+  function finalizeGameOver() {
+    if (!engine) return
+    play('game-won')
+    vibrate([50, 30, 50, 30, 200])
+    store.triggerGameOver()
+    hasActiveGame.value = false
+    const matchWinner = engine.state.winner_index != null
+      ? engine.state.players[engine.state.winner_index]?.name ?? ''
+      : ''
+    announcer.announceMatchWon(matchWinner)
+
+    // Save finished game to server
+    const ctx = getTournamentContext()
+    $fetch<{ gameId: number; newAchievements: UnlockedAchievement[] }>('/api/game/save', {
+      method: 'POST',
+      body: {
+        state: JSON.parse(JSON.stringify(engine.state)),
+        tournamentMatchId: ctx.matchId ?? undefined,
+      },
+    }).then((result) => {
+      if (result.newAchievements && result.newAchievements.length > 0) {
+        recentAchievements.value = result.newAchievements
+      }
+    }).catch((err) => {
+      console.warn('Failed to save finished game:', err)
+    })
+    clearStorage()
+    clearDatabaseState()
+  }
+
+  function confirmGameOver() {
+    pendingGameOver.value = false
+    preFinishSnapshot = null
+    finalizeGameOver()
+  }
+
+  function cancelGameOver() {
+    if (!preFinishSnapshot) return
+    const restored = JSON.parse(preFinishSnapshot) as ReturnType<GameEngine['newGame']>
+    engine = new GameEngine(restored)
+    pendingGameOver.value = false
+    preFinishSnapshot = null
+    syncToStore()
+    const ctx = getTournamentContext()
+    persistToStorage(ctx.matchId, ctx.tournamentId)
+    scheduleDatabaseSync()
+  }
+
   function manualScore(segment: number, multiplier: number) {
     if (!engine) return
 
@@ -174,6 +225,9 @@ export function useGameState() {
     const prevTurnCount = engine.state.turn_history.length
     const prevLegs = engine.state.players.map(p => p.legs_won)
     const prevSets = [...engine.state.sets_won]
+
+    // Snapshot full state before throw so we can restore on cancel
+    preFinishSnapshot = JSON.stringify(engine.state)
 
     engine.manualScore(segment, multiplier as Multiplier)
 
@@ -199,14 +253,17 @@ export function useGameState() {
         break
       }
       case GameEvent.GAME_OVER: {
-        play('game-won')
-        vibrate([50, 30, 50, 30, 200])
-        store.triggerGameOver()
-        hasActiveGame.value = false
-        const matchWinner = engine.state.winner_index != null
-          ? engine.state.players[engine.state.winner_index]?.name ?? ''
-          : ''
-        announcer.announceMatchWon(matchWinner)
+        // Check if the finishing player is a bot — bots don't mistype
+        const finishingPlayer = engine.state.players[engine.state.winner_index ?? 0]
+        if (finishingPlayer?.isBot) {
+          finalizeGameOver()
+        } else {
+          // Human checkout: show confirmation dialog
+          pendingGameOver.value = true
+          // Persist so pending state survives page refresh
+          const ctx = getTournamentContext()
+          persistToStorage(ctx.matchId, ctx.tournamentId)
+        }
         break
       }
       case GameEvent.DART_SCORED: {
@@ -250,25 +307,8 @@ export function useGameState() {
       }
     }
 
-    if (engine.state.is_finished) {
-      // Save finished game to server
-      const ctx = getTournamentContext()
-      $fetch<{ gameId: number; newAchievements: UnlockedAchievement[] }>('/api/game/save', {
-        method: 'POST',
-        body: {
-          state: JSON.parse(JSON.stringify(engine.state)),
-          tournamentMatchId: ctx.matchId ?? undefined,
-        },
-      }).then((result) => {
-        if (result.newAchievements && result.newAchievements.length > 0) {
-          recentAchievements.value = result.newAchievements
-        }
-      }).catch((err) => {
-        console.warn('Failed to save finished game:', err)
-      })
-      clearStorage()
-      clearDatabaseState()
-    } else {
+    // For non-game-over events, persist as normal
+    if (!engine.state.is_finished) {
       const ctx = getTournamentContext()
       persistToStorage(ctx.matchId, ctx.tournamentId)
       scheduleDatabaseSync()
@@ -293,6 +333,13 @@ export function useGameState() {
     engine = new GameEngine(persisted.state)
     syncToStore()
     hasActiveGame.value = true
+
+    // If loaded state is a finished game, it was pending confirmation before refresh
+    if (persisted.state.is_finished) {
+      pendingGameOver.value = true
+      // Snapshot is lost on refresh — undo will be disabled
+      preFinishSnapshot = null
+    }
 
     // Restore tournament context if present
     if (persisted.tournamentMatchId && persisted.tournamentId) {
@@ -325,7 +372,9 @@ export function useGameState() {
 
   function checkActiveGame(): boolean {
     const persisted = readStorage()
-    const active = !!persisted?.state && persisted.state.players.length > 0 && !persisted.state.is_finished
+    // A game pending confirmation is also considered active
+    const active = !!persisted?.state && persisted.state.players.length > 0
+      && (!persisted.state.is_finished || pendingGameOver.value)
     hasActiveGame.value = active
     // Clean up stale store state when no active game exists
     if (!active && store.hasGame) {
@@ -348,6 +397,8 @@ export function useGameState() {
     currentPlayer: store.currentPlayer,
     hasGame: computed(() => store.hasGame),
     hasActiveGame: readonly(hasActiveGame),
+    pendingGameOver: readonly(pendingGameOver),
+    canCancelGameOver: computed(() => preFinishSnapshot !== null),
     recentAchievements: readonly(recentAchievements),
     newGame,
     undoThrow,
@@ -356,5 +407,7 @@ export function useGameState() {
     loadState,
     checkActiveGame,
     clearAchievements,
+    confirmGameOver,
+    cancelGameOver,
   }
 }

@@ -14,6 +14,10 @@ const {
   loadState,
   recentAchievements,
   clearAchievements,
+  pendingGameOver,
+  canCancelGameOver,
+  confirmGameOver,
+  cancelGameOver,
 } = useGameState()
 
 const { audioEnabled, toggle: toggleAudio } = useAudio()
@@ -93,13 +97,6 @@ const legWonPlayerName = computed(() => {
 })
 
 const playerNames = computed(() => state.players.map(p => p.name))
-const winnerName = computed(() => {
-  if (state.winner_index != null) {
-    const winner = state.players[state.winner_index]
-    if (winner) return winner.name
-  }
-  return ''
-})
 
 const showGameOver = ref(true)
 const showDartboard = ref(false)
@@ -199,7 +196,7 @@ function throwColor(t: ThrowResult): string {
   return 'text-fg'
 }
 
-const inputDisabled = computed(() => state.is_finished || isBotPlaying.value)
+const inputDisabled = computed(() => state.is_finished || isBotPlaying.value || pendingGameOver.value)
 
 const currentPlayerIsBot = computed(() => {
   const player = state.players[state.current_player_index]
@@ -380,24 +377,6 @@ watch(hasGame, (active) => {
       </svg>
     </button>
 
-    <!-- Audio mute toggle FAB -->
-    <button
-      class="audio-fab"
-      :title="audioEnabled ? 'Mute sounds' : 'Unmute sounds'"
-      @click="toggleAudio()"
-    >
-      <svg v-if="audioEnabled" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-        <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-        <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-      </svg>
-      <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-        <line x1="23" y1="9" x2="17" y2="15" />
-        <line x1="17" y1="9" x2="23" y2="15" />
-      </svg>
-    </button>
-
     <!-- Dartboard FAB -->
     <button
       class="dartboard-fab"
@@ -452,36 +431,24 @@ watch(hasGame, (active) => {
     </Transition>
 
     <Transition name="fade">
-      <div v-if="gameOverFlash && showGameOver" class="overlay gameover-overlay">
-        <div class="text-center">
-          <div class="gameover-title text-[2.5rem] font-extrabold text-gradient-gold mb-sm">Game Over</div>
-          <div class="gameover-winner flex items-center justify-center gap-md text-2xl text-fg mb-md">
-            <PlayerAvatar v-if="winnerName" v-bind="getAvatarProps(winnerName)" :size="48" />
-            <span>{{ winnerName }} wins!</span>
-          </div>
-          <div v-if="isMatch" class="gameover-summary flex gap-xl justify-center mb-xl">
-            <div v-for="(player, i) in state.players" :key="i" class="flex flex-col items-center gap-[2px]">
-              <span class="text-[0.85rem] font-bold text-fg-muted uppercase tracking-wide">{{ player.name }}</span>
-              <span v-if="hasSets" class="text-[1.1rem] font-extrabold text-fg tabular-nums">{{ state.sets_won[i] ?? 0 }} sets</span>
-              <span class="text-[1.1rem] font-extrabold text-fg tabular-nums">{{ player.legs_won }} legs</span>
-            </div>
-          </div>
-          <div class="gameover-actions flex gap-md justify-center">
-            <NuxtLink
-              v-if="isTournamentMatch"
-              :to="`/tournaments/${tournamentId}`"
-              class="btn btn-gold"
-              @click="clearTournamentContext()"
-            >
-              Back to Tournament
-            </NuxtLink>
-            <template v-else>
-              <button class="btn btn-gold" @click="dismissGameOver">Continue</button>
-              <NuxtLink to="/" class="btn btn-secondary">New Game</NuxtLink>
-            </template>
-          </div>
-        </div>
-      </div>
+      <GameOverConfirmDialog
+        v-if="pendingGameOver"
+        :state="state"
+        :can-undo="canCancelGameOver"
+        @confirm="confirmGameOver"
+        @cancel="cancelGameOver"
+      />
+    </Transition>
+
+    <Transition name="fade">
+      <GameOverOverlay
+        v-if="gameOverFlash && showGameOver"
+        :state="state"
+        :is-tournament-match="isTournamentMatch"
+        :tournament-id="tournamentId"
+        @dismiss="dismissGameOver"
+        @clear-tournament="clearTournamentContext()"
+      />
     </Transition>
 
     <!-- Achievement toast notifications -->
@@ -793,29 +760,6 @@ watch(hasGame, (active) => {
 @keyframes bust-appear {
   from { transform: scale(0.5); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
-}
-
-/* ── Game over overlay ── */
-.gameover-overlay {
-  background: rgba(0, 0, 0, 0.85);
-  pointer-events: all;
-  backdrop-filter: blur(8px);
-}
-
-.gameover-title {
-  animation: scale-in 0.5s var(--ease-spring);
-}
-
-.gameover-winner {
-  animation: scale-in 0.5s var(--ease-spring) 0.1s both;
-}
-
-.gameover-summary {
-  animation: scale-in 0.5s var(--ease-spring) 0.15s both;
-}
-
-.gameover-actions {
-  animation: scale-in 0.5s var(--ease-spring) 0.2s both;
 }
 
 @keyframes scale-in {

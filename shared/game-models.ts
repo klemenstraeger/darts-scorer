@@ -101,3 +101,31 @@ export function threeDartAverage(player: Player): number {
   const total = completed.reduce((sum, t) => sum + turnTotalPoints(t), 0)
   return total / completed.length
 }
+
+export function highestTurnScore(player: Player): number {
+  if (player.turns.length === 0) return 0
+  return Math.max(...player.turns.map(t => turnTotalPoints(t)))
+}
+
+export function totalDartsThrown(player: Player): number {
+  return player.turns.reduce((sum, t) => sum + t.throws.length, 0)
+}
+
+export function getCheckoutDart(player: Player): ThrowResult | null {
+  if (player.score !== 0 || player.turns.length === 0) return null
+  const lastTurn = player.turns[player.turns.length - 1]!
+  if (lastTurn.busted || lastTurn.throws.length === 0) return null
+  return lastTurn.throws[lastTurn.throws.length - 1]!
+}
+
+export function count180s(player: Player): number {
+  return player.turns.filter(t =>
+    !t.busted && t.throws.reduce((s, th) => s + throwPoints(th), 0) === 180,
+  ).length
+}
+
+export function countTonPlus(player: Player): number {
+  return player.turns.filter(t =>
+    !t.busted && t.throws.reduce((s, th) => s + throwPoints(th), 0) >= 100,
+  ).length
+}
