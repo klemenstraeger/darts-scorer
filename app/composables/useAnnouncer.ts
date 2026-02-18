@@ -117,7 +117,7 @@ export function useAnnouncer() {
       speak(nickname)
       return
     }
-    if (total >= 40) {
+    if (total > 0) {
       speak(String(total))
     }
   }
