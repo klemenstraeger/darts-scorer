@@ -14,6 +14,7 @@
     "db:studio": "drizzle-kit studio",
     "test": "vitest",
     "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "generate:pwa-icons": "node scripts/generate-pwa-icons.mjs"
   },
   "dependencies": {
@@ -42,6 +43,7 @@
     "vue-router": "^5.0.2"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "^4.0.18",
     "drizzle-kit": "^0.31.8",
     "sharp": "^0.34.5",
     "typescript": "^5.9.3",
