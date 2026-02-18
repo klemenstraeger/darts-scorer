@@ -41,7 +41,6 @@ export default defineNuxtConfig({
   nitro: {
     preset: 'node-server',
   },
-  ssr: true,
 
   routeRules: {
     '/dashboard': { ssr: false },
@@ -67,9 +66,12 @@ export default defineNuxtConfig({
 
   vite: {
     plugins: [tailwindcss()],
-    ssr: {
-      external: ['@unovis/ts', '@unovis/vue'],
-    },
+    // optimizeDeps: {
+    //   include: ['cookie', '@supabase/ssr'],
+    // },
+    // ssr: {
+    //   external: ['@unovis/ts', '@unovis/vue'],
+    // },
   },
 
   pwa: {

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { ChartConfig } from '@/components/ui/chart'
 import { BarChart } from '@/components/ui/chart-bar'
 
 const props = defineProps<{
@@ -6,6 +7,7 @@ const props = defineProps<{
   values: number[]
   height?: number
   accent?: 'gold' | 'blue' | 'green'
+  valueLabel?: string
 }>()
 
 const chartHeight = computed(() => props.height ?? 180)
@@ -27,6 +29,10 @@ const chartData = computed(() => {
     value,
   }))
 })
+
+const chartConfig = computed<ChartConfig>(() => ({
+  value: { label: props.valueLabel ?? 'Count', color: accentColor.value },
+}))
 </script>
 
 <template>
@@ -36,7 +42,8 @@ const chartData = computed(() => {
       index="label"
       :categories="['value']"
       :colors="[accentColor]"
-      :y-formatter="(v: number) => String(Math.round(v))"
+      :chart-config="chartConfig"
+      :y-formatter="(v: number | Date) => String(Math.round(Number(v)))"
       :show-legend="false"
       :show-grid-line="true"
       :show-x-axis="true"

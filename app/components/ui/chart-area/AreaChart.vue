@@ -1,17 +1,17 @@
 <script setup lang="ts" generic="T extends Record<string, any>">
 import type { BulletLegendItemInterface } from "@unovis/ts"
-import type { Component } from "vue"
 import type { BaseChartProps } from "."
+import type { ChartConfig } from '@/components/ui/chart'
 import { Area, Axis, CurveType, Line } from "@unovis/ts"
 
 import { VisArea, VisAxis, VisLine, VisXYContainer } from "@unovis/vue"
 import { useMounted } from "@vueuse/core"
 import { useId } from "reka-ui"
 import { computed, ref } from "vue"
-import { ChartCrosshair, defaultColors } from '@/components/ui/chart'
+import { ChartCrosshair, ChartTooltipContent, componentToString, defaultColors } from '@/components/ui/chart'
 
 const props = withDefaults(defineProps<BaseChartProps<T> & {
-  customTooltip?: Component
+  chartConfig?: ChartConfig
   curveType?: CurveType
   showGradient?: boolean
 }>(), {
@@ -45,6 +45,11 @@ const legendItems = ref<BulletLegendItemInterface[]>(props.categories.map((categ
 })))
 
 const isMounted = useMounted()
+
+const tooltipTemplate = computed(() => {
+  if (!props.chartConfig) return undefined
+  return componentToString(props.chartConfig, ChartTooltipContent)
+})
 </script>
 
 <template>
@@ -64,7 +69,7 @@ const isMounted = useMounted()
         </defs>
       </svg>
 
-      <ChartCrosshair v-if="showTooltip" :colors="colors" :items="legendItems" :index="index" :custom-tooltip="customTooltip" />
+      <ChartCrosshair v-if="showTooltip" :colors="colors" :items="legendItems" :index="index" :template="tooltipTemplate" />
 
       <template v-for="(category, i) in categories" :key="category">
         <VisArea

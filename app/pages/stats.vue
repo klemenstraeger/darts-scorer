@@ -335,14 +335,18 @@ function formatShortDate(dateStr: string): string {
   })
 }
 
-// Overview cards (now 9 cards with avg_darts_per_leg)
-const statCards = computed(() => [
-  { key: 'total_games', label: 'Games', icon: '#' },
+// Primary overview cards (3 hero metrics)
+const primaryCards = computed(() => [
+  { key: 'three_dart_average', label: '3-Dart Avg', sublabel: 'Points scored per 3-dart visit', icon: 'x\u0304', hero: true },
+  { key: 'win_rate', label: 'Win %', sublabel: 'Percentage of games won', icon: '%', suffix: '%' },
+  { key: 'total_games', label: 'Games Played', sublabel: 'Total matches completed', icon: '#' },
+])
+
+// Secondary overview cards (6 deeper metrics)
+const secondaryCards = computed(() => [
+  { key: 'scoring_average', label: 'Scoring Avg', icon: 'S', title: 'Average per 3-dart visit, excluding busts' },
+  { key: 'first_9_average', label: 'First 9 Avg', icon: '9', title: 'Average of your first 3 visits each leg' },
   { key: 'games_won', label: 'Wins', icon: 'W' },
-  { key: 'win_rate', label: 'Win %', icon: '%', suffix: '%' },
-  { key: 'three_dart_average', label: '3-Dart Avg', icon: 'x\u0304' },
-  { key: 'scoring_average', label: 'Scoring Avg', icon: 'S' },
-  { key: 'first_9_average', label: 'First 9 Avg', icon: '9' },
   { key: 'bust_rate', label: 'Bust Rate', icon: 'BR', suffix: '%' },
   { key: 'best_game_darts', label: 'Best Game', icon: 'D', sublabel: 'darts' },
   { key: 'avg_darts_per_leg', label: 'Avg Darts/Leg', icon: 'A' },
@@ -409,10 +413,17 @@ const recentTurnTotals = computed(() => {
     .reverse()
 })
 
+const momentumXLabels = computed(() => {
+  if (!insights.value) return undefined
+  const turns = insights.value.turns.slice(0, 16).reverse()
+  if (turns.length === 0 || !turns[0]?.game_created_at) return undefined
+  return turns.map(t => formatShortDate(t.game_created_at))
+})
+
 const turnDistribution = computed(() => {
   const buckets = [0, 20, 40, 60, 80, 100, 120, 140]
   const labels = buckets.map((b, i) => (
-    i === buckets.length - 1 ? '140+' : `${b}-${b + 19}`
+    i === 0 ? '0-19*' : i === buckets.length - 1 ? '140+' : `${b}-${b + 19}`
   ))
   const values = new Array(labels.length).fill(0) as number[]
   if (!insights.value) return { labels, values }
@@ -428,28 +439,43 @@ const turnDistribution = computed(() => {
   return { labels, values }
 })
 
-// Ring accuracy (with misses)
-const ringBreakdown = computed(() => {
-  const labels = ['Miss', 'S', 'D', 'T', 'Bull']
+// Ring accuracy (with misses) — donut format
+const ringBreakdownForDonut = computed(() => {
+  const ringColors = {
+    Miss: 'var(--red)',
+    S: 'var(--blue)',
+    D: 'var(--gold)',
+    T: 'var(--green)',
+    Bull: 'var(--purple)',
+  } as Record<string, string>
+
+  const labels = ['Miss', 'S', 'D', 'T', 'Bull'] as const
   const values = [0, 0, 0, 0, 0]
-  if (!insights.value) return { labels, values, percentages: labels.map(() => '0') }
-  insights.value.throws.forEach((t) => {
-    if (t.segment === 0) {
-      values[0]! += 1
-    } else if (t.segment === 25) {
-      values[4]! += 1
-    } else if (t.multiplier === 1) {
-      values[1]! += 1
-    } else if (t.multiplier === 2) {
-      values[2]! += 1
-    } else if (t.multiplier === 3) {
-      values[3]! += 1
-    }
-  })
-  const total = values.reduce((a, v) => a + v, 0)
-  const percentages = values.map(v => total > 0 ? ((v / total) * 100).toFixed(1) : '0')
-  return { labels, values, percentages }
+
+  if (insights.value) {
+    insights.value.throws.forEach((t) => {
+      if (t.segment === 0) {
+        values[0]! += 1
+      } else if (t.segment === 25) {
+        values[4]! += 1
+      } else if (t.multiplier === 1) {
+        values[1]! += 1
+      } else if (t.multiplier === 2) {
+        values[2]! += 1
+      } else if (t.multiplier === 3) {
+        values[3]! += 1
+      }
+    })
+  }
+
+  return labels.map((label, i) => ({
+    label,
+    value: values[i]!,
+    color: ringColors[label],
+  }))
 })
+
+const hasThrowData = computed(() => (insights.value?.throws?.length ?? 0) > 0)
 
 // Scoring by number (darts per board number 1-20 + Bull)
 const scoringByNumber = computed(() => {
@@ -459,7 +485,6 @@ const scoringByNumber = computed(() => {
     if (t.segment === 0) return
     counts.set(t.segment, (counts.get(t.segment) ?? 0) + 1)
   })
-  // Sort by segment number (1-20, then 25 as Bull)
   const segments = [...counts.entries()].sort((a, b) => a[0] - b[0])
   return {
     labels: segments.map(([seg]) => seg === 25 ? 'Bull' : String(seg)),
@@ -528,7 +553,6 @@ const insightCards = computed(() => {
   const cards: { title: string; detail: string; tone?: 'gold' | 'blue' | 'green' }[] = []
   if (!stats.value) return cards
 
-  // Opening form insight (first-9 vs overall)
   if (stats.value.first_9_average != null && stats.value.three_dart_average > 0) {
     const diff = stats.value.first_9_average - stats.value.three_dart_average
     const pct = ((diff / stats.value.three_dart_average) * 100).toFixed(0)
@@ -552,7 +576,6 @@ const insightCards = computed(() => {
     cards.push({ title: 'Top targets', detail, tone: 'gold' })
   }
 
-  // Checkout variety
   if (trends.value && trends.value.checkout_darts.length > 0) {
     const uniqueCheckouts = trends.value.checkout_darts.length
     cards.push({
@@ -562,7 +585,6 @@ const insightCards = computed(() => {
     })
   }
 
-  // Opponent spotlight (worst H2H)
   if (trends.value && trends.value.head_to_head.length > 0) {
     const worst = trends.value.head_to_head
       .filter(h => h.games_played >= 2)
@@ -682,7 +704,6 @@ function gameAverage(gameId: number): number | null {
                 <template v-else-if="eloTrendDirection(player.trend) === 'down'">{{ eloTrendDelta(player.trend) }}</template>
                 <template v-else>=</template>
               </span>
-              <!-- Mini sparkline dots -->
               <span v-if="player.trend.length > 0" class="flex items-center gap-[3px]">
                 <span
                   v-for="(entry, i) in player.trend"
@@ -740,47 +761,91 @@ function gameAverage(gameId: number): number | null {
     <div v-if="loading" class="text-center text-fg-muted p-2xl">Loading stats...</div>
 
     <div v-if="stats && !loading" class="flex flex-col gap-2xl">
-      <!-- Section 2: Overview Cards -->
+
+      <!-- ============================================================ -->
+      <!-- OVERVIEW BAND: Primary Cards + Form Dots + Secondary Cards   -->
+      <!-- ============================================================ -->
       <section class="flex flex-col gap-md">
         <div class="flex items-center justify-between gap-md mb-md flex-wrap">
-          <div class="flex items-center gap-md">
-            <h3 class="section-title !mb-0">Overview</h3>
-            <!-- Recent form dots -->
-            <div v-if="recentForm.length > 0" class="flex items-center gap-[4px]">
-              <span
-                v-for="(won, i) in recentForm"
-                :key="i"
-                class="form-dot"
-                :class="won ? 'form-win' : 'form-loss'"
-              ></span>
-            </div>
-          </div>
+          <h3 class="section-title !mb-0">Overview</h3>
           <span class="text-[0.7rem] text-fg-muted uppercase tracking-widest">{{ filterLabel }}</span>
         </div>
-        <div class="grid grid-cols-3 gap-md max-sm:grid-cols-2">
+
+        <!-- Primary tier (3 hero cards) -->
+        <div class="grid grid-cols-3 gap-md max-sm:grid-cols-1">
           <div
-            v-for="(card, i) in statCards"
+            v-for="(card, i) in primaryCards"
             :key="card.key"
-            class="glass-card p-lg text-center flex flex-col items-center gap-xs"
+            class="primary-stat-card"
+            :class="{ 'primary-hero': card.hero }"
             v-motion
             :initial="{ opacity: 0, y: 20 }"
             :enter="{ opacity: 1, y: 0, transition: { duration: 300, delay: 150 + i * 40 } }"
           >
-            <div class="text-[1rem] text-fg-muted">{{ card.icon }}</div>
-            <div class="text-[1.8rem] font-extrabold text-fg tabular-nums">
+            <div class="text-[0.75rem] text-fg-muted">{{ card.icon }}</div>
+            <div class="text-[2.4rem] font-extrabold text-fg tabular-nums leading-none">
+              <template v-if="card.key === 'win_rate'">{{ (stats as any)[card.key] ?? 0 }}</template>
+              <template v-else>{{ (stats as any)[card.key] ?? '\u2014' }}</template>
+              <span v-if="card.suffix" class="text-[1.2rem]">{{ card.suffix }}</span>
+            </div>
+            <div class="text-[0.75rem] font-semibold text-fg-muted uppercase tracking-wide">
+              {{ card.label }}
+            </div>
+            <div class="text-[0.65rem] text-fg-muted mt-[2px]">
+              {{ card.sublabel }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent form dots (between tiers) -->
+        <div v-if="recentForm.length > 0" class="flex justify-center items-center gap-[6px] py-xs">
+          <span class="text-[0.65rem] text-fg-muted uppercase tracking-widest mr-sm">Form</span>
+          <span
+            v-for="(won, i) in recentForm"
+            :key="i"
+            class="form-dot"
+            :class="won ? 'form-win' : 'form-loss'"
+          ></span>
+        </div>
+
+        <!-- Secondary tier (6 smaller cards) -->
+        <div class="grid grid-cols-3 gap-sm max-sm:grid-cols-2">
+          <div
+            v-for="(card, i) in secondaryCards"
+            :key="card.key"
+            class="glass-card p-md text-center flex flex-col items-center gap-[2px]"
+            :title="card.title"
+            v-motion
+            :initial="{ opacity: 0, y: 12 }"
+            :enter="{ opacity: 1, y: 0, transition: { duration: 300, delay: 280 + i * 30 } }"
+          >
+            <div class="text-[0.7rem] text-fg-muted">{{ card.icon }}</div>
+            <div class="text-[1.4rem] font-extrabold text-fg tabular-nums">
               <template v-if="card.key === 'bust_rate'">{{ bustRate.toFixed(1) }}</template>
               <template v-else>{{ (stats as any)[card.key] ?? '\u2014' }}</template>
-              <span v-if="card.suffix" class="text-[1rem]">{{ card.suffix }}</span>
+              <span v-if="card.suffix" class="text-[0.85rem]">{{ card.suffix }}</span>
             </div>
-            <div class="text-[0.7rem] font-semibold text-fg-muted uppercase tracking-wide">
+            <div class="text-[0.65rem] font-semibold text-fg-muted uppercase tracking-wide">
               {{ card.label }}
               <span v-if="card.sublabel" class="text-fg-muted font-normal">({{ card.sublabel }})</span>
             </div>
           </div>
         </div>
+
+        <!-- Metric explainer -->
+        <details class="metric-explainer">
+          <summary class="text-[0.7rem] text-fg-muted cursor-pointer hover:text-fg-secondary transition-colors">What do these mean?</summary>
+          <div class="explainer-content">
+            <p><strong>3-Dart Avg</strong> &mdash; Average points per 3-dart visit across all turns, including busts (counted as 0).</p>
+            <p><strong>Scoring Avg</strong> &mdash; Average per 3-dart visit, excluding busted turns entirely. Usually higher than 3-Dart Avg.</p>
+            <p><strong>First 9 Avg</strong> &mdash; Average of your first 3 visits (9 darts) each leg. Shows opening strength before checkout pressure.</p>
+            <p><strong>Bust Rate</strong> &mdash; Percentage of turns that busted (went over the remaining score).</p>
+            <p><strong>Avg Darts/Leg</strong> &mdash; Average number of darts needed to complete a leg. Lower is better.</p>
+          </div>
+        </details>
       </section>
 
-      <!-- Section 3: Scoring Milestones -->
+      <!-- Scoring Milestones -->
       <section
         class="flex flex-col gap-md"
         v-motion
@@ -801,104 +866,126 @@ function gameAverage(gameId: number): number | null {
         </div>
       </section>
 
-      <!-- Section 4: Performance Trend (full width) -->
-      <section
+      <!-- ============================================================ -->
+      <!-- TRENDS GROUP: Performance Trend + Win Rate Trend             -->
+      <!-- ============================================================ -->
+      <StatsChartSection
         v-if="trendValues.length >= 2"
-        class="glass-card p-lg"
+        title="Performance Trend"
+        description="Your 3-dart average per game over time. The dashed line shows a 5-game rolling average to smooth out variance."
         v-motion
         :initial="{ opacity: 0, y: 20 }"
         :enter="{ opacity: 1, y: 0, transition: { duration: 300, delay: 450 } }"
       >
-        <div class="flex items-baseline justify-between gap-md mb-md">
-          <h3 class="section-title !mb-0">Performance Trend</h3>
-          <span class="text-[0.7rem] text-fg-muted uppercase tracking-widest">Per-game 3-dart avg</span>
-        </div>
         <StatsAreaChart
           :values="trendValues"
           :rolling="5"
           :x-labels="trendXLabels"
           :height="200"
+          value-label="Game Avg"
         />
-      </section>
+      </StatsChartSection>
 
-      <!-- Section 4b: Win Rate Trend -->
-      <section
+      <StatsChartSection
         v-if="winRateTrendValues.length >= 2"
-        class="glass-card p-lg"
+        title="Win Rate Trend"
+        description="Cumulative win percentage across all games. A rising line means you're winning more than losing."
         v-motion
         :initial="{ opacity: 0, y: 20 }"
         :enter="{ opacity: 1, y: 0, transition: { duration: 300, delay: 470 } }"
       >
-        <div class="flex items-baseline justify-between gap-md mb-md">
-          <h3 class="section-title !mb-0">Win Rate Trend</h3>
-          <span class="text-[0.7rem] text-fg-muted uppercase tracking-widest">Cumulative win %</span>
-        </div>
         <StatsAreaChart
           :values="winRateTrendValues"
           :x-labels="winRateTrendLabels"
           :height="180"
+          value-label="Win %"
         />
-      </section>
+      </StatsChartSection>
 
-      <!-- Section 5: Momentum + Turn Distribution -->
+      <!-- ============================================================ -->
+      <!-- SESSION GROUP: Momentum + Turn Distribution (two-column)     -->
+      <!-- ============================================================ -->
       <section class="grid grid-cols-2 gap-lg max-sm:grid-cols-1">
-        <div class="glass-card p-lg">
-          <h3 class="section-title">Momentum</h3>
-          <StatsAreaChart :values="recentTurnTotals" :rolling="4" label="Last 16 turns" />
-        </div>
-        <div class="glass-card p-lg">
-          <h3 class="section-title">Turn Distribution</h3>
-          <StatsBarChart :labels="turnDistribution.labels" :values="turnDistribution.values" accent="gold" />
-        </div>
+        <StatsChartSection
+          title="Momentum"
+          description="Turn scores from your 16 most recent visits. Rising scores indicate good current form."
+        >
+          <StatsAreaChart
+            :values="recentTurnTotals"
+            :rolling="4"
+            :x-labels="momentumXLabels"
+            value-label="Turn Score"
+            rolling-label="4-turn avg"
+          />
+        </StatsChartSection>
+
+        <StatsChartSection
+          title="Turn Distribution"
+          description="How often your turns land in each scoring band. Elite players peak in the 100+ range."
+        >
+          <StatsBarChart :labels="turnDistribution.labels" :values="turnDistribution.values" accent="gold" value-label="Turns" />
+          <p class="text-[0.65rem] text-fg-muted mt-xs">* includes busts</p>
+        </StatsChartSection>
       </section>
 
-      <!-- Section 5b: Scoring by Number -->
-      <section
-        v-if="scoringByNumber.labels.length > 0"
-        class="glass-card p-lg"
-        v-motion
-        :initial="{ opacity: 0, y: 20 }"
-        :enter="{ opacity: 1, y: 0, transition: { duration: 300, delay: 480 } }"
-      >
-        <div class="flex items-baseline justify-between gap-md mb-md">
-          <h3 class="section-title !mb-0">Scoring by Number</h3>
-          <span class="text-[0.7rem] text-fg-muted uppercase tracking-widest">Darts per board number</span>
-        </div>
-        <StatsBarChart :labels="scoringByNumber.labels" :values="scoringByNumber.values" accent="blue" />
-      </section>
-
-      <!-- Section 6: Ring Accuracy + Heatmap / Checkout -->
+      <!-- ============================================================ -->
+      <!-- ACCURACY GROUP: Ring Accuracy (donut) + Target Heatmap       -->
+      <!-- ============================================================ -->
       <section class="grid grid-cols-2 gap-lg max-sm:grid-cols-1">
-        <div class="glass-card p-lg">
-          <h3 class="section-title">Ring Accuracy</h3>
-          <StatsBarChart :labels="ringBreakdown.labels" :values="ringBreakdown.values" accent="blue" />
-          <div class="grid grid-cols-5 gap-xs mt-md text-center">
-            <div v-for="(pct, i) in ringBreakdown.percentages" :key="ringBreakdown.labels[i]" class="text-[0.65rem] text-fg-muted tabular-nums">
-              {{ pct }}%
-            </div>
+        <StatsChartSection
+          title="Ring Accuracy"
+          description="Where your darts land by ring type. Doubles and Trebles are the highest-value rings."
+        >
+          <template v-if="hasThrowData">
+            <StatsDonutChart
+              :data="ringBreakdownForDonut"
+              :size="180"
+              central-label="Throws"
+              :central-sub-label="String(insights?.throws?.length ?? 0)"
+            />
+          </template>
+          <div v-else class="text-center text-fg-muted text-[0.8rem] py-xl">
+            No throw data recorded yet
           </div>
-        </div>
-        <div class="glass-card p-lg flex flex-col items-center gap-md">
-          <h3 class="section-title">Target Heatmap</h3>
-          <StatsDartboardHeatmap :hits="segmentHeat" :size="220" />
-          <p class="text-[0.7rem] text-fg-muted">Segment frequency from recent throws.</p>
-        </div>
+        </StatsChartSection>
+
+        <StatsChartSection
+          title="Target Heatmap"
+          description="Frequency map of which segments you hit most. Brighter means more darts thrown there."
+        >
+          <template v-if="hasThrowData">
+            <div class="flex flex-col items-center gap-md">
+              <StatsDartboardHeatmap :hits="segmentHeat" :size="220" />
+            </div>
+          </template>
+          <div v-else class="text-center text-fg-muted text-[0.8rem] py-xl">
+            No throw data recorded yet
+          </div>
+        </StatsChartSection>
       </section>
 
-      <!-- Section 6b: Checkout Analysis -->
-      <section
-        v-if="checkoutBars.labels.length > 0"
-        class="glass-card p-lg"
-        v-motion
-        :initial="{ opacity: 0, y: 20 }"
-        :enter="{ opacity: 1, y: 0, transition: { duration: 300, delay: 500 } }"
-      >
-        <h3 class="section-title">Favorite Checkouts</h3>
-        <StatsBarChart :labels="checkoutBars.labels" :values="checkoutBars.values" accent="green" />
-        <p class="text-[0.7rem] text-fg-muted mt-sm">Most-used finishing doubles.</p>
+      <!-- ============================================================ -->
+      <!-- TARGETING GROUP: Scoring by Number + Favorite Checkouts      -->
+      <!-- ============================================================ -->
+      <section class="grid grid-cols-2 gap-lg max-sm:grid-cols-1">
+        <StatsChartSection
+          v-if="scoringByNumber.labels.length > 0"
+          title="Scoring by Number"
+          description="Darts thrown at each board number (1-20 + Bull). Shows your preferred scoring routes."
+        >
+          <StatsBarChart :labels="scoringByNumber.labels" :values="scoringByNumber.values" accent="blue" value-label="Darts" />
+        </StatsChartSection>
+
+        <StatsChartSection
+          v-if="checkoutBars.labels.length > 0"
+          title="Favorite Checkouts"
+          description="Your most-used finishing doubles when closing out a leg."
+        >
+          <StatsBarChart :labels="checkoutBars.labels" :values="checkoutBars.values" accent="green" value-label="Times Used" />
+        </StatsChartSection>
       </section>
 
-      <!-- Section 7: Head-to-Head Records -->
+      <!-- Head-to-Head Records -->
       <section
         v-if="headToHead.length > 0"
         class="flex flex-col gap-md"
@@ -941,7 +1028,7 @@ function gameAverage(gameId: number): number | null {
         </div>
       </section>
 
-      <!-- Section 8: Recommendations -->
+      <!-- Recommendations -->
       <section class="flex flex-col gap-md">
         <div class="flex items-baseline justify-between gap-md mb-md">
           <h3 class="section-title !mb-0">Recommendations</h3>
@@ -959,7 +1046,7 @@ function gameAverage(gameId: number): number | null {
       </section>
     </div>
 
-    <!-- Section 9: Game History -->
+    <!-- Game History -->
     <div
       v-if="history.length > 0"
       v-motion
@@ -996,7 +1083,6 @@ function gameAverage(gameId: number): number | null {
           </div>
         </div>
       </div>
-      <!-- Load more button -->
       <div v-if="hasMoreHistory" class="flex justify-center mt-lg">
         <button
           class="load-more-btn"
@@ -1012,7 +1098,7 @@ function gameAverage(gameId: number): number | null {
       Select a player to view their statistics
     </div>
 
-    <!-- Section 10: Achievements Gallery -->
+    <!-- Achievements Gallery -->
     <section
       v-if="achievementList.length > 0"
       class="mt-2xl"
@@ -1088,6 +1174,69 @@ function gameAverage(gameId: number): number | null {
   text-transform: uppercase;
   letter-spacing: 1px;
   margin-bottom: var(--spacing-md);
+}
+
+/* Primary stat cards (3 hero metrics) */
+.primary-stat-card {
+  padding: var(--spacing-lg) var(--spacing-xl);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-glass);
+  backdrop-filter: blur(var(--blur-glass));
+  -webkit-backdrop-filter: blur(var(--blur-glass));
+}
+
+.primary-stat-card.primary-hero {
+  border-color: rgba(255, 215, 0, 0.25);
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.08), transparent);
+  box-shadow: 0 0 24px rgba(255, 215, 0, 0.08);
+}
+
+/* Metric explainer */
+.metric-explainer {
+  margin-top: var(--spacing-xs);
+}
+
+.metric-explainer summary {
+  list-style: none;
+  user-select: none;
+}
+
+.metric-explainer summary::-webkit-details-marker {
+  display: none;
+}
+
+.metric-explainer summary::before {
+  content: '\25B6  ';
+  font-size: 0.55rem;
+  vertical-align: middle;
+}
+
+.metric-explainer[open] summary::before {
+  content: '\25BC  ';
+}
+
+.explainer-content {
+  margin-top: var(--spacing-sm);
+  padding: var(--spacing-md);
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.explainer-content strong {
+  color: var(--text-secondary);
 }
 
 .player-chip {
@@ -1300,8 +1449,6 @@ function gameAverage(gameId: number): number | null {
   color: var(--gold);
 }
 
-
-
 /* Color utilities */
 .text-green {
   color: rgba(34, 197, 94, 0.9);
@@ -1508,5 +1655,4 @@ function gameAverage(gameId: number): number | null {
   font-size: 0.6rem;
   color: var(--text-muted);
 }
-
 </style>
