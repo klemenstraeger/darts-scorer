@@ -1,12 +1,18 @@
 <script setup lang="ts">
 import { DARTBOARD_THEMES } from '~/utils/dartboard-themes'
 import type { DartboardTheme } from '~/utils/dartboard-themes'
+import type { InputMode } from '~/types/game'
 
-const { dartboardThemeId, setDartboardThemeId } = useSettings()
+const { dartboardThemeId, setDartboardThemeId, inputMode, setInputMode } = useSettings()
 
 function selectTheme(theme: DartboardTheme) {
   setDartboardThemeId(theme.id)
 }
+
+const inputModes: { id: InputMode; label: string; description: string; icon: string }[] = [
+  { id: 'per_dart', label: 'Per Dart', description: 'Enter each dart individually. Full stats and accuracy tracking.', icon: '🎯' },
+  { id: 'per_visit', label: 'Per Visit', description: 'Enter your 3-dart total. Faster scoring with quick-score buttons.', icon: '⚡' },
+]
 </script>
 
 <template>
@@ -14,6 +20,25 @@ function selectTheme(theme: DartboardTheme) {
     <div class="text-center">
       <h2 class="text-2xl font-extrabold text-fg">Settings</h2>
       <p class="text-fg-muted text-[0.85rem] mt-xs">Customize your experience</p>
+    </div>
+
+    <!-- Score Input Mode Section -->
+    <div class="w-full flex flex-col gap-lg">
+      <h3 class="text-[1.1rem] font-bold text-fg">Score Input Mode</h3>
+
+      <div class="grid grid-cols-2 gap-md">
+        <button
+          v-for="mode in inputModes"
+          :key="mode.id"
+          class="theme-card"
+          :class="{ active: inputMode === mode.id }"
+          @click="setInputMode(mode.id)"
+        >
+          <span class="text-[2rem]">{{ mode.icon }}</span>
+          <span class="theme-name">{{ mode.label }}</span>
+          <span class="text-fg-muted text-[0.75rem] text-center leading-tight px-xs">{{ mode.description }}</span>
+        </button>
+      </div>
     </div>
 
     <!-- Dartboard Theme Section -->

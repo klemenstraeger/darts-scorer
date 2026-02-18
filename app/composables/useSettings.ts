@@ -1,6 +1,6 @@
 import { DEFAULT_THEME_ID, getThemeById } from '~/utils/dartboard-themes'
 import type { DartboardTheme } from '~/utils/dartboard-themes'
-import type { CheckoutMode, GameMode, PlayerDescriptor } from '#shared/game-models'
+import type { CheckoutMode, GameMode, InputMode, PlayerDescriptor } from '#shared/game-models'
 
 const STORAGE_KEY = 'darts-scorer:settings'
 
@@ -15,11 +15,13 @@ export interface LastGameSettings {
 interface AppSettings {
   dartboardTheme: string
   lastGameSettings: LastGameSettings | null
+  inputMode: InputMode
 }
 
 const settings = reactive<AppSettings>({
   dartboardTheme: DEFAULT_THEME_ID,
   lastGameSettings: null,
+  inputMode: 'per_dart',
 })
 
 let loaded = false
@@ -33,6 +35,7 @@ function load() {
       const parsed = JSON.parse(raw) as Partial<AppSettings>
       if (parsed.dartboardTheme) settings.dartboardTheme = parsed.dartboardTheme
       if (parsed.lastGameSettings) settings.lastGameSettings = parsed.lastGameSettings
+      if (parsed.inputMode) settings.inputMode = parsed.inputMode
     }
   } catch {
     // ignore corrupt data
@@ -72,6 +75,19 @@ export function useSettings() {
     return settings.lastGameSettings
   }
 
+  const inputMode = computed<InputMode>({
+    get: () => settings.inputMode,
+    set: (mode: InputMode) => {
+      settings.inputMode = mode
+      save()
+    },
+  })
+
+  function setInputMode(mode: InputMode) {
+    settings.inputMode = mode
+    save()
+  }
+
   return {
     dartboardTheme,
     dartboardThemeId: computed(() => settings.dartboardTheme),
@@ -79,5 +95,7 @@ export function useSettings() {
     saveLastGameSettings,
     getLastGameSettings,
     lastGameSettings: computed(() => settings.lastGameSettings),
+    inputMode,
+    setInputMode,
   }
 }

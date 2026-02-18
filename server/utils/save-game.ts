@@ -58,7 +58,9 @@ export async function saveFinishedGame(userId: string, state: GameState): Promis
       const playerName = state.players[turn.player_index]!.name
       const totalPts = turn.busted
         ? 0
-        : turn.throws.reduce((sum, t) => sum + (t.segment === 25 ? 25 * t.multiplier : t.segment * t.multiplier), 0)
+        : turn.visitScore !== undefined
+          ? turn.visitScore
+          : turn.throws.reduce((sum, t) => sum + (t.segment === 25 ? 25 * t.multiplier : t.segment * t.multiplier), 0)
 
       const [dbTurn] = await db
         .insert(turns)
