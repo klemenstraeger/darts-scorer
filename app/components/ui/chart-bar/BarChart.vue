@@ -1,15 +1,15 @@
 <script setup lang="ts" generic="T extends Record<string, any>">
 import type { BulletLegendItemInterface } from "@unovis/ts"
-import type { Component } from "vue"
 import type { BaseChartProps } from "."
+import type { ChartConfig } from '@/components/ui/chart'
 import { Axis, GroupedBar, StackedBar } from "@unovis/ts"
 import { VisAxis, VisGroupedBar, VisStackedBar, VisXYContainer } from "@unovis/vue"
 import { useMounted } from "@vueuse/core"
 import { computed, ref } from "vue"
-import { ChartCrosshair, defaultColors } from '@/components/ui/chart'
+import { ChartCrosshair, ChartTooltipContent, componentToString, defaultColors } from '@/components/ui/chart'
 
 const props = withDefaults(defineProps<BaseChartProps<T> & {
-  customTooltip?: Component
+  chartConfig?: ChartConfig
   type?: "stacked" | "grouped"
   roundedCorners?: number
 }>(), {
@@ -41,6 +41,11 @@ const legendItems = ref<BulletLegendItemInterface[]>(props.categories.map((categ
 
 const isMounted = useMounted()
 
+const tooltipTemplate = computed(() => {
+  if (!props.chartConfig) return undefined
+  return componentToString(props.chartConfig, ChartTooltipContent)
+})
+
 const VisBarComponent = computed(() => props.type === "grouped" ? VisGroupedBar : VisStackedBar)
 const selectorsBar = computed(() => props.type === "grouped" ? GroupedBar.selectors.bar : StackedBar.selectors.bar)
 </script>
@@ -52,7 +57,7 @@ const selectorsBar = computed(() => props.type === "grouped" ? GroupedBar.select
       :style="{ height: isMounted ? '100%' : 'auto' }"
       :margin="{ left: 20, right: 10, top: 5, bottom: 0 }"
     >
-      <ChartCrosshair v-if="showTooltip" :colors="colors" :items="legendItems" :custom-tooltip="customTooltip" :index="index" />
+      <ChartCrosshair v-if="showTooltip" :colors="colors" :items="legendItems" :template="tooltipTemplate" :index="index" />
 
       <VisBarComponent
         :x="(d: Data, i: number) => i"

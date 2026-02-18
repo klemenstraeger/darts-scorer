@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { ChartConfig } from '@/components/ui/chart'
 import { AreaChart } from '@/components/ui/chart-area'
 
 const props = defineProps<{
@@ -7,7 +8,8 @@ const props = defineProps<{
   height?: number
   label?: string
   xLabels?: string[]
-  referenceLine?: number
+  valueLabel?: string
+  rollingLabel?: string
 }>()
 
 const chartHeight = computed(() => props.height ?? 180)
@@ -44,6 +46,22 @@ const colors = computed(() => {
   if (props.rolling && props.rolling > 0) c.push('var(--blue)')
   return c
 })
+
+const chartConfig = computed<ChartConfig>(() => {
+  const config: ChartConfig = {
+    value: { label: props.valueLabel ?? 'Score', color: 'var(--gold)' },
+  }
+  if (props.rolling && props.rolling > 0) {
+    config.rolling = {
+      label: props.rollingLabel ?? `${props.rolling}-game avg`,
+      color: 'var(--blue)',
+    }
+  }
+  return config
+})
+
+const legendValueLabel = computed(() => props.valueLabel ?? 'Score')
+const legendRollingLabel = computed(() => props.rollingLabel ?? `${props.rolling}-game avg`)
 </script>
 
 <template>
@@ -55,7 +73,8 @@ const colors = computed(() => {
         index="index"
         :categories="categories"
         :colors="colors"
-        :y-formatter="(v: number) => v.toFixed(1)"
+        :chart-config="chartConfig"
+        :y-formatter="(v: number | Date) => Number(v).toFixed(1)"
         :show-legend="false"
         :show-grid-line="true"
         :show-x-axis="!!xLabels"
@@ -63,8 +82,8 @@ const colors = computed(() => {
       />
     </div>
     <div v-if="rolling" class="flex gap-md text-[0.7rem] text-fg-muted">
-      <span class="inline-flex items-center gap-[6px]"><span class="dot-gold w-2 h-2 rounded-full inline-block"></span>Turn total</span>
-      <span class="inline-flex items-center gap-[6px]"><span class="dot-blue w-2 h-2 rounded-full inline-block"></span>{{ rolling }}-turn avg</span>
+      <span class="inline-flex items-center gap-[6px]"><span class="dot-gold w-2 h-2 rounded-full inline-block"></span>{{ legendValueLabel }}</span>
+      <span class="inline-flex items-center gap-[6px]"><span class="dot-blue w-2 h-2 rounded-full inline-block"></span>{{ legendRollingLabel }}</span>
     </div>
   </div>
 </template>
