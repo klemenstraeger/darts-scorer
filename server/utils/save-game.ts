@@ -20,8 +20,9 @@ export async function saveFinishedGame(userId: string, state: GameState): Promis
   try {
     const winnerName = state.players[state.winner_index]!.name
 
-    // Ensure players exist for this user
+    // Ensure players exist for this user (skip bots)
     for (const player of state.players) {
+      if (player.isBot) continue
       await db
         .insert(players)
         .values({ name: player.name, userId })
