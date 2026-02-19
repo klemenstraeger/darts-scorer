@@ -8,6 +8,7 @@ const step = ref(1)
 // ── Tournament config ─────────────────────────────────────────────────
 const name = ref('')
 const format = ref<TournamentFormat>('knockout')
+const participantType = ref<'individual' | 'team'>('individual')
 const selectedPlayers = ref<string[]>([])
 const gameMode = ref<'501' | '301'>('501')
 const checkout = ref<CheckoutMode>('double_out')
@@ -17,6 +18,8 @@ const groupCount = ref(2)
 const advancePerGroup = ref(2)
 const submitting = ref(false)
 const error = ref('')
+
+const isTeamMode = computed(() => participantType.value === 'team')
 
 const formats: { value: TournamentFormat; label: string }[] = [
   { value: 'knockout', label: 'Knockout' },
@@ -80,6 +83,9 @@ async function createTournament() {
         ...(isGroupFormat.value && {
           groupCount: groupCount.value,
           advancePerGroup: advancePerGroup.value,
+        }),
+        ...(isTeamMode.value && {
+          teamMode: 'doubles' as const,
         }),
       },
     })
@@ -145,16 +151,48 @@ async function createTournament() {
             />
           </div>
         </div>
+
+        <!-- Participant Type -->
+        <div class="glass-card w-full p-lg flex flex-col items-center gap-md">
+          <span class="settings-label">Participants</span>
+          <div class="mode-toggle">
+            <button
+              class="mode-option"
+              :class="{ active: participantType === 'individual' }"
+              @click="participantType = 'individual'; selectedPlayers = []"
+            >
+              Individual
+            </button>
+            <button
+              class="mode-option"
+              :class="{ active: participantType === 'team' }"
+              @click="participantType = 'team'; selectedPlayers = []"
+            >
+              Teams (Doubles)
+            </button>
+            <div
+              class="mode-pill"
+              :style="{ transform: `translateX(${participantType === 'team' ? 100 : 0}%)` }"
+            />
+          </div>
+        </div>
       </div>
 
-      <!-- Step 2: Select Players -->
+      <!-- Step 2: Select Players / Teams -->
       <div v-else-if="step === 2" key="step-players" class="wizard-step">
-        <h3 class="step-title">Select Players</h3>
+        <h3 class="step-title">{{ isTeamMode ? 'Select Teams' : 'Select Players' }}</h3>
         <p class="step-subtitle">
-          Pick at least {{ minPlayers }} players for this format.
+          Pick at least {{ minPlayers }} {{ isTeamMode ? 'teams' : 'players' }} for this format.
         </p>
 
+        <TeamPicker
+          v-if="isTeamMode"
+          v-model="selectedPlayers"
+          :min="minPlayers"
+          :max="16"
+        />
         <PlayerPicker
+          v-else
           v-model="selectedPlayers"
           :min="minPlayers"
           :max="16"
@@ -220,6 +258,7 @@ async function createTournament() {
           :sets-to-win="setsToWin"
           :group-count="isGroupFormat ? groupCount : undefined"
           :advance-per-group="format === 'group_knockout' ? advancePerGroup : undefined"
+          :team-mode="isTeamMode ? 'doubles' : undefined"
         />
 
         <div v-if="error" class="text-red text-[0.85rem] font-semibold text-center">{{ error }}</div>

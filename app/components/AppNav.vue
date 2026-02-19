@@ -11,6 +11,7 @@ onMounted(() => {
 const navItems = [
   { path: '/dashboard', label: 'Home', name: 'dashboard' },
   { path: '/players', label: 'Players', name: 'players' },
+  { path: '/teams', label: 'Teams', name: 'teams' },
   { path: '/tournaments', label: 'Tourneys', name: 'tournaments' },
   { path: '/training', label: 'Training', name: 'training' },
   { path: '/stats', label: 'Stats', name: 'stats' },
@@ -84,7 +85,7 @@ function handleLogout() {
           :key="item.path"
           :to="item.path"
           class="nav-link"
-          :class="{ active: item.name === route.name || (item.name === 'tournaments' && String(route.name ?? '').startsWith('tournaments')) || (item.name === 'players' && String(route.name ?? '').startsWith('players')) || (item.name === 'training' && String(route.name ?? '').startsWith('training')) }"
+          :class="{ active: item.name === route.name || (item.name === 'tournaments' && String(route.name ?? '').startsWith('tournaments')) || (item.name === 'players' && String(route.name ?? '').startsWith('players')) || (item.name === 'teams' && String(route.name ?? '').startsWith('teams')) || (item.name === 'training' && String(route.name ?? '').startsWith('training')) }"
         >
           {{ item.label }}
         </NuxtLink>
@@ -171,7 +172,7 @@ function handleLogout() {
           :key="item.path"
           :to="item.path"
           class="nav-dropdown-link"
-          :class="{ active: item.name === route.name || (item.name === 'tournaments' && String(route.name ?? '').startsWith('tournaments')) || (item.name === 'players' && String(route.name ?? '').startsWith('players')) || (item.name === 'training' && String(route.name ?? '').startsWith('training')) }"
+          :class="{ active: item.name === route.name || (item.name === 'tournaments' && String(route.name ?? '').startsWith('tournaments')) || (item.name === 'players' && String(route.name ?? '').startsWith('players')) || (item.name === 'teams' && String(route.name ?? '').startsWith('teams')) || (item.name === 'training' && String(route.name ?? '').startsWith('training')) }"
           @click="closeNav"
         >
           {{ item.label }}

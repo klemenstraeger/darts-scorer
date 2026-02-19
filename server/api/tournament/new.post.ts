@@ -10,6 +10,7 @@ export default defineEventHandler(async (event) => {
     setsToWin?: number
     groupCount?: number
     advancePerGroup?: number
+    teamMode?: 'doubles' | null
   }>(event)
 
   if (!body.name?.trim()) {
@@ -38,5 +39,6 @@ export default defineEventHandler(async (event) => {
     setsToWin: body.setsToWin,
     groupCount: body.groupCount,
     advancePerGroup: body.advancePerGroup,
+    teamMode: body.teamMode,
   })
 })
