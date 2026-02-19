@@ -1,4 +1,4 @@
-CREATE TABLE "achievements" (
+CREATE TABLE IF NOT EXISTS "achievements" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"user_id" uuid NOT NULL,
 	"player_name" text NOT NULL,
@@ -10,7 +10,7 @@ CREATE TABLE "achievements" (
 );
 --> statement-breakpoint
 ALTER TABLE "achievements" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
-CREATE TABLE "elo_history" (
+CREATE TABLE IF NOT EXISTS "elo_history" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"user_id" uuid NOT NULL,
 	"player_name" text NOT NULL,
@@ -23,7 +23,7 @@ CREATE TABLE "elo_history" (
 );
 --> statement-breakpoint
 ALTER TABLE "elo_history" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
-CREATE TABLE "team_members" (
+CREATE TABLE IF NOT EXISTS "team_members" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"team_id" integer NOT NULL,
 	"player_name" text NOT NULL,
@@ -32,7 +32,7 @@ CREATE TABLE "team_members" (
 );
 --> statement-breakpoint
 ALTER TABLE "team_members" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
-CREATE TABLE "teams" (
+CREATE TABLE IF NOT EXISTS "teams" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"user_id" uuid NOT NULL,
 	"name" text NOT NULL,
@@ -41,7 +41,7 @@ CREATE TABLE "teams" (
 );
 --> statement-breakpoint
 ALTER TABLE "teams" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
-CREATE TABLE "training_sessions" (
+CREATE TABLE IF NOT EXISTS "training_sessions" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"user_id" uuid NOT NULL,
 	"mode" text NOT NULL,
@@ -56,7 +56,7 @@ CREATE TABLE "training_sessions" (
 );
 --> statement-breakpoint
 ALTER TABLE "training_sessions" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
-CREATE TABLE "training_throws" (
+CREATE TABLE IF NOT EXISTS "training_throws" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"session_id" integer NOT NULL,
 	"throw_number" integer NOT NULL,
@@ -66,16 +66,43 @@ CREATE TABLE "training_throws" (
 );
 --> statement-breakpoint
 ALTER TABLE "training_throws" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
-ALTER TABLE "players" ADD COLUMN "current_elo" integer DEFAULT 1500 NOT NULL;--> statement-breakpoint
-ALTER TABLE "tournament_matches" ADD COLUMN "scheduled_at" timestamp;--> statement-breakpoint
-ALTER TABLE "tournament_participants" ADD COLUMN "team_id" integer;--> statement-breakpoint
-ALTER TABLE "tournaments" ADD COLUMN "team_mode" text;--> statement-breakpoint
-ALTER TABLE "achievements" ADD CONSTRAINT "achievements_user_id_profiles_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."profiles"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "achievements" ADD CONSTRAINT "achievements_game_id_games_id_fk" FOREIGN KEY ("game_id") REFERENCES "public"."games"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "elo_history" ADD CONSTRAINT "elo_history_user_id_profiles_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."profiles"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "elo_history" ADD CONSTRAINT "elo_history_game_id_games_id_fk" FOREIGN KEY ("game_id") REFERENCES "public"."games"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "team_members" ADD CONSTRAINT "team_members_team_id_teams_id_fk" FOREIGN KEY ("team_id") REFERENCES "public"."teams"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "teams" ADD CONSTRAINT "teams_user_id_profiles_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."profiles"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "training_sessions" ADD CONSTRAINT "training_sessions_user_id_profiles_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."profiles"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "training_throws" ADD CONSTRAINT "training_throws_session_id_training_sessions_id_fk" FOREIGN KEY ("session_id") REFERENCES "public"."training_sessions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "tournament_participants" ADD CONSTRAINT "tournament_participants_team_id_teams_id_fk" FOREIGN KEY ("team_id") REFERENCES "public"."teams"("id") ON DELETE set null ON UPDATE no action;
+ALTER TABLE "players" ADD COLUMN IF NOT EXISTS "current_elo" integer DEFAULT 1500 NOT NULL;--> statement-breakpoint
+ALTER TABLE "tournament_matches" ADD COLUMN IF NOT EXISTS "scheduled_at" timestamp;--> statement-breakpoint
+ALTER TABLE "tournament_participants" ADD COLUMN IF NOT EXISTS "team_id" integer;--> statement-breakpoint
+ALTER TABLE "tournaments" ADD COLUMN IF NOT EXISTS "team_mode" text;--> statement-breakpoint
+DO $$ BEGIN
+  ALTER TABLE "achievements" ADD CONSTRAINT "achievements_user_id_profiles_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."profiles"("id") ON DELETE cascade ON UPDATE no action;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;--> statement-breakpoint
+DO $$ BEGIN
+  ALTER TABLE "achievements" ADD CONSTRAINT "achievements_game_id_games_id_fk" FOREIGN KEY ("game_id") REFERENCES "public"."games"("id") ON DELETE set null ON UPDATE no action;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;--> statement-breakpoint
+DO $$ BEGIN
+  ALTER TABLE "elo_history" ADD CONSTRAINT "elo_history_user_id_profiles_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."profiles"("id") ON DELETE cascade ON UPDATE no action;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;--> statement-breakpoint
+DO $$ BEGIN
+  ALTER TABLE "elo_history" ADD CONSTRAINT "elo_history_game_id_games_id_fk" FOREIGN KEY ("game_id") REFERENCES "public"."games"("id") ON DELETE cascade ON UPDATE no action;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;--> statement-breakpoint
+DO $$ BEGIN
+  ALTER TABLE "team_members" ADD CONSTRAINT "team_members_team_id_teams_id_fk" FOREIGN KEY ("team_id") REFERENCES "public"."teams"("id") ON DELETE cascade ON UPDATE no action;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;--> statement-breakpoint
+DO $$ BEGIN
+  ALTER TABLE "teams" ADD CONSTRAINT "teams_user_id_profiles_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."profiles"("id") ON DELETE cascade ON UPDATE no action;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;--> statement-breakpoint
+DO $$ BEGIN
+  ALTER TABLE "training_sessions" ADD CONSTRAINT "training_sessions_user_id_profiles_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."profiles"("id") ON DELETE cascade ON UPDATE no action;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;--> statement-breakpoint
+DO $$ BEGIN
+  ALTER TABLE "training_throws" ADD CONSTRAINT "training_throws_session_id_training_sessions_id_fk" FOREIGN KEY ("session_id") REFERENCES "public"."training_sessions"("id") ON DELETE cascade ON UPDATE no action;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;--> statement-breakpoint
+DO $$ BEGIN
+  ALTER TABLE "tournament_participants" ADD CONSTRAINT "tournament_participants_team_id_teams_id_fk" FOREIGN KEY ("team_id") REFERENCES "public"."teams"("id") ON DELETE set null ON UPDATE no action;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
