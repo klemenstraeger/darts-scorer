@@ -1,108 +1,45 @@
 <script setup lang="ts">
-import type { CheckoutMode, BotDifficulty, PlayerDescriptor } from '~/types/game'
-
-const { newGame, hasActiveGame, checkActiveGame, hasGame } = useGameState()
+const { newGame, hasActiveGame, hasGame, checkActiveGame } = useGameState()
+const { lastGameSettings } = useSettings()
+const { hasActiveSession: hasActiveTraining, checkActiveSession } = useTrainingState()
 const { shouldShowTour, startTour } = useOnboarding()
 
-// ── Wizard state ──────────────────────────────────────────────────────
-const step = ref(1)
-
-// ── Game settings ─────────────────────────────────────────────────────
-const selectedPlayers = ref<string[]>([])
-const botPlayers = ref<Map<string, BotDifficulty>>(new Map())
-const gameMode = ref<'501' | '301'>('501')
-const checkout = ref<CheckoutMode>('double_out')
-const legsToWin = ref(1)
-const setsToWin = ref(1)
 const showAbandonConfirm = ref(false)
-const pendingAction = ref<'start' | 'quick' | null>(null)
 
-const humanPlayerCount = computed(() =>
-  selectedPlayers.value.filter(n => !botPlayers.value.has(n)).length,
-)
-
-const canAdvanceStep1 = computed(() => {
-  const total = selectedPlayers.value.length
-  const humans = humanPlayerCount.value
-  // At least 1 human + 1 bot, or 2+ humans
-  return total >= 2 && humans >= 1
+const hasRematch = computed(() => {
+  const s = lastGameSettings.value
+  return s && s.players.length >= 2
 })
 
-let botCounter = 0
-
-function addBot(difficulty: BotDifficulty) {
-  if (selectedPlayers.value.length >= 4) return
-  botCounter++
-  const label = difficulty.charAt(0).toUpperCase() + difficulty.slice(1)
-  const name = `Bot ${label}${botCounter > 1 ? ` #${botCounter}` : ''}`
-  selectedPlayers.value.push(name)
-  botPlayers.value.set(name, difficulty)
-}
-
-function removeBot(name: string) {
-  selectedPlayers.value = selectedPlayers.value.filter(n => n !== name)
-  botPlayers.value.delete(name)
-}
-
-// Human-only selection for PlayerPicker (bots are managed separately)
-const humanSelection = computed({
-  get: () => selectedPlayers.value.filter(n => !botPlayers.value.has(n)),
-  set: (humanNames: string[]) => {
-    // Rebuild selectedPlayers: humans first, then bots in their original order
-    const botNames = selectedPlayers.value.filter(n => botPlayers.value.has(n))
-    selectedPlayers.value = [...humanNames, ...botNames]
-  },
+const rematchSummary = computed(() => {
+  const s = lastGameSettings.value
+  if (!s) return ''
+  const playerNames = s.players.map(p => p.name).join(' vs ')
+  const checkout = s.checkout === 'double_out' ? 'Double Out' : 'Single Out'
+  return `${s.mode} \u00b7 ${checkout} \u00b7 ${playerNames}`
 })
 
-function buildDescriptors(): PlayerDescriptor[] {
-  return selectedPlayers.value.map(name => {
-    const botDiff = botPlayers.value.get(name)
-    if (botDiff) {
-      return { name, isBot: true, botDifficulty: botDiff }
-    }
-    return { name }
-  })
-}
-
-// Check for active game on mount
 onMounted(() => {
   checkActiveGame()
+  checkActiveSession()
 
   if (shouldShowTour('dashboard')) {
     setTimeout(() => {
       startTour([
         {
-          element: '[data-tour="player-picker"]',
+          element: '[data-tour="quick-start"]',
           popover: {
-            title: 'Select Players',
-            description: 'Tap player cards to add them to the game. The selection order determines throw order.',
+            title: 'Quick Start',
+            description: 'Start a game instantly with one tap using your last settings, or set up a new game.',
             side: 'bottom',
             align: 'center',
           },
         },
         {
-          element: '[data-tour="add-bot"]',
+          element: '[data-tour="action-grid"]',
           popover: {
-            title: 'Play vs AI Bots',
-            description: 'Add AI opponents at different difficulty levels to practice or play solo.',
-            side: 'top',
-            align: 'center',
-          },
-        },
-        {
-          element: '[data-tour="quick-start"]',
-          popover: {
-            title: 'Quick Start',
-            description: 'Jump straight into a standard 501 Double Out game with one tap.',
-            side: 'top',
-            align: 'center',
-          },
-        },
-        {
-          element: '[data-tour="wizard"]',
-          popover: {
-            title: 'Game Setup Wizard',
-            description: 'Use Next to customize game mode, checkout rules, and match format before starting.',
+            title: 'Quick Access',
+            description: 'Jump to any feature — set up a custom game, practice, run tournaments, or check your stats.',
             side: 'top',
             align: 'center',
           },
@@ -111,8 +48,8 @@ onMounted(() => {
           element: '[data-tour="nav"]',
           popover: {
             title: 'Navigation',
-            description: 'Access Players management, Tournaments, and Statistics from the navigation bar.',
-            side: 'bottom',
+            description: 'Use the bottom bar to switch between sections quickly.',
+            side: 'top',
             align: 'center',
           },
         },
@@ -121,13 +58,13 @@ onMounted(() => {
   }
 })
 
-function resumeGame() {
-  navigateTo('/game')
-}
-
 function quickStart() {
+  const s = lastGameSettings.value
+  if (!s || s.players.length < 2) {
+    navigateTo('/new-game')
+    return
+  }
   if (hasActiveGame.value || hasGame.value) {
-    pendingAction.value = 'quick'
     showAbandonConfirm.value = true
     return
   }
@@ -136,178 +73,158 @@ function quickStart() {
 
 function doQuickStart() {
   showAbandonConfirm.value = false
-  newGame('501', buildDescriptors(), {
-    checkout: 'double_out',
-    legs_to_win: 1,
-    sets_to_win: 1,
+  const s = lastGameSettings.value!
+  newGame(s.mode, s.players, {
+    checkout: s.checkout,
+    legs_to_win: s.legs_to_win,
+    sets_to_win: s.sets_to_win,
   })
   navigateTo('/game')
 }
 
-function startGame() {
-  if (hasActiveGame.value || hasGame.value) {
-    pendingAction.value = 'start'
-    showAbandonConfirm.value = true
-    return
-  }
-  doStartGame()
-}
-
-function doStartGame() {
-  showAbandonConfirm.value = false
-  newGame(gameMode.value, buildDescriptors(), {
-    checkout: checkout.value,
-    legs_to_win: legsToWin.value,
-    sets_to_win: setsToWin.value,
-  })
-  navigateTo('/game')
-}
-
-function confirmAbandon() {
-  if (pendingAction.value === 'quick') doQuickStart()
-  else doStartGame()
-}
+const actionCards = [
+  {
+    path: '/new-game',
+    title: 'New Game',
+    subtitle: 'Custom game setup',
+    icon: 'plus',
+  },
+  {
+    path: '/training',
+    title: 'Solo Training',
+    subtitle: 'Practice drills',
+    icon: 'target',
+  },
+  {
+    path: '/tournaments',
+    title: 'Tournaments',
+    subtitle: 'Compete & brackets',
+    icon: 'trophy',
+  },
+  {
+    path: '/stats',
+    title: 'Stats',
+    subtitle: 'Track your progress',
+    icon: 'chart',
+  },
+]
 </script>
 
 <template>
-  <div class="flex flex-col items-center gap-xl px-lg py-2xl max-w-[600px] mx-auto w-full max-sm:px-md max-sm:py-xl">
-    <!-- Title -->
+  <div class="dashboard-page px-lg py-xl max-w-[600px] mx-auto w-full max-sm:px-md max-sm:py-lg">
+    <!-- Hero -->
     <div
-      class="text-center mb-sm"
+      class="hero-section text-center mb-lg"
       v-motion
       :initial="{ opacity: 0, y: -20 }"
       :enter="{ opacity: 1, y: 0, transition: { duration: 400, ease: 'easeOut' } }"
     >
-      <h2 class="text-[2.5rem] font-black leading-tight max-sm:text-[2rem]">
-        <span class="block text-fg">Darts</span>
-        <span class="block text-gradient-gold">Scorer</span>
-      </h2>
+      <div class="flex items-center justify-center gap-sm mb-sm">
+        <DartsLogo :size="28" />
+        <h1 class="text-[1.8rem] font-black leading-tight max-sm:text-[1.5rem]">
+          <span class="text-fg">Darts </span>
+          <span class="text-gradient-gold">Scorer</span>
+        </h1>
+      </div>
+    </div>
+
+    <!-- Quick Start -->
+    <div
+      v-motion
+      :initial="{ opacity: 0, scale: 0.95 }"
+      :enter="{ opacity: 1, scale: 1, transition: { duration: 400, ease: 'easeOut', delay: 100 } }"
+    >
+      <button
+        class="quick-start-btn"
+        data-tour="quick-start"
+        @click="quickStart"
+      >
+        <span class="quick-start-label">
+          <svg class="inline-block w-[18px] h-[18px] mr-[6px]" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="5 3 19 12 5 21 5 3" />
+          </svg>
+          {{ hasRematch ? 'Quick Start' : 'New Game' }}
+        </span>
+        <span v-if="hasRematch" class="quick-start-hint">{{ rematchSummary }}</span>
+        <span v-else class="quick-start-hint">Set up players & game mode</span>
+      </button>
     </div>
 
     <!-- Resume game banner -->
     <div
       v-if="hasActiveGame || hasGame"
-      class="glass-card w-full px-xl py-lg flex items-center justify-between border border-border-gold"
+      class="glass-card w-full px-xl py-lg flex items-center justify-between border border-border-gold mt-lg"
       v-motion
       :initial="{ opacity: 0, scale: 0.95 }"
       :enter="{ opacity: 1, scale: 1, transition: { duration: 300 } }"
     >
       <div class="flex items-center gap-md">
-        <span class="game-pulse-large" />
+        <span class="pulse-dot" />
         <div class="flex flex-col gap-[2px]">
           <span class="text-[0.9rem] font-bold text-fg">Game in progress</span>
           <span class="text-[0.75rem] text-fg-muted">Pick up where you left off</span>
         </div>
       </div>
-      <button class="btn btn-gold" @click="resumeGame">Resume</button>
+      <button class="btn btn-gold" @click="navigateTo('/game')">Resume</button>
     </div>
 
-    <!-- Solo Training link -->
-    <NuxtLink
-      to="/training"
-      class="training-card glass-card w-full px-xl py-lg flex items-center justify-between"
+    <!-- Resume training banner -->
+    <div
+      v-if="hasActiveTraining"
+      class="glass-card w-full px-xl py-lg flex items-center justify-between border border-border-gold mt-lg"
+      v-motion
+      :initial="{ opacity: 0, scale: 0.95 }"
+      :enter="{ opacity: 1, scale: 1, transition: { duration: 300, delay: 50 } }"
     >
       <div class="flex items-center gap-md">
-        <span class="text-[1.5rem]">🎯</span>
+        <span class="pulse-dot" />
         <div class="flex flex-col gap-[2px]">
-          <span class="text-[0.9rem] font-bold text-fg">Solo Training</span>
-          <span class="text-[0.75rem] text-fg-muted">Practice drills to sharpen your game</span>
+          <span class="text-[0.9rem] font-bold text-fg">Training in progress</span>
+          <span class="text-[0.75rem] text-fg-muted">Continue your practice session</span>
         </div>
       </div>
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-fg-muted">
-        <polyline points="9 18 15 12 9 6" />
-      </svg>
-    </NuxtLink>
+      <button class="btn btn-gold" @click="navigateTo('/training/play')">Resume</button>
+    </div>
 
-    <!-- Wizard -->
-    <WizardShell
-      v-model:current-step="step"
-      :total-steps="3"
-      :can-advance="step === 1 ? canAdvanceStep1 : true"
-      :finish-label="'Start Game'"
-      data-tour="wizard"
-      @finish="startGame"
-    >
-      <!-- Step 1: Select Players -->
-      <div v-if="step === 1" key="step-players" class="wizard-step">
-        <h3 class="step-title">Select Players</h3>
-        <p class="step-subtitle">Tap to select. Order = throw order.</p>
+    <!-- Action Grid -->
+    <div class="action-grid mt-xl" data-tour="action-grid">
+      <NuxtLink
+        v-for="(card, i) in actionCards"
+        :key="card.path"
+        :to="card.path"
+        class="action-card glass-card"
+        v-motion
+        :initial="{ opacity: 0, y: 16 }"
+        :enter="{ opacity: 1, y: 0, transition: { duration: 300, delay: 200 + i * 60 } }"
+      >
+        <!-- Plus / New Game -->
+        <svg v-if="card.icon === 'plus'" class="action-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="16" />
+          <line x1="8" y1="12" x2="16" y2="12" />
+        </svg>
+        <!-- Target / Training -->
+        <svg v-else-if="card.icon === 'target'" class="action-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10" />
+          <circle cx="12" cy="12" r="6" />
+          <circle cx="12" cy="12" r="2" />
+        </svg>
+        <!-- Trophy / Tournaments -->
+        <svg v-else-if="card.icon === 'trophy'" class="action-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 9H4.5a2.5 2.5 0 010-5H6" /><path d="M18 9h1.5a2.5 2.5 0 000-5H18" />
+          <path d="M4 22h16" /><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
+          <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
+          <path d="M18 2H6v7a6 6 0 0012 0V2Z" />
+        </svg>
+        <!-- Chart / Stats -->
+        <svg v-else-if="card.icon === 'chart'" class="action-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" />
+        </svg>
 
-        <PlayerPicker
-          v-model="humanSelection"
-          :min="1"
-          :max="4 - botPlayers.size"
-          data-tour="player-picker"
-        />
-
-        <!-- Add Bot section -->
-        <div v-if="selectedPlayers.length < 4" class="w-full flex flex-col items-center gap-sm" data-tour="add-bot">
-          <span class="text-[0.8rem] font-bold text-fg-muted uppercase tracking-wide">Add a Bot</span>
-          <div class="flex gap-xs flex-wrap justify-center">
-            <button
-              v-for="diff in (['easy', 'medium', 'hard', 'pro'] as const)"
-              :key="diff"
-              class="bot-diff-btn"
-              @click="addBot(diff)"
-            >
-              <svg class="inline-block w-[14px] h-[14px] mr-[4px] opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2" /><circle cx="8.5" cy="16" r="1.5" /><circle cx="15.5" cy="16" r="1.5" /><path d="M12 2v5M7 7h10" /></svg>
-              {{ diff.charAt(0).toUpperCase() + diff.slice(1) }}
-            </button>
-          </div>
-        </div>
-
-        <!-- Bot chips -->
-        <div v-if="botPlayers.size > 0" class="w-full flex flex-wrap gap-xs justify-center">
-          <span
-            v-for="[name, diff] in botPlayers"
-            :key="name"
-            class="bot-chip"
-          >
-            <svg class="inline-block w-[14px] h-[14px] mr-[3px] opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2" /><circle cx="8.5" cy="16" r="1.5" /><circle cx="15.5" cy="16" r="1.5" /><path d="M12 2v5M7 7h10" /></svg>
-            {{ name }}
-            <button class="bot-chip-remove" @click="removeBot(name)">&times;</button>
-          </span>
-        </div>
-
-        <!-- Quick Start -->
-        <button
-          v-if="canAdvanceStep1"
-          class="quick-start-btn"
-          data-tour="quick-start"
-          @click="quickStart"
-        >
-          Quick Start
-          <span class="quick-hint">501 &middot; Double Out &middot; 1 Leg</span>
-        </button>
-      </div>
-
-      <!-- Step 2: Game Settings -->
-      <div v-else-if="step === 2" key="step-settings" class="wizard-step">
-        <h3 class="step-title">Game Settings</h3>
-        <p class="step-subtitle">Customize or just tap Next for defaults.</p>
-
-        <GameSettingsPanel
-          v-model:game-mode="gameMode"
-          v-model:checkout="checkout"
-          v-model:legs-to-win="legsToWin"
-          v-model:sets-to-win="setsToWin"
-        />
-      </div>
-
-      <!-- Step 3: Review & Start -->
-      <div v-else key="step-review" class="wizard-step">
-        <h3 class="step-title">Ready to Play</h3>
-        <p class="step-subtitle">Review your game setup.</p>
-
-        <GameSummary
-          :players="selectedPlayers"
-          :game-mode="gameMode"
-          :checkout="checkout"
-          :legs-to-win="legsToWin"
-          :sets-to-win="setsToWin"
-        />
-      </div>
-    </WizardShell>
+        <span class="action-title">{{ card.title }}</span>
+        <span class="action-subtitle">{{ card.subtitle }}</span>
+      </NuxtLink>
+    </div>
 
     <!-- Abandon confirm modal -->
     <Teleport to="body">
@@ -317,7 +234,7 @@ function confirmAbandon() {
           <p class="text-fg-secondary text-[0.9rem] leading-relaxed">Starting a new game will end your current game in progress.</p>
           <div class="flex gap-md justify-end">
             <button class="btn btn-secondary" @click="showAbandonConfirm = false">Cancel</button>
-            <button class="btn btn-danger" @click="confirmAbandon">Start New Game</button>
+            <button class="btn btn-danger" @click="doQuickStart">Start New Game</button>
           </div>
         </div>
       </div>
@@ -326,44 +243,20 @@ function confirmAbandon() {
 </template>
 
 <style scoped>
-/* ── Wizard step layout ──────────────────────────────────────── */
-.wizard-step {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-xl);
-  width: 100%;
-}
-
-.step-title {
-  font-size: 1.3rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  text-align: center;
-}
-
-.step-subtitle {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  text-align: center;
-  margin-top: calc(-1 * var(--spacing-md));
-}
-
 /* ── Quick Start button ──────────────────────────────────────── */
 .quick-start-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
   width: 100%;
-  padding: var(--spacing-md) var(--spacing-xl);
+  padding: var(--spacing-lg) var(--spacing-xl);
+  min-height: 56px;
   background: var(--gold-gradient);
   color: var(--text-inverse);
   border: none;
   border-radius: var(--radius-lg);
   font-family: var(--font-sans);
-  font-size: 1.05rem;
-  font-weight: 800;
   cursor: pointer;
   transition:
     transform var(--duration-fast) var(--ease-out),
@@ -380,19 +273,31 @@ function confirmAbandon() {
   transform: scale(0.97);
 }
 
-.quick-hint {
+.quick-start-label {
+  display: flex;
+  align-items: center;
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.quick-start-hint {
   font-size: 0.7rem;
   font-weight: 500;
   opacity: 0.8;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ── Resume pulse ────────────────────────────────────────────── */
-.game-pulse-large {
+.pulse-dot {
   display: block;
   width: 10px;
   height: 10px;
   border-radius: 50%;
   background: var(--green);
+  flex-shrink: 0;
   animation: pulse 2s ease-in-out infinite;
 }
 
@@ -401,69 +306,55 @@ function confirmAbandon() {
   50% { opacity: 0.5; transform: scale(0.8); }
 }
 
-/* ── Bot difficulty buttons ─────────────────────────────────── */
-.bot-diff-btn {
-  display: inline-flex;
+/* ── Action grid ─────────────────────────────────────────────── */
+.action-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-md);
+}
+
+.action-card {
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  padding: var(--spacing-xs) var(--spacing-md);
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  color: var(--text-secondary);
-  font-family: var(--font-sans);
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: border-color var(--duration-fast), background var(--duration-fast);
-}
-
-.bot-diff-btn:hover {
-  border-color: var(--border-gold);
-  background: rgba(255, 215, 0, 0.06);
-  color: var(--gold);
-}
-
-.bot-diff-btn:active {
-  transform: scale(0.96);
-}
-
-/* ── Bot chips ──────────────────────────────────────────────── */
-.bot-chip {
-  display: inline-flex;
-  align-items: center;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  background: rgba(255, 215, 0, 0.08);
-  border: 1px solid rgba(255, 215, 0, 0.2);
-  border-radius: var(--radius-md);
-  color: var(--gold);
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.bot-chip-remove {
-  margin-left: var(--spacing-xs);
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  font-size: 1rem;
-  cursor: pointer;
-  line-height: 1;
-  padding: 0 2px;
-}
-
-.bot-chip-remove:hover {
-  color: var(--red);
-}
-
-/* ── Training card ──────────────────────────────────────────── */
-.training-card {
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-xl) var(--spacing-md);
+  min-height: 120px;
   text-decoration: none;
-  transition: border-color var(--duration-fast), transform var(--duration-fast);
+  text-align: center;
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-normal) var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
 }
 
-.training-card:hover {
+.action-card:hover {
   border-color: var(--border-gold);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.action-card:active {
+  transform: scale(0.97);
+}
+
+.action-icon {
+  color: var(--gold);
+  opacity: 0.9;
+}
+
+.action-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.action-subtitle {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  line-height: 1.3;
 }
 
 /* ── Modal overlay ───────────────────────────────────────────── */
