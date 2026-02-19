@@ -2,7 +2,7 @@ name: Deploy Prod
 
 on:
   push:
-    tags: ['v*']
+    tags: ["v*"]
 
 concurrency:
   group: deploy-prod

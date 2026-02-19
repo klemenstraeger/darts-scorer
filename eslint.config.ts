@@ -15,6 +15,7 @@ export default antfu({
     'server/db/migrations/**',
     'darts_scorer/**',
     'plans/**',
+    '.github/**',
   ],
 }, {
   rules: {
