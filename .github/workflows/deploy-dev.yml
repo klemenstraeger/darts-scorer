@@ -1,0 +1,41 @@
+name: Deploy Dev
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: deploy-dev
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: CI
+    uses: ./.github/workflows/ci.yml
+
+  migrate:
+    name: Run DB Migrations (Dev)
+    needs: ci
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Run Drizzle migrations
+        run: pnpm db:migrate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+  deploy:
+    name: Deploy to Dokploy (Dev)
+    needs: migrate
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+      - name: Trigger Dokploy webhook
+        run: curl -sSf -X POST "${{ secrets.DOKPLOY_WEBHOOK_URL }}"
