@@ -219,7 +219,7 @@
 
   /* Breakpoints */
   --breakpoint-xs: 30rem;     /* 480px */
-  --breakpoint-sm: 37.5rem;   /* 600px */
+  --breakpoint-sm: 40rem;     /* 640px — matches Tailwind sm: */
 
   /* Font */
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;

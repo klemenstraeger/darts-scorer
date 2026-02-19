@@ -6,6 +6,7 @@ import { DARTBOARD_THEMES } from '~/utils/dartboard-themes'
 const { dartboardThemeId, setDartboardThemeId, inputMode, setInputMode } = useSettings()
 const { audioEnabled, toggle: toggleAudio } = useAudio()
 const { enabled: announcerEnabled, toggle: toggleAnnouncer } = useAnnouncer()
+const { profile, logout } = useProfile()
 
 function selectTheme(theme: DartboardTheme) {
   setDartboardThemeId(theme.id)
@@ -86,6 +87,26 @@ const inputModes: { id: InputMode, label: string, description: string, icon: str
         >
           <DartBoard :theme="theme" :disabled="true" class="theme-preview" />
           <span class="theme-name">{{ theme.name }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Account Section -->
+    <div v-if="profile" class="w-full flex flex-col gap-lg">
+      <h3 class="text-[1.1rem] font-bold text-fg">Account</h3>
+
+      <div class="flex items-center justify-between p-md bg-surface-2 border border-border-subtle rounded-md">
+        <div class="flex flex-col gap-[2px]">
+          <span class="text-[0.85rem] font-semibold text-fg">{{ profile.displayName }}</span>
+          <span class="text-[0.75rem] text-fg-muted">Logged in</span>
+        </div>
+        <button class="logout-btn" @click="logout">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+          Log out
         </button>
       </div>
     </div>
@@ -183,5 +204,28 @@ const inputModes: { id: InputMode, label: string, description: string, icon: str
 .toggle-switch.active::after {
   transform: translateX(20px);
   background: var(--gold);
+}
+
+/* ── Logout button ── */
+.logout-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.logout-btn:hover {
+  color: var(--red);
+  border-color: var(--red);
+  background: rgba(239, 68, 68, 0.1);
 }
 </style>
