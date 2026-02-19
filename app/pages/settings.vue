@@ -52,7 +52,9 @@ const inputModes: { id: InputMode, label: string, description: string, icon: str
 
     <!-- Audio & Announcer Section -->
     <div class="w-full flex flex-col gap-md">
-      <h3 class="text-[1.1rem] font-bold text-fg">Audio</h3>
+      <h3 class="text-[1.1rem] font-bold text-fg">
+        Audio
+      </h3>
 
       <button class="toggle-row" @click="toggleAudio()">
         <div class="flex flex-col gap-[2px]">
@@ -93,7 +95,9 @@ const inputModes: { id: InputMode, label: string, description: string, icon: str
 
     <!-- Account Section -->
     <div v-if="profile" class="w-full flex flex-col gap-lg">
-      <h3 class="text-[1.1rem] font-bold text-fg">Account</h3>
+      <h3 class="text-[1.1rem] font-bold text-fg">
+        Account
+      </h3>
 
       <div class="flex items-center justify-between p-md bg-surface-2 border border-border-subtle rounded-md">
         <div class="flex flex-col gap-[2px]">
