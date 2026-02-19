@@ -52,6 +52,7 @@ export default defineNuxtConfig({
     '/game/**': { ssr: false },
     '/profile-setup': { ssr: false },
     '/login': { ssr: false },
+    '/new-game': { ssr: false },
     '/quick-start': { ssr: false },
     '/training/**': { ssr: false },
     '/training': { ssr: false },
