@@ -20,7 +20,7 @@ watch(
   (newScores, oldScores) => {
     if (!oldScores || displayScores.value.length !== newScores.length) {
       displayScores.value = [...newScores]
-      animFrames = Array.from({ length: newScores.length }).fill(null)
+      animFrames = Array.from({ length: newScores.length }).fill(null) as (number | null)[]
       return
     }
     newScores.forEach((target, i) => {

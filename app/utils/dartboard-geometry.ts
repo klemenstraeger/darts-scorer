@@ -136,7 +136,7 @@ export function generateSegmentPaths(colors?: BoardColors): SegmentPath[] {
   for (let i = 0; i < 20; i++) {
     const startAngle = i * SEGMENT_ANGLE - SEGMENT_ANGLE / 2
     const endAngle = startAngle + SEGMENT_ANGLE
-    const segment = SEGMENT_ORDER[i]
+    const segment = SEGMENT_ORDER[i]!
 
     for (const { ring, inner, outer, mult } of rings) {
       paths.push({
@@ -188,7 +188,7 @@ export function svgToScore(svgX: number, svgY: number): { segment: number, multi
 
   const offsetAngle = (angle + SEGMENT_ANGLE / 2) % 360
   const segIndex = Math.floor(offsetAngle / SEGMENT_ANGLE)
-  const segment = SEGMENT_ORDER[segIndex]
+  const segment = SEGMENT_ORDER[segIndex]!
 
   // Ring
   let multiplier: 1 | 2 | 3 = 1

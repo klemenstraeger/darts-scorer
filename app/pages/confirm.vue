@@ -19,9 +19,9 @@ onMounted(async () => {
     }
 
     // Check if user has a profile
-    const { data } = await $fetch<{ profile: any }>('/api/profile')
+    const { profile } = await $fetch<{ profile: any }>('/api/profile')
 
-    if (!data?.profile) {
+    if (!profile) {
       navigateTo('/profile-setup')
     }
     else {

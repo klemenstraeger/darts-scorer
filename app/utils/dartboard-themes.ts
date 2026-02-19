@@ -82,5 +82,5 @@ export const DARTBOARD_THEMES: DartboardTheme[] = [
 export const DEFAULT_THEME_ID = 'classic'
 
 export function getThemeById(id: string): DartboardTheme {
-  return DARTBOARD_THEMES.find(t => t.id === id) ?? DARTBOARD_THEMES[0]
+  return DARTBOARD_THEMES.find(t => t.id === id) ?? DARTBOARD_THEMES[0]!
 }

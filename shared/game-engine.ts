@@ -277,7 +277,7 @@ export class GameEngine {
     }
     else {
       // Reset leg counters for new set
-      state.current_set_legs = Array.from({ length: state.players.length }).fill(0)
+      state.current_set_legs = Array.from({ length: state.players.length }).fill(0) as number[]
       for (const p of state.players) {
         p.legs_won = 0
       }

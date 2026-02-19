@@ -26,6 +26,5 @@ jobs:
         run: pnpm lint
       - name: Typecheck
         run: pnpm typecheck
-        continue-on-error: true
       - name: Test
         run: pnpm test:run

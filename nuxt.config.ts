@@ -65,7 +65,7 @@ export default defineNuxtConfig({
   },
 
   vite: {
-    plugins: [tailwindcss()],
+    plugins: [tailwindcss() as any],
     // optimizeDeps: {
     //   include: ['cookie', '@supabase/ssr'],
     // },

@@ -43,7 +43,7 @@ export const bobs27Strategy: TrainingModeStrategy<Bobs27State> = {
       score: 27,
       currentRound: 1,
       totalRounds: 21,
-      roundResults: Array.from({ length: 21 }).fill(null),
+      roundResults: Array.from({ length: 21 }).fill(null) as (null)[],
       currentRoundHits: 0,
       currentRoundThrows: 0,
       isFailed: false,
@@ -130,7 +130,7 @@ function replayState(state: Bobs27State): Bobs27State {
   let round = 1
   let roundThrows = 0
   let roundHits = 0
-  const roundResults: ('hit' | 'miss' | null)[] = Array.from({ length: 21 }).fill(null)
+  const roundResults = Array.from({ length: 21 }).fill(null) as ('hit' | 'miss' | null)[]
 
   for (const t of state.throws) {
     const dart: ThrowResult = { segment: t.segment, multiplier: t.multiplier }
