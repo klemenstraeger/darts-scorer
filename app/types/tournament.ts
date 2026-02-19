@@ -5,6 +5,8 @@ export type TournamentStatus = 'created' | 'in_progress' | 'completed'
 export type MatchStatus = 'pending' | 'in_progress' | 'completed'
 export type MatchPhase = 'group' | 'knockout' | 'main'
 
+export type TeamMode = 'doubles' | null
+
 export interface TournamentSummary {
   id: number
   name: string
@@ -14,6 +16,7 @@ export interface TournamentSummary {
   checkout: string
   legsToWin: number
   setsToWin: number
+  teamMode: TeamMode
   playerCount: number
   winnerName: string | null
   createdAt: string
@@ -33,6 +36,7 @@ export interface TournamentParticipant {
   playerName: string
   seed: number
   groupIndex: number | null
+  teamId: number | null
 }
 
 export interface TournamentMatch {
@@ -65,6 +69,19 @@ export interface TournamentStanding {
   legsWon: number
   legsLost: number
   legDifference: number
+}
+
+export interface MatchStartConfig {
+  player1Name: string
+  player2Name: string
+  gameMode: string
+  checkout: string
+  legsToWin: number
+  setsToWin: number
+  matchId: number
+  tournamentId: number
+  teamMode?: 'doubles' | null
+  playerOrder?: string[]
 }
 
 export const FORMAT_LABELS: Record<TournamentFormat, string> = {

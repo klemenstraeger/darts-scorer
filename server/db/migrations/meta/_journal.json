@@ -50,6 +50,13 @@
       "when": 1770997560852,
       "tag": "0006_flat_kingpin",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1771510274658,
+      "tag": "0007_exotic_ted_forrester",
+      "breakpoints": true
     }
   ]
 }

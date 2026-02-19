@@ -1,6 +1,26 @@
 import { pgTable, serial, text, integer, boolean, timestamp, unique, uuid, jsonb } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 
+// ── Team Tables ─────────────────────────────────────────────
+
+export const teams = pgTable('teams', {
+  id: serial('id').primaryKey(),
+  userId: uuid('user_id').notNull().references(() => profiles.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => [
+  unique().on(table.userId, table.name),
+]).enableRLS()
+
+export const teamMembers = pgTable('team_members', {
+  id: serial('id').primaryKey(),
+  teamId: integer('team_id').notNull().references(() => teams.id, { onDelete: 'cascade' }),
+  playerName: text('player_name').notNull(),
+  position: integer('position').notNull(),
+}, (table) => [
+  unique().on(table.teamId, table.playerName),
+]).enableRLS()
+
 // ── Tournament Tables ──────────────────────────────────────
 
 export const tournaments = pgTable('tournaments', {
@@ -15,6 +35,7 @@ export const tournaments = pgTable('tournaments', {
   setsToWin: integer('sets_to_win').notNull().default(1),
   groupCount: integer('group_count'),
   advancePerGroup: integer('advance_per_group'),
+  teamMode: text('team_mode'), // null | 'doubles'
   winnerName: text('winner_name'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
@@ -26,6 +47,7 @@ export const tournamentParticipants = pgTable('tournament_participants', {
   playerName: text('player_name').notNull(),
   seed: integer('seed').notNull(),
   groupIndex: integer('group_index'),
+  teamId: integer('team_id').references(() => teams.id, { onDelete: 'set null' }),
 }, (table) => [
   unique().on(table.tournamentId, table.playerName),
   unique().on(table.tournamentId, table.seed),
@@ -196,9 +218,19 @@ export const trainingThrows = pgTable('training_throws', {
 
 // ── Relations (for relational query builder) ────────────
 
+export const teamsRelations = relations(teams, ({ one, many }) => ({
+  profile: one(profiles, { fields: [teams.userId], references: [profiles.id] }),
+  members: many(teamMembers),
+}))
+
+export const teamMembersRelations = relations(teamMembers, ({ one }) => ({
+  team: one(teams, { fields: [teamMembers.teamId], references: [teams.id] }),
+}))
+
 export const profilesRelations = relations(profiles, ({ many }) => ({
   players: many(players),
   games: many(games),
+  teams: many(teams),
   achievements: many(achievements),
   trainingSessions: many(trainingSessions),
 }))
@@ -243,6 +275,7 @@ export const tournamentsRelations = relations(tournaments, ({ one, many }) => ({
 
 export const tournamentParticipantsRelations = relations(tournamentParticipants, ({ one }) => ({
   tournament: one(tournaments, { fields: [tournamentParticipants.tournamentId], references: [tournaments.id] }),
+  team: one(teams, { fields: [tournamentParticipants.teamId], references: [teams.id] }),
 }))
 
 export const tournamentMatchesRelations = relations(tournamentMatches, ({ one }) => ({

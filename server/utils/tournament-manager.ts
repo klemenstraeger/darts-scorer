@@ -3,12 +3,14 @@
  * Each method loads from DB, processes, saves back.
  */
 
-import { eq, and, desc } from 'drizzle-orm'
+import { eq, and, asc, desc } from 'drizzle-orm'
 import {
   tournaments,
   tournamentParticipants,
   tournamentMatches,
   tournamentStandings,
+  teams,
+  teamMembers,
 } from '../db/schema'
 import {
   generateKnockoutBracket,
@@ -27,6 +29,7 @@ export interface CreateTournamentConfig {
   setsToWin?: number
   groupCount?: number
   advancePerGroup?: number
+  teamMode?: 'doubles' | null
 }
 
 class TournamentManager {
@@ -47,6 +50,8 @@ class TournamentManager {
       throw createError({ statusCode: 400, message: 'Need at least 2 players' })
     }
 
+    const teamMode = config.teamMode ?? null
+
     // Insert tournament
     const [tournament] = await db
       .insert(tournaments)
@@ -60,10 +65,23 @@ class TournamentManager {
         setsToWin,
         groupCount: groupCount ?? null,
         advancePerGroup: advancePerGroup ?? null,
+        teamMode,
       })
       .returning()
 
     const tournamentId = tournament!.id
+
+    // Resolve team IDs if team tournament
+    const teamIdMap = new Map<string, number>()
+    if (teamMode) {
+      for (const pn of playerNames) {
+        const [team] = await db
+          .select({ id: teams.id })
+          .from(teams)
+          .where(and(eq(teams.userId, userId), eq(teams.name, pn)))
+        if (team) teamIdMap.set(pn, team.id)
+      }
+    }
 
     // Insert participants
     const participantValues = playerNames.map((pn, i) => ({
@@ -71,6 +89,7 @@ class TournamentManager {
       playerName: pn,
       seed: i + 1,
       groupIndex: null as number | null,
+      teamId: teamIdMap.get(pn) ?? null,
     }))
 
     // Generate matches based on format
@@ -174,7 +193,7 @@ class TournamentManager {
     }
 
     // Return match config for client-side game creation
-    return {
+    const baseConfig = {
       player1Name: match.player1Name,
       player2Name: match.player2Name,
       gameMode: tournament.gameMode,
@@ -183,7 +202,26 @@ class TournamentManager {
       setsToWin: tournament.setsToWin,
       matchId,
       tournamentId,
+      teamMode: tournament.teamMode as 'doubles' | null,
     }
+
+    // For doubles, resolve team members to build 4-player order
+    if (tournament.teamMode === 'doubles') {
+      const team1Members = await this.getTeamMembers(userId, match.player1Name!)
+      const team2Members = await this.getTeamMembers(userId, match.player2Name!)
+
+      // Interleaved order: A1, B1, A2, B2
+      const playerOrder: string[] = []
+      const maxLen = Math.max(team1Members.length, team2Members.length)
+      for (let i = 0; i < maxLen; i++) {
+        if (team1Members[i]) playerOrder.push(team1Members[i]!.playerName)
+        if (team2Members[i]) playerOrder.push(team2Members[i]!.playerName)
+      }
+
+      return { ...baseConfig, playerOrder }
+    }
+
+    return baseConfig
   }
 
   async completeMatch(userId: string, matchId: number, gameState: GameState, gameId: number) {
@@ -197,22 +235,55 @@ class TournamentManager {
     const winnerIndex = gameState.winner_index
     if (winnerIndex === null) return
 
-    const winnerName = gameState.players[winnerIndex]!.name
-    const loserIndex = winnerIndex === 0 ? 1 : 0
-    const loserName = gameState.players[loserIndex]!.name
+    // Load tournament to check team mode
+    const [tournament] = await db
+      .select()
+      .from(tournaments)
+      .where(eq(tournaments.id, match.tournamentId))
 
-    // Map gameState player indices to match player positions.
-    // Player at gameState index 0 = match.player1Name, index 1 = match.player2Name
-    // (newGame is called with [match.player1Name, match.player2Name])
-    // Use current_set_legs for current set + sets_won * legs_to_win for completed sets
-    const totalLegsForPlayer = (idx: number): number => {
-      const completedSetLegs = (gameState.sets_won[idx] ?? 0) * gameState.legs_to_win
-      const currentSetLegs = gameState.current_set_legs[idx] ?? 0
-      return completedSetLegs + currentSetLegs
+    if (!tournament) return
+
+    let winnerName: string
+    let loserName: string
+    let p1LegsWon: number
+    let p2LegsWon: number
+
+    if (tournament.teamMode === 'doubles') {
+      // Doubles: 4 players with interleaved order [A1, B1, A2, B2]
+      // Even indices (0, 2) = team1 (match.player1Name)
+      // Odd indices (1, 3) = team2 (match.player2Name)
+      const isTeam1Winner = winnerIndex % 2 === 0
+      winnerName = isTeam1Winner ? match.player1Name! : match.player2Name!
+      loserName = isTeam1Winner ? match.player2Name! : match.player1Name!
+
+      // Aggregate legs: sum legs from each team's players
+      const totalLegsForTeam = (evenOrOdd: 0 | 1): number => {
+        let total = 0
+        for (let i = evenOrOdd; i < gameState.players.length; i += 2) {
+          const completedSetLegs = (gameState.sets_won[i] ?? 0) * gameState.legs_to_win
+          const currentSetLegs = gameState.current_set_legs[i] ?? 0
+          total += completedSetLegs + currentSetLegs
+        }
+        return total
+      }
+
+      p1LegsWon = totalLegsForTeam(0) // team1 = even indices
+      p2LegsWon = totalLegsForTeam(1) // team2 = odd indices
+    } else {
+      // Standard 2-player match
+      winnerName = gameState.players[winnerIndex]!.name
+      const loserIndex = winnerIndex === 0 ? 1 : 0
+      loserName = gameState.players[loserIndex]!.name
+
+      const totalLegsForPlayer = (idx: number): number => {
+        const completedSetLegs = (gameState.sets_won[idx] ?? 0) * gameState.legs_to_win
+        const currentSetLegs = gameState.current_set_legs[idx] ?? 0
+        return completedSetLegs + currentSetLegs
+      }
+
+      p1LegsWon = totalLegsForPlayer(0)
+      p2LegsWon = totalLegsForPlayer(1)
     }
-
-    const p1LegsWon = totalLegsForPlayer(0)
-    const p2LegsWon = totalLegsForPlayer(1)
 
     // Update match
     await db.update(tournamentMatches)
@@ -225,14 +296,6 @@ class TournamentManager {
         player2LegsWon: p2LegsWon,
       })
       .where(eq(tournamentMatches.id, matchId))
-
-    // Load tournament
-    const [tournament] = await db
-      .select()
-      .from(tournaments)
-      .where(eq(tournaments.id, match.tournamentId))
-
-    if (!tournament) return
 
     if (match.phase === 'knockout') {
       await this.advanceKnockout(match.tournamentId, match, winnerName)
@@ -466,6 +529,23 @@ class TournamentManager {
         )
       }
     }
+  }
+
+  private async getTeamMembers(userId: string, teamName: string) {
+    const [team] = await db
+      .select()
+      .from(teams)
+      .where(and(eq(teams.userId, userId), eq(teams.name, teamName)))
+
+    if (!team) {
+      throw createError({ statusCode: 404, message: `Team "${teamName}" not found` })
+    }
+
+    return db
+      .select()
+      .from(teamMembers)
+      .where(eq(teamMembers.teamId, team.id))
+      .orderBy(asc(teamMembers.position))
   }
 
   async getTournament(userId: string, id: number) {

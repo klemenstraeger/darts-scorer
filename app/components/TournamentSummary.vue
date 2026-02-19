@@ -13,6 +13,7 @@ const props = defineProps<{
   setsToWin: number
   groupCount?: number
   advancePerGroup?: number
+  teamMode?: 'doubles' | null
 }>()
 
 const { getAvatarProps } = usePlayers()
@@ -32,11 +33,14 @@ const checkoutLabel = computed(() =>
     <h3 class="tourney-name">{{ name || 'Untitled Tournament' }}</h3>
 
     <!-- Format badge -->
-    <span class="format-badge">{{ FORMAT_LABELS[format] }}</span>
+    <div class="flex gap-sm flex-wrap justify-center">
+      <span class="format-badge">{{ FORMAT_LABELS[format] }}</span>
+      <span v-if="teamMode" class="format-badge">Doubles</span>
+    </div>
 
-    <!-- Players -->
+    <!-- Players / Teams -->
     <div class="players-section">
-      <span class="section-label">{{ players.length }} Players</span>
+      <span class="section-label">{{ players.length }} {{ teamMode ? 'Teams' : 'Players' }}</span>
       <div class="players-scroll">
         <div
           v-for="pName in players"

@@ -138,10 +138,18 @@ async function doPlayMatch(matchId: number) {
       setsToWin: number
       matchId: number
       tournamentId: number
+      teamMode?: 'doubles' | null
+      playerOrder?: string[]
     }>(`/api/tournament/${tournamentId.value}/match/${matchId}/start`, {
       method: 'POST',
     })
-    newGame(config.gameMode, [config.player1Name, config.player2Name], {
+
+    // Doubles: create a 4-player game with interleaved team member order
+    const playerNames = config.teamMode === 'doubles' && config.playerOrder
+      ? config.playerOrder
+      : [config.player1Name, config.player2Name]
+
+    newGame(config.gameMode, playerNames, {
       checkout: config.checkout,
       legs_to_win: config.legsToWin,
       sets_to_win: config.setsToWin,
@@ -212,8 +220,9 @@ async function deleteTournament() {
             </h1>
             <div class="flex items-center gap-sm flex-wrap">
               <FormatBadge :format="tournament.format" />
+              <span v-if="tournament.teamMode" class="text-[0.65rem] font-bold text-gold uppercase tracking-wide px-sm py-[1px] rounded-full border border-gold/30 bg-gold/10">Doubles</span>
               <span class="text-[0.75rem] text-fg-muted">{{ settingsSummary }}</span>
-              <span class="text-[0.75rem] text-fg-muted">{{ tournament.playerCount }} players</span>
+              <span class="text-[0.75rem] text-fg-muted">{{ tournament.playerCount }} {{ tournament.teamMode ? 'teams' : 'players' }}</span>
             </div>
           </div>
           <div class="flex items-center gap-sm shrink-0 flex-wrap">
