@@ -2,6 +2,7 @@
 import {
   generateSegmentPaths,
   generateNumberPositions,
+  SEGMENT_ORDER,
   R,
   CX,
   CY,
@@ -11,9 +12,16 @@ import {
 } from '~/utils/dartboard-geometry'
 import type { DartboardTheme } from '~/utils/dartboard-themes'
 
+export interface DartMarker {
+  segment: number
+  multiplier: number
+  label?: string
+}
+
 const props = defineProps<{
   disabled?: boolean
   theme?: DartboardTheme
+  highlightSegments?: DartMarker[]
 }>()
 
 const emit = defineEmits<{
@@ -26,6 +34,66 @@ const boardColors = computed(() =>
 
 const segments = computed(() => generateSegmentPaths(boardColors.value))
 const numbers = computed(() => generateNumberPositions())
+
+const SEGMENT_ANGLE = 360 / 20
+
+/**
+ * Compute (x, y) position for a dart marker on the board.
+ * Places the marker at the center of the correct ring and segment.
+ */
+function markerPosition(marker: DartMarker): { x: number; y: number } {
+  // Bull
+  if (marker.segment === 25) {
+    const r =
+      marker.multiplier === 2
+        ? R.doubleBull * 0.5
+        : (R.doubleBull + R.singleBull) / 2
+    // Place bull markers at distance r from the center along a fixed angle
+    const bullAngleDeg = -90
+    const bullRad = bullAngleDeg * (Math.PI / 180)
+    return {
+      x: CX + r * Math.cos(bullRad),
+      y: CY + r * Math.sin(bullRad),
+    }
+  }
+
+  // Miss
+  if (marker.segment === 0) {
+    return { x: CX, y: CY }
+  }
+
+  // Find the segment index in SEGMENT_ORDER
+  const segIndex = SEGMENT_ORDER.indexOf(marker.segment as typeof SEGMENT_ORDER[number])
+  if (segIndex === -1) return { x: CX, y: CY }
+
+  const angle = segIndex * SEGMENT_ANGLE
+
+  // Calculate radius based on multiplier/ring
+  let r: number
+  if (marker.multiplier === 3) {
+    r = (R.innerSingleOuter + R.trebleOuter) / 2
+  } else if (marker.multiplier === 2) {
+    r = (R.outerSingleOuter + R.doubleOuter) / 2
+  } else {
+    // Single - place in outer single area
+    r = (R.trebleOuter + R.outerSingleOuter) / 2
+  }
+
+  const rad = (angle - 90) * (Math.PI / 180)
+  return {
+    x: CX + r * Math.cos(rad),
+    y: CY + r * Math.sin(rad),
+  }
+}
+
+const dartMarkers = computed(() => {
+  if (!props.highlightSegments || props.highlightSegments.length === 0) return []
+  return props.highlightSegments.map((marker, index) => ({
+    ...marker,
+    index,
+    position: markerPosition(marker),
+  }))
+})
 
 function handleClick(event: MouseEvent) {
   if (props.disabled) return
@@ -95,6 +163,48 @@ function handleClick(event: MouseEvent) {
     >
       {{ num.segment }}
     </text>
+
+    <!-- Dart markers for replay highlighting -->
+    <g v-if="dartMarkers.length > 0">
+      <g
+        v-for="marker in dartMarkers"
+        :key="`marker-${marker.index}`"
+        class="dart-marker"
+      >
+        <!-- Outer glow ring -->
+        <circle
+          :cx="marker.position.x"
+          :cy="marker.position.y"
+          r="7"
+          fill="none"
+          stroke="rgba(255, 215, 0, 0.5)"
+          stroke-width="1.5"
+        />
+        <!-- Inner filled circle -->
+        <circle
+          :cx="marker.position.x"
+          :cy="marker.position.y"
+          r="4"
+          fill="rgba(255, 215, 0, 0.9)"
+          stroke="#000"
+          stroke-width="0.5"
+        />
+        <!-- Dart number label -->
+        <text
+          :x="marker.position.x"
+          :y="marker.position.y + 0.5"
+          text-anchor="middle"
+          dominant-baseline="central"
+          fill="#000"
+          font-size="5"
+          font-weight="bold"
+          font-family="Arial, sans-serif"
+          class="number-label"
+        >
+          {{ marker.index + 1 }}
+        </text>
+      </g>
+    </g>
   </svg>
 </template>
 
@@ -106,5 +216,10 @@ function handleClick(event: MouseEvent) {
 
 .number-label {
   pointer-events: none;
+}
+
+.dart-marker {
+  pointer-events: none;
+  filter: drop-shadow(0 0 3px rgba(255, 215, 0, 0.6));
 }
 </style>
