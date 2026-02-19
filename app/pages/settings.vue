@@ -4,6 +4,8 @@ import type { DartboardTheme } from '~/utils/dartboard-themes'
 import { DARTBOARD_THEMES } from '~/utils/dartboard-themes'
 
 const { dartboardThemeId, setDartboardThemeId, inputMode, setInputMode } = useSettings()
+const { audioEnabled, toggle: toggleAudio } = useAudio()
+const { enabled: announcerEnabled, toggle: toggleAnnouncer } = useAnnouncer()
 
 function selectTheme(theme: DartboardTheme) {
   setDartboardThemeId(theme.id)
@@ -45,6 +47,27 @@ const inputModes: { id: InputMode, label: string, description: string, icon: str
           <span class="text-fg-muted text-[0.75rem] text-center leading-tight px-xs">{{ mode.description }}</span>
         </button>
       </div>
+    </div>
+
+    <!-- Audio & Announcer Section -->
+    <div class="w-full flex flex-col gap-md">
+      <h3 class="text-[1.1rem] font-bold text-fg">Audio</h3>
+
+      <button class="toggle-row" @click="toggleAudio()">
+        <div class="flex flex-col gap-[2px]">
+          <span class="text-[0.9rem] font-bold text-fg">Sound Effects</span>
+          <span class="text-fg-muted text-[0.75rem]">Play sounds for throws, busts, and game events</span>
+        </div>
+        <span class="toggle-switch" :class="{ active: audioEnabled }" />
+      </button>
+
+      <button class="toggle-row" @click="toggleAnnouncer()">
+        <div class="flex flex-col gap-[2px]">
+          <span class="text-[0.9rem] font-bold text-fg">Voice Announcer</span>
+          <span class="text-fg-muted text-[0.75rem]">Announce scores with classic darts caller voice</span>
+        </div>
+        <span class="toggle-switch" :class="{ active: announcerEnabled }" />
+      </button>
     </div>
 
     <!-- Dartboard Theme Section -->
@@ -107,5 +130,58 @@ const inputModes: { id: InputMode, label: string, description: string, icon: str
 
 .theme-card.active .theme-name {
   color: var(--gold);
+}
+
+/* ── Toggle row ── */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color var(--duration-normal) var(--ease-out);
+}
+
+.toggle-row:hover {
+  border-color: var(--border-default);
+}
+
+/* ── Toggle switch ── */
+.toggle-switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  background: var(--surface-3);
+  border: 1px solid var(--border-subtle);
+  transition: background var(--duration-normal), border-color var(--duration-normal);
+}
+
+.toggle-switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--text-secondary);
+  transition: transform var(--duration-normal) var(--ease-out), background var(--duration-normal);
+}
+
+.toggle-switch.active {
+  background: rgba(255, 215, 0, 0.15);
+  border-color: var(--gold);
+}
+
+.toggle-switch.active::after {
+  transform: translateX(20px);
+  background: var(--gold);
 }
 </style>

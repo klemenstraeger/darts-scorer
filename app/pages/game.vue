@@ -21,13 +21,10 @@ const {
   cancelGameOver,
 } = useGameState()
 
-const { audioEnabled, toggle: toggleAudio } = useAudio()
-
 const { isBotPlaying } = useBotPlay()
 const { isTournamentMatch, tournamentId, clear: clearTournamentContext } = useTournamentContext()
 const { ensureLoaded: ensurePlayers, getAvatarProps } = usePlayers()
-const { dartboardTheme, inputMode, setInputMode } = useSettings()
-const { enabled: announcerEnabled, toggle: toggleAnnouncer } = useAnnouncer()
+const { dartboardTheme, inputMode } = useSettings()
 const { shouldShowTour, startTour } = useOnboarding()
 
 // Load game state from localStorage on mount (handles resume + tournament match transitions)
@@ -237,15 +234,6 @@ function handleVisitScore(score: number) {
   visitScore(score)
 }
 
-// Disable mode toggle when mid-turn (per-dart throws already entered)
-const canToggleMode = computed(() => state.current_turn.throws.length === 0)
-
-function toggleInputMode() {
-  if (!canToggleMode.value)
-    return
-  setInputMode(isPerVisit.value ? 'per_dart' : 'per_visit')
-}
-
 function dismissGameOver() {
   showGameOver.value = false
 }
@@ -393,52 +381,9 @@ watch(hasGame, (active) => {
           >
             Undo
           </button>
-          <button
-            class="btn btn-mode-toggle"
-            :disabled="!canToggleMode || inputDisabled"
-            :title="isPerVisit ? 'Switch to per-dart input' : 'Switch to per-visit input'"
-            @click="toggleInputMode"
-          >
-            {{ isPerVisit ? 'Per Dart' : 'Per Visit' }}
-          </button>
         </div>
       </div>
     </div>
-
-    <!-- Audio mute toggle FAB -->
-    <button
-      class="audio-fab"
-      :title="audioEnabled ? 'Mute sounds' : 'Unmute sounds'"
-      @click="toggleAudio()"
-    >
-      <svg v-if="audioEnabled" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-        <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-        <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-      </svg>
-      <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-        <line x1="23" y1="9" x2="17" y2="15" />
-        <line x1="17" y1="9" x2="23" y2="15" />
-      </svg>
-    </button>
-
-    <!-- Announcer toggle FAB -->
-    <button
-      class="announcer-fab"
-      :class="{ active: announcerEnabled }"
-      :title="announcerEnabled ? 'Disable announcer' : 'Enable announcer'"
-      :aria-label="announcerEnabled ? 'Disable announcer' : 'Enable announcer'"
-      @click="toggleAnnouncer"
-    >
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
-        <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-        <line x1="12" y1="19" x2="12" y2="23" />
-        <line x1="8" y1="23" x2="16" y2="23" />
-        <line v-if="!announcerEnabled" x1="1" y1="1" x2="23" y2="23" />
-      </svg>
-    </button>
 
     <!-- Dartboard FAB -->
     <button
@@ -606,48 +551,6 @@ watch(hasGame, (active) => {
   border-color: var(--border-default);
 }
 
-/* ── Mode toggle button: matches undo styling with gold accent ── */
-.btn-mode-toggle {
-  min-height: 48px;
-  border-radius: var(--radius-lg);
-  font-size: 0.85rem;
-  font-weight: 700;
-  font-family: var(--font-sans);
-  cursor: pointer;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  color: var(--gold);
-  padding: 0 var(--spacing-lg);
-  white-space: nowrap;
-  transition:
-    transform 50ms var(--ease-out),
-    background var(--duration-fast),
-    box-shadow var(--duration-fast);
-}
-
-@media (min-width: 768px) {
-  .btn-mode-toggle {
-    min-height: 52px;
-  }
-}
-
-.btn-mode-toggle:active:not(:disabled) {
-  transform: scale(0.97);
-}
-
-.btn-mode-toggle:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.btn-mode-toggle:hover:not(:disabled) {
-  background: var(--surface-3);
-  border-color: var(--border-gold);
-  box-shadow: 0 0 12px var(--gold-glow);
-}
-
 /* ── Bot throwing indicator ── */
 .bot-throwing-indicator {
   display: flex;
@@ -660,89 +563,6 @@ watch(hasGame, (active) => {
   color: var(--gold);
   font-size: 0.9rem;
   font-weight: 700;
-}
-
-/* ── Audio toggle FAB ── */
-.audio-fab {
-  position: fixed;
-  bottom: var(--space-md, 12px);
-  right: calc(var(--space-md, 12px) + 56px);
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: var(--surface-glass);
-  backdrop-filter: blur(var(--blur-glass));
-  -webkit-backdrop-filter: blur(var(--blur-glass));
-  border: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-  transition:
-    transform var(--duration-fast),
-    box-shadow var(--duration-fast),
-    border-color var(--duration-fast);
-}
-
-@media (min-width: 768px) {
-  .audio-fab {
-    bottom: var(--space-xl, 24px);
-    right: calc(var(--space-xl, 24px) + 60px);
-  }
-}
-
-.audio-fab:hover {
-  transform: scale(1.1);
-  border-color: var(--border-gold);
-  box-shadow: var(--shadow-glow-gold);
-  color: var(--gold);
-}
-
-/* ── Announcer FAB: sits above audio and dartboard FABs ── */
-.announcer-fab {
-  position: fixed;
-  bottom: calc(var(--space-md, 12px) + 56px);
-  right: var(--space-md, 12px);
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  background: var(--surface-glass);
-  backdrop-filter: blur(var(--blur-glass));
-  -webkit-backdrop-filter: blur(var(--blur-glass));
-  border: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-  transition:
-    transform var(--duration-fast),
-    box-shadow var(--duration-fast),
-    border-color var(--duration-fast),
-    color var(--duration-fast);
-}
-
-@media (min-width: 768px) {
-  .announcer-fab {
-    bottom: calc(var(--space-xl, 24px) + 60px);
-    right: var(--space-xl, 24px);
-  }
-}
-
-.announcer-fab:hover {
-  transform: scale(1.1);
-  border-color: var(--border-gold);
-  box-shadow: var(--shadow-glow-gold);
-  color: var(--gold);
-}
-
-.announcer-fab.active {
-  border-color: var(--gold);
-  color: var(--gold);
-  box-shadow: 0 0 12px rgba(255, 215, 0, 0.15);
 }
 
 /* ── Dartboard FAB: fixed position + hover glow ── */
