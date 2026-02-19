@@ -3,22 +3,22 @@
  * Returns tournament data + live game state in a single call.
  */
 
+import type { GameState } from '../../../shared/game-models'
 import { eq, inArray, sql } from 'drizzle-orm'
 import {
-  tournaments,
-  tournamentParticipants,
-  tournamentMatches,
-  tournamentStandings,
   activeGames,
-  players,
-  turns,
   broadcastSessions,
+  players,
+  tournamentMatches,
+  tournamentParticipants,
+  tournaments,
+  tournamentStandings,
+  turns,
 } from '../../db/schema'
-import type { GameState } from '../../../shared/game-models'
 
 export default defineEventHandler(async (event) => {
   const id = Number(getRouterParam(event, 'id'))
-  if (!id || isNaN(id)) {
+  if (!id || Number.isNaN(id)) {
     throw createError({ statusCode: 400, message: 'Invalid tournament ID' })
   }
 
@@ -54,7 +54,7 @@ export default defineEventHandler(async (event) => {
   // synced to the DB immediately.
   const inProgressMatches = matchRows.filter(m => m.status === 'in_progress')
 
-  let liveGame: { matchId: number; state: any } | null = null
+  let liveGame: { matchId: number, state: any } | null = null
 
   if (inProgressMatches.length > 0) {
     const [activeRow] = await db
@@ -91,7 +91,7 @@ export default defineEventHandler(async (event) => {
     .filter(m => m.gameId)
     .map(m => m.gameId!)
 
-  let playerStats: Record<string, {
+  const playerStats: Record<string, {
     three_dart_average: number
     count_180: number
     count_140_plus: number

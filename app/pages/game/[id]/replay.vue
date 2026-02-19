@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { throwLabel } from '#shared/game-models'
-import { GameEngine } from '#shared/game-engine'
 import type { DartMarker } from '~/components/DartBoard.vue'
+import { GameEngine } from '#shared/game-engine'
+import { throwLabel } from '#shared/game-models'
 
 interface ReplayThrow {
   throwNumber: number
@@ -55,7 +55,8 @@ interface DartPosition {
 }
 
 const allPositions = computed((): DartPosition[] => {
-  if (!replayData.value) return []
+  if (!replayData.value)
+    return []
   const positions: DartPosition[] = []
   for (let ti = 0; ti < replayData.value.turns.length; ti++) {
     const turn = replayData.value.turns[ti]!
@@ -76,8 +77,9 @@ let playInterval: ReturnType<typeof setInterval> | null = null
 
 // Compute game state at current position
 const startingScore = computed(() => {
-  if (!replayData.value) return 501
-  return parseInt(replayData.value.game.mode, 10)
+  if (!replayData.value)
+    return 501
+  return Number.parseInt(replayData.value.game.mode, 10)
 })
 
 // All darts up to (but not including) currentPosition are "already thrown"
@@ -88,23 +90,26 @@ const visibleDarts = computed(() => {
 
 // Current turn index (the turn that the last visible dart belongs to)
 const currentTurnIndex = computed(() => {
-  if (visibleDarts.value.length === 0) return -1
+  if (visibleDarts.value.length === 0)
+    return -1
   return visibleDarts.value[visibleDarts.value.length - 1]!.turnIndex
 })
 
 // Compute scores for each player at current position using GameEngine
 const playerScores = computed(() => {
-  if (!replayData.value) return new Map<string, number>()
+  if (!replayData.value)
+    return new Map<string, number>()
   const scores = new Map<string, number>()
   const starting = startingScore.value
-  
+
   // Initialize scores
   for (const p of replayData.value.players) {
     scores.set(p.playerName, starting)
   }
 
   const darts = visibleDarts.value
-  if (darts.length === 0) return scores
+  if (darts.length === 0)
+    return scores
 
   // Use GameEngine to reconstruct scores
   const engine = new GameEngine()
@@ -121,7 +126,7 @@ const playerScores = computed(() => {
   for (const dart of darts) {
     const turn = replayData.value.turns[dart.turnIndex]!
     const throwData = turn.throws[dart.dartIndex]!
-    
+
     // Make sure we're on the correct player
     const currentPlayerName = engine.state.players[engine.state.current_player_index]!.name
     if (currentPlayerName !== turn.playerName) {
@@ -129,7 +134,7 @@ const playerScores = computed(() => {
       console.warn(`Player mismatch in replay: expected ${currentPlayerName}, got ${turn.playerName}`)
       continue
     }
-    
+
     engine.throw({
       segment: throwData.segment,
       multiplier: throwData.multiplier as 1 | 2 | 3,
@@ -146,9 +151,11 @@ const playerScores = computed(() => {
 
 // Current turn info for display
 const currentTurnInfo = computed(() => {
-  if (!replayData.value || currentTurnIndex.value < 0) return null
+  if (!replayData.value || currentTurnIndex.value < 0)
+    return null
   const turn = replayData.value.turns[currentTurnIndex.value]!
-  if (!turn) return null
+  if (!turn)
+    return null
 
   // Show darts up to the current position within this turn
   const dartsInThisTurn = visibleDarts.value.filter(
@@ -168,7 +175,8 @@ const currentTurnInfo = computed(() => {
 
 // Dart markers for the board
 const dartMarkers = computed((): DartMarker[] => {
-  if (!currentTurnInfo.value) return []
+  if (!currentTurnInfo.value)
+    return []
   return currentTurnInfo.value.throws.map(t => ({
     segment: t.segment,
     multiplier: t.multiplier as 1 | 2 | 3,
@@ -178,7 +186,8 @@ const dartMarkers = computed((): DartMarker[] => {
 
 // Who is throwing at current position
 const activePlayerName = computed(() => {
-  if (!replayData.value) return null
+  if (!replayData.value)
+    return null
   if (currentPosition.value === 0) {
     return replayData.value.players[0]?.playerName ?? null
   }
@@ -189,7 +198,8 @@ const activePlayerName = computed(() => {
 function togglePlay() {
   if (isPlaying.value) {
     pause()
-  } else {
+  }
+  else {
     play()
   }
 }
@@ -266,11 +276,11 @@ function onKeydown(e: KeyboardEvent) {
   // Ignore shortcuts when focus is on an input/textarea/select/button
   const target = e.target as HTMLElement
   if (
-    target.tagName === 'INPUT' ||
-    target.tagName === 'TEXTAREA' ||
-    target.tagName === 'SELECT' ||
-    target.tagName === 'BUTTON' ||
-    target.isContentEditable
+    target.tagName === 'INPUT'
+    || target.tagName === 'TEXTAREA'
+    || target.tagName === 'SELECT'
+    || target.tagName === 'BUTTON'
+    || target.isContentEditable
   ) {
     return
   }
@@ -336,9 +346,11 @@ function formatThrowLabel(t: ReplayThrow): string {
 
 // Progress percentage for the turn
 const turnProgress = computed(() => {
-  if (!replayData.value || currentTurnIndex.value < 0) return ''
+  if (!replayData.value || currentTurnIndex.value < 0)
+    return ''
   const turn = replayData.value.turns[currentTurnIndex.value]!
-  if (!turn) return ''
+  if (!turn)
+    return ''
   const dartsInTurn = visibleDarts.value.filter(d => d.turnIndex === currentTurnIndex.value).length
   return `${dartsInTurn} / ${turn.throws.length}`
 })
@@ -353,8 +365,12 @@ const turnProgress = computed(() => {
 
     <!-- Error state -->
     <div v-else-if="error" class="text-center p-2xl">
-      <p class="text-red text-[1rem] mb-md">{{ error.data?.message || 'Failed to load replay' }}</p>
-      <NuxtLink to="/stats" class="btn btn-secondary">Back to Stats</NuxtLink>
+      <p class="text-red text-[1rem] mb-md">
+        {{ error.data?.message || 'Failed to load replay' }}
+      </p>
+      <NuxtLink to="/stats" class="btn btn-secondary">
+        Back to Stats
+      </NuxtLink>
     </div>
 
     <!-- Replay content -->
@@ -362,12 +378,16 @@ const turnProgress = computed(() => {
       <!-- Header -->
       <div class="replay-header mb-xl">
         <div class="flex items-center gap-md mb-sm">
-          <NuxtLink to="/stats" class="back-link">&larr; Stats</NuxtLink>
+          <NuxtLink to="/stats" class="back-link">
+            &larr; Stats
+          </NuxtLink>
           <span class="text-[0.75rem] font-bold text-gold bg-gold-tint px-[8px] py-[2px] rounded-sm">
             {{ replayData.game.mode }}
           </span>
         </div>
-        <h2 class="text-[1.5rem] font-extrabold text-fg mb-xs">Game Replay</h2>
+        <h2 class="text-[1.5rem] font-extrabold text-fg mb-xs">
+          Game Replay
+        </h2>
         <p class="text-[0.85rem] text-fg-muted">
           {{ replayData.players.map(p => p.playerName).join(' vs ') }}
           <template v-if="replayData.game.winnerName">
@@ -410,7 +430,9 @@ const turnProgress = computed(() => {
         <div class="info-column">
           <!-- Player scores -->
           <div class="scores-panel glass-card p-lg">
-            <h3 class="panel-title">Scores</h3>
+            <h3 class="panel-title">
+              Scores
+            </h3>
             <div class="player-scores">
               <div
                 v-for="player in replayData.players"
@@ -431,7 +453,9 @@ const turnProgress = computed(() => {
 
           <!-- Current turn info -->
           <div class="turn-panel glass-card p-lg">
-            <h3 class="panel-title">Current Turn</h3>
+            <h3 class="panel-title">
+              Current Turn
+            </h3>
             <div v-if="currentTurnInfo" class="turn-info">
               <div class="turn-meta">
                 <span class="turn-player">{{ currentTurnInfo.playerName }}</span>
@@ -441,7 +465,9 @@ const turnProgress = computed(() => {
                 <span class="turn-points tabular-nums">{{ currentTurnInfo.totalVisiblePoints }}</span>
                 <span class="turn-darts-count">{{ turnProgress }} darts</span>
               </div>
-              <div v-if="currentTurnInfo.busted" class="bust-badge">BUST</div>
+              <div v-if="currentTurnInfo.busted" class="bust-badge">
+                BUST
+              </div>
             </div>
             <div v-else class="text-fg-muted text-[0.85rem]">
               {{ currentPosition === 0 ? 'Press play to start' : 'Game complete' }}
@@ -453,7 +479,9 @@ const turnProgress = computed(() => {
             v-if="currentPosition >= totalPositions && replayData.game.winnerName"
             class="summary-panel glass-card p-lg"
           >
-            <h3 class="panel-title">Result</h3>
+            <h3 class="panel-title">
+              Result
+            </h3>
             <div class="text-center">
               <div class="text-[1.2rem] font-extrabold text-gold mb-xs">
                 {{ replayData.game.winnerName }} wins!

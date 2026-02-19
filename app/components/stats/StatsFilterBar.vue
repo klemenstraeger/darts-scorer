@@ -25,8 +25,9 @@ const modeOptions = [
   { key: '301' as const, label: '301' },
 ]
 
-function getDateRange(preset: typeof activeDate.value): { from: string | null; to: string | null } {
-  if (preset === 'all') return { from: null, to: null }
+function getDateRange(preset: typeof activeDate.value): { from: string | null, to: string | null } {
+  if (preset === 'all')
+    return { from: null, to: null }
   const days = preset === '7d' ? 7 : preset === '30d' ? 30 : 90
   const from = new Date()
   from.setDate(from.getDate() - days)
@@ -51,7 +52,6 @@ function emitUpdate() {
     mode: activeMode.value === 'all' ? null : activeMode.value,
   })
 }
-
 </script>
 
 <template>

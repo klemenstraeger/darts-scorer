@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import type { TournamentMatch } from '~/types/tournament'
 
-const { getAvatarProps } = usePlayers()
-
 const props = defineProps<{
   matches: TournamentMatch[]
   showPlayButton?: boolean
@@ -12,11 +10,14 @@ const emit = defineEmits<{
   play: [matchId: number]
 }>()
 
+const { getAvatarProps } = usePlayers()
+
 // Organize matches by round
 const rounds = computed(() => {
   const map = new Map<number, TournamentMatch[]>()
   for (const match of props.matches) {
-    if (!map.has(match.round)) map.set(match.round, [])
+    if (!map.has(match.round))
+      map.set(match.round, [])
     map.get(match.round)!.push(match)
   }
 
@@ -35,9 +36,12 @@ const totalRounds = computed(() => rounds.value.length)
 
 function roundLabel(round: number): string {
   const fromFinal = totalRounds.value - round + 1
-  if (fromFinal === 1) return 'Final'
-  if (fromFinal === 2) return 'Semi-Finals'
-  if (fromFinal === 3) return 'Quarter-Finals'
+  if (fromFinal === 1)
+    return 'Final'
+  if (fromFinal === 2)
+    return 'Semi-Finals'
+  if (fromFinal === 3)
+    return 'Quarter-Finals'
   return `Round ${round}`
 }
 </script>
@@ -50,7 +54,9 @@ function roundLabel(round: number): string {
         :key="r.round"
         class="bracket-round"
       >
-        <div class="round-header">{{ roundLabel(r.round) }}</div>
+        <div class="round-header">
+          {{ roundLabel(r.round) }}
+        </div>
         <div class="round-matches">
           <div
             v-for="match in r.matches"
@@ -60,7 +66,7 @@ function roundLabel(round: number): string {
             <div
               class="bracket-slot"
               :class="{
-                winner: match.winnerName === match.player1Name,
+                'winner': match.winnerName === match.player1Name,
                 'in-progress': match.status === 'in_progress',
               }"
             >
@@ -70,7 +76,7 @@ function roundLabel(round: number): string {
             <div
               class="bracket-slot"
               :class="{
-                winner: match.winnerName === match.player2Name,
+                'winner': match.winnerName === match.player2Name,
                 'in-progress': match.status === 'in_progress',
               }"
             >

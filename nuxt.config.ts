@@ -1,6 +1,6 @@
+import { resolve } from 'node:path'
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import tailwindcss from '@tailwindcss/vite'
-import { resolve } from 'path'
 
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
@@ -63,11 +63,11 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
-    databaseUrl: '',   // NUXT_DATABASE_URL
+    databaseUrl: '', // NUXT_DATABASE_URL
   },
 
   vite: {
-    plugins: [tailwindcss()],
+    plugins: [tailwindcss() as any],
     // optimizeDeps: {
     //   include: ['cookie', '@supabase/ssr'],
     // },

@@ -1,17 +1,17 @@
 import { and, eq } from 'drizzle-orm'
-import { teams, teamMembers } from '../../db/schema'
+import { teamMembers, teams } from '../../db/schema'
 
 export default defineEventHandler(async (event) => {
   const { id: userId } = await requireAuth(event)
   const id = Number(getRouterParam(event, 'id'))
 
-  if (!id || isNaN(id)) {
+  if (!id || Number.isNaN(id)) {
     throw createError({ statusCode: 400, message: 'Invalid team ID' })
   }
 
   const body = await readBody<{
     name?: string
-    members?: { playerName: string; position: number }[]
+    members?: { playerName: string, position: number }[]
   }>(event)
 
   // Verify ownership

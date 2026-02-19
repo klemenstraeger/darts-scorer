@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { DARTBOARD_THEMES } from '~/utils/dartboard-themes'
-import type { DartboardTheme } from '~/utils/dartboard-themes'
 import type { InputMode } from '~/types/game'
+import type { DartboardTheme } from '~/utils/dartboard-themes'
+import { DARTBOARD_THEMES } from '~/utils/dartboard-themes'
 
 const { dartboardThemeId, setDartboardThemeId, inputMode, setInputMode } = useSettings()
 
@@ -9,7 +9,7 @@ function selectTheme(theme: DartboardTheme) {
   setDartboardThemeId(theme.id)
 }
 
-const inputModes: { id: InputMode; label: string; description: string; icon: string }[] = [
+const inputModes: { id: InputMode, label: string, description: string, icon: string }[] = [
   { id: 'per_dart', label: 'Per Dart', description: 'Enter each dart individually. Full stats and accuracy tracking.', icon: '🎯' },
   { id: 'per_visit', label: 'Per Visit', description: 'Enter your 3-dart total. Faster scoring with quick-score buttons.', icon: '⚡' },
 ]
@@ -18,13 +18,19 @@ const inputModes: { id: InputMode; label: string; description: string; icon: str
 <template>
   <div class="flex flex-col items-center gap-xl px-lg py-2xl max-w-[600px] mx-auto w-full max-sm:px-md max-sm:py-xl">
     <div class="text-center">
-      <h2 class="text-2xl font-extrabold text-fg">Settings</h2>
-      <p class="text-fg-muted text-[0.85rem] mt-xs">Customize your experience</p>
+      <h2 class="text-2xl font-extrabold text-fg">
+        Settings
+      </h2>
+      <p class="text-fg-muted text-[0.85rem] mt-xs">
+        Customize your experience
+      </p>
     </div>
 
     <!-- Score Input Mode Section -->
     <div class="w-full flex flex-col gap-lg">
-      <h3 class="text-[1.1rem] font-bold text-fg">Score Input Mode</h3>
+      <h3 class="text-[1.1rem] font-bold text-fg">
+        Score Input Mode
+      </h3>
 
       <div class="grid grid-cols-2 gap-md">
         <button
@@ -43,7 +49,9 @@ const inputModes: { id: InputMode; label: string; description: string; icon: str
 
     <!-- Dartboard Theme Section -->
     <div class="w-full flex flex-col gap-lg">
-      <h3 class="text-[1.1rem] font-bold text-fg">Dartboard Theme</h3>
+      <h3 class="text-[1.1rem] font-bold text-fg">
+        Dartboard Theme
+      </h3>
 
       <div class="grid grid-cols-2 gap-md">
         <button

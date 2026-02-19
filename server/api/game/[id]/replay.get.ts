@@ -1,11 +1,11 @@
-import { eq, and, asc, inArray } from 'drizzle-orm'
-import { games, gamePlayers, turns, dartsThrows } from '../../../db/schema'
+import { and, asc, eq, inArray } from 'drizzle-orm'
+import { dartsThrows, gamePlayers, games, turns } from '../../../db/schema'
 
 export default defineEventHandler(async (event) => {
   const { id: userId } = await requireAuth(event)
   const gameId = Number(getRouterParam(event, 'id'))
 
-  if (!gameId || isNaN(gameId)) {
+  if (!gameId || Number.isNaN(gameId)) {
     throw createError({ statusCode: 400, message: 'Invalid game ID' })
   }
 

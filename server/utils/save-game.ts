@@ -3,11 +3,11 @@
  * Extracted from GameManager.saveGameAndReturnId().
  */
 
-import { eq, and } from 'drizzle-orm'
-import { games, gamePlayers, turns, dartsThrows, players, eloHistory } from '../db/schema'
 import type { GameState } from '../../shared/game-models'
-import { computeElo } from './elo'
 import type { UnlockedAchievement } from './achievements'
+import { and, eq } from 'drizzle-orm'
+import { dartsThrows, eloHistory, gamePlayers, games, players, turns } from '../db/schema'
+import { computeElo } from './elo'
 
 export interface SaveGameResult {
   gameId: number
@@ -15,14 +15,16 @@ export interface SaveGameResult {
 }
 
 export async function saveFinishedGame(userId: string, state: GameState): Promise<SaveGameResult | null> {
-  if (!state.is_finished || state.winner_index === null) return null
+  if (!state.is_finished || state.winner_index === null)
+    return null
 
   try {
     const winnerName = state.players[state.winner_index]!.name
 
     // Ensure players exist for this user (skip bots)
     for (const player of state.players) {
-      if (player.isBot) continue
+      if (player.isBot)
+        continue
       await db
         .insert(players)
         .values({ name: player.name, userId })
@@ -49,7 +51,7 @@ export async function saveFinishedGame(userId: string, state: GameState): Promis
         playerName: player.name,
         position: i,
         finalScore: player.score,
-      }))
+      })),
     )
 
     // Create turns and throws
@@ -81,11 +83,12 @@ export async function saveFinishedGame(userId: string, state: GameState): Promis
             segment: t.segment,
             multiplier: t.multiplier,
             points: t.segment === 25 ? 25 * t.multiplier : t.segment * t.multiplier,
-          }))
+          })),
         )
       }
     }
 
+    // eslint-disable-next-line no-console
     console.log(`Game ${gameId} saved (${winnerName} won) for user ${userId}`)
 
     // Update Elo ratings for 2-player human games
@@ -96,14 +99,17 @@ export async function saveFinishedGame(userId: string, state: GameState): Promis
     try {
       newAchievements = await checkAchievements(userId, gameId, state)
       if (newAchievements.length > 0) {
+        // eslint-disable-next-line no-console
         console.log(`Unlocked ${newAchievements.length} achievement(s) for user ${userId}:`, newAchievements.map(a => a.name).join(', '))
       }
-    } catch (achErr) {
+    }
+    catch (achErr) {
       console.warn('Failed to check achievements:', achErr)
     }
 
     return { gameId, newAchievements }
-  } catch (err) {
+  }
+  catch (err) {
     console.warn('Failed to save game to database', err)
     return null
   }
@@ -115,9 +121,12 @@ export async function saveFinishedGame(userId: string, state: GameState): Promis
  */
 async function updateEloRatings(userId: string, state: GameState, gameId: number): Promise<void> {
   // Only update Elo for exactly 2 human players
-  if (state.players.length !== 2) return
-  if (state.players.some(p => p.isBot)) return
-  if (state.winner_index === null) return
+  if (state.players.length !== 2)
+    return
+  if (state.players.some(p => p.isBot))
+    return
+  if (state.winner_index === null)
+    return
 
   const winner = state.players[state.winner_index]!
   const loserIndex = state.winner_index === 0 ? 1 : 0
@@ -135,7 +144,8 @@ async function updateEloRatings(userId: string, state: GameState, gameId: number
       .from(players)
       .where(and(eq(players.userId, userId), eq(players.name, loser.name)))
 
-    if (!winnerRow || !loserRow) return
+    if (!winnerRow || !loserRow)
+      return
 
     const result = computeElo(winnerRow.currentElo, loserRow.currentElo)
 
@@ -172,8 +182,10 @@ async function updateEloRatings(userId: string, state: GameState, gameId: number
       },
     ])
 
+    // eslint-disable-next-line no-console
     console.log(`Elo updated: ${winner.name} ${winnerRow.currentElo} -> ${result.newWinner}, ${loser.name} ${loserRow.currentElo} -> ${result.newLoser}`)
-  } catch (err) {
+  }
+  catch (err) {
     console.warn('Failed to update Elo ratings', err)
   }
 }

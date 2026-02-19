@@ -1,18 +1,18 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { GameEngine } from '../../shared/game-engine'
 import {
   create501Game,
+  D20,
+  S20,
+  T19,
+  T20,
   throwDarts,
   throwMissTurn,
-  T20, T19,
-  D20, D25,
-  S1, S20,
-  MISS,
 } from '../helpers/darts'
 
 // ── PlayerDescriptor objects ──
 
-describe('PlayerDescriptor objects', () => {
+describe('playerDescriptor objects', () => {
   it('accepts bot players', () => {
     const engine = new GameEngine()
     engine.newGame('501', [

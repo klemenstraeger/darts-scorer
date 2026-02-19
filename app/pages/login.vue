@@ -6,7 +6,8 @@ const user = useSupabaseUser()
 
 // Redirect if already logged in
 watchEffect(() => {
-  if (user.value) navigateTo('/dashboard')
+  if (user.value)
+    navigateTo('/dashboard')
 })
 
 const mode = ref<'login' | 'signup' | 'magic'>('login')
@@ -26,26 +27,33 @@ async function handleEmailAuth() {
         email: email.value,
         options: { emailRedirectTo: `${window.location.origin}/confirm` },
       })
-      if (err) throw err
+      if (err)
+        throw err
       magicLinkSent.value = true
-    } else if (mode.value === 'signup') {
+    }
+    else if (mode.value === 'signup') {
       const { error: err } = await supabase.auth.signUp({
         email: email.value,
         password: password.value,
         options: { emailRedirectTo: `${window.location.origin}/confirm` },
       })
-      if (err) throw err
+      if (err)
+        throw err
       magicLinkSent.value = true // Email confirmation needed
-    } else {
+    }
+    else {
       const { error: err } = await supabase.auth.signInWithPassword({
         email: email.value,
         password: password.value,
       })
-      if (err) throw err
+      if (err)
+        throw err
     }
-  } catch (err: any) {
+  }
+  catch (err: any) {
     error.value = err.message || 'Authentication failed'
-  } finally {
+  }
+  finally {
     loading.value = false
   }
 }
@@ -56,8 +64,8 @@ async function handleEmailAuth() {
     <ThemeToggle class="fixed top-sm right-sm z-50" />
 
     <div
-      class="glass-card-heavy w-full max-w-[400px] px-2xl py-3xl flex flex-col items-center gap-2xl"
       v-motion
+      class="glass-card-heavy w-full max-w-[400px] px-2xl py-3xl flex flex-col items-center gap-2xl"
       :initial="{ opacity: 0, y: 20 }"
       :enter="{ opacity: 1, y: 0, transition: { duration: 400 } }"
     >
@@ -68,15 +76,19 @@ async function handleEmailAuth() {
 
       <!-- Magic link sent confirmation -->
       <div v-if="magicLinkSent" class="text-center flex flex-col items-center gap-lg">
-        <div class="text-[3rem] opacity-80">&#x2709;</div>
-        <p class="text-fg-secondary text-[0.95rem] leading-relaxed">Check your email for a {{ mode === 'magic' ? 'magic link' : 'confirmation link' }}.</p>
+        <div class="text-[3rem] opacity-80">
+          &#x2709;
+        </div>
+        <p class="text-fg-secondary text-[0.95rem] leading-relaxed">
+          Check your email for a {{ mode === 'magic' ? 'magic link' : 'confirmation link' }}.
+        </p>
         <button class="btn btn-secondary" @click="magicLinkSent = false; mode = 'login'">
           Back to login
         </button>
       </div>
 
       <!-- Auth form -->
-      <form v-else @submit.prevent="handleEmailAuth" class="w-full flex flex-col gap-lg">
+      <form v-else class="w-full flex flex-col gap-lg" @submit.prevent="handleEmailAuth">
         <!-- Mode tabs -->
         <div class="mode-tabs">
           <button
@@ -115,7 +127,7 @@ async function handleEmailAuth() {
             placeholder="your@email.com"
             required
             autocomplete="email"
-          />
+          >
         </div>
 
         <div v-if="mode !== 'magic'" class="flex flex-col gap-xs">
@@ -129,10 +141,12 @@ async function handleEmailAuth() {
             required
             minlength="6"
             autocomplete="current-password"
-          />
+          >
         </div>
 
-        <p v-if="error" class="text-red text-[0.85rem] text-center">{{ error }}</p>
+        <p v-if="error" class="text-red text-[0.85rem] text-center">
+          {{ error }}
+        </p>
 
         <button
           type="submit"

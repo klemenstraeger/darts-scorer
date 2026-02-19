@@ -1,17 +1,18 @@
-import { describe, it, expect } from 'vitest'
-import { GameEvent, detectThrowEvent } from '../../shared/game-events'
-import { GameEngine } from '../../shared/game-engine'
+import type { GameEngine } from '../../shared/game-engine'
+import { describe, expect, it } from 'vitest'
+import { detectThrowEvent, GameEvent } from '../../shared/game-events'
 import {
   create501Game,
-  throwDarts,
-  throwMissTurn,
-  T20, D20, S20, MISS,
+  D20,
+  MISS,
+  S20,
+  T20,
 } from '../helpers/darts'
 
 /**
  * Helper: capture pre-throw state, throw dart, return event.
  */
-function throwAndDetect(engine: GameEngine, dart: { segment: number; multiplier: 1 | 2 | 3 }) {
+function throwAndDetect(engine: GameEngine, dart: { segment: number, multiplier: 1 | 2 | 3 }) {
   const prevTurnCount = engine.state.turn_history.length
   const prevLegs = engine.state.players.map(p => p.legs_won)
   const prevSets = [...engine.state.sets_won]

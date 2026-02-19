@@ -11,9 +11,12 @@ const targetLabel = computed(() => {
 })
 
 const scoreColor = computed(() => {
-  if (props.state.isFailed) return 'var(--red)'
-  if (props.state.score >= 100) return 'var(--green)'
-  if (props.state.score >= 27) return 'var(--text-primary)'
+  if (props.state.isFailed)
+    return 'var(--red)'
+  if (props.state.score >= 100)
+    return 'var(--green)'
+  if (props.state.score >= 27)
+    return 'var(--text-primary)'
   return '#f59e0b'
 })
 </script>

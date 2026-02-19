@@ -2,12 +2,12 @@
 
 import type { TrainingMode } from '../training-models'
 import type { TrainingModeStrategy } from '../training-strategy'
-import { scoringPracticeStrategy } from './scoring-practice'
 import { aroundTheClockStrategy } from './around-the-clock'
 import { bobs27Strategy } from './bobs-27'
-import { hundredDartsStrategy } from './hundred-darts'
-import { cricketStrategy } from './cricket'
 import { checkoutPracticeStrategy } from './checkout-practice'
+import { cricketStrategy } from './cricket'
+import { hundredDartsStrategy } from './hundred-darts'
+import { scoringPracticeStrategy } from './scoring-practice'
 import { shanghaiStrategy } from './shanghai'
 
 const strategies: Record<TrainingMode, TrainingModeStrategy> = {

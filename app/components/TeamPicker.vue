@@ -1,6 +1,4 @@
 <script setup lang="ts">
-const { teams, ensureLoaded } = useTeams()
-
 const props = withDefaults(defineProps<{
   modelValue: string[]
   min?: number
@@ -14,6 +12,8 @@ const emit = defineEmits<{
   'update:modelValue': [value: string[]]
 }>()
 
+const { teams, ensureLoaded } = useTeams()
+
 const search = ref('')
 
 onMounted(() => {
@@ -24,7 +24,8 @@ const showSearch = computed(() => teams.value.length > 6)
 
 const filteredTeams = computed(() => {
   const q = search.value.toLowerCase()
-  if (!q) return teams.value
+  if (!q)
+    return teams.value
   return teams.value.filter(t => t.name.toLowerCase().includes(q))
 })
 
@@ -40,7 +41,8 @@ function toggleTeam(name: string) {
     const updated = [...props.modelValue]
     updated.splice(idx, 1)
     emit('update:modelValue', updated)
-  } else if (!maxReached.value) {
+  }
+  else if (!maxReached.value) {
     emit('update:modelValue', [...props.modelValue, name])
   }
 }
@@ -59,7 +61,7 @@ function removeTeam(name: string) {
       class="picker-search"
       type="text"
       placeholder="Search teams..."
-    />
+    >
 
     <!-- Team grid -->
     <div class="team-grid">
@@ -98,7 +100,9 @@ function removeTeam(name: string) {
             Manage Teams
           </NuxtLink>
         </template>
-        <p v-else>No teams match "{{ search }}"</p>
+        <p v-else>
+          No teams match "{{ search }}"
+        </p>
       </div>
     </div>
 

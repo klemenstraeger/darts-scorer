@@ -13,10 +13,11 @@ const hasRematch = computed(() => {
 
 const rematchSummary = computed(() => {
   const s = lastGameSettings.value
-  if (!s) return ''
+  if (!s)
+    return ''
   const playerNames = s.players.map(p => p.name).join(' vs ')
   const checkout = s.checkout === 'double_out' ? 'Double Out' : 'Single Out'
-  return `${s.mode} \u00b7 ${checkout} \u00b7 ${playerNames}`
+  return `${s.mode} \u00B7 ${checkout} \u00B7 ${playerNames}`
 })
 
 onMounted(() => {
@@ -39,7 +40,7 @@ onMounted(() => {
           element: '[data-tour="action-grid"]',
           popover: {
             title: 'Quick Access',
-            description: 'Jump to any feature — set up a custom game, practice, run tournaments, or check your stats.',
+            description: 'Jump to any feature \u2014 set up a custom game, practice, run tournaments, or check your stats.',
             side: 'top',
             align: 'center',
           },
@@ -114,8 +115,8 @@ const actionCards = [
   <div class="dashboard-page px-lg py-xl max-w-[600px] mx-auto w-full max-sm:px-md max-sm:py-lg">
     <!-- Hero -->
     <div
-      class="hero-section text-center mb-lg"
       v-motion
+      class="hero-section text-center mb-lg"
       :initial="{ opacity: 0, y: -20 }"
       :enter="{ opacity: 1, y: 0, transition: { duration: 400, ease: 'easeOut' } }"
     >
@@ -153,8 +154,8 @@ const actionCards = [
     <!-- Resume game banner -->
     <div
       v-if="hasActiveGame || hasGame"
-      class="glass-card w-full px-xl py-lg flex items-center justify-between border border-border-gold mt-lg"
       v-motion
+      class="glass-card w-full px-xl py-lg flex items-center justify-between border border-border-gold mt-lg"
       :initial="{ opacity: 0, scale: 0.95 }"
       :enter="{ opacity: 1, scale: 1, transition: { duration: 300 } }"
     >
@@ -165,14 +166,16 @@ const actionCards = [
           <span class="text-[0.75rem] text-fg-muted">Pick up where you left off</span>
         </div>
       </div>
-      <button class="btn btn-gold" @click="navigateTo('/game')">Resume</button>
+      <button class="btn btn-gold" @click="navigateTo('/game')">
+        Resume
+      </button>
     </div>
 
     <!-- Resume training banner -->
     <div
       v-if="hasActiveTraining"
-      class="glass-card w-full px-xl py-lg flex items-center justify-between border border-border-gold mt-lg"
       v-motion
+      class="glass-card w-full px-xl py-lg flex items-center justify-between border border-border-gold mt-lg"
       :initial="{ opacity: 0, scale: 0.95 }"
       :enter="{ opacity: 1, scale: 1, transition: { duration: 300, delay: 50 } }"
     >
@@ -183,7 +186,9 @@ const actionCards = [
           <span class="text-[0.75rem] text-fg-muted">Continue your practice session</span>
         </div>
       </div>
-      <button class="btn btn-gold" @click="navigateTo('/training/play')">Resume</button>
+      <button class="btn btn-gold" @click="navigateTo('/training/play')">
+        Resume
+      </button>
     </div>
 
     <!-- Action Grid -->
@@ -191,9 +196,9 @@ const actionCards = [
       <NuxtLink
         v-for="(card, i) in actionCards"
         :key="card.path"
+        v-motion
         :to="card.path"
         class="action-card glass-card"
-        v-motion
         :initial="{ opacity: 0, y: 16 }"
         :enter="{ opacity: 1, y: 0, transition: { duration: 300, delay: 200 + i * 60 } }"
       >
@@ -230,11 +235,19 @@ const actionCards = [
     <Teleport to="body">
       <div v-if="showAbandonConfirm" class="modal-overlay" @click.self="showAbandonConfirm = false">
         <div class="glass-card-heavy w-full max-w-[380px] p-2xl flex flex-col gap-lg">
-          <h3 class="text-[1.1rem] font-bold text-fg">Abandon Current Game?</h3>
-          <p class="text-fg-secondary text-[0.9rem] leading-relaxed">Starting a new game will end your current game in progress.</p>
+          <h3 class="text-[1.1rem] font-bold text-fg">
+            Abandon Current Game?
+          </h3>
+          <p class="text-fg-secondary text-[0.9rem] leading-relaxed">
+            Starting a new game will end your current game in progress.
+          </p>
           <div class="flex gap-md justify-end">
-            <button class="btn btn-secondary" @click="showAbandonConfirm = false">Cancel</button>
-            <button class="btn btn-danger" @click="doQuickStart">Start New Game</button>
+            <button class="btn btn-secondary" @click="showAbandonConfirm = false">
+              Cancel
+            </button>
+            <button class="btn btn-danger" @click="doQuickStart">
+              Start New Game
+            </button>
           </div>
         </div>
       </div>
@@ -243,7 +256,7 @@ const actionCards = [
 </template>
 
 <style scoped>
-/* ── Quick Start button ──────────────────────────────────────── */
+/* -- Quick Start button ------------------------------------------------- */
 .quick-start-btn {
   display: flex;
   flex-direction: column;
@@ -290,7 +303,7 @@ const actionCards = [
   white-space: nowrap;
 }
 
-/* ── Resume pulse ────────────────────────────────────────────── */
+/* -- Resume pulse ------------------------------------------------------- */
 .pulse-dot {
   display: block;
   width: 10px;
@@ -306,7 +319,7 @@ const actionCards = [
   50% { opacity: 0.5; transform: scale(0.8); }
 }
 
-/* ── Action grid ─────────────────────────────────────────────── */
+/* -- Action grid -------------------------------------------------------- */
 .action-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -357,7 +370,7 @@ const actionCards = [
   line-height: 1.3;
 }
 
-/* ── Modal overlay ───────────────────────────────────────────── */
+/* -- Modal overlay ------------------------------------------------------ */
 .modal-overlay {
   position: fixed;
   inset: 0;

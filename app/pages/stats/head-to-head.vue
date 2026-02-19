@@ -33,7 +33,8 @@ const stats = ref<H2HStats | null>(null)
 const error = ref('')
 
 async function fetchH2H() {
-  if (!player1.value || !player2.value) return
+  if (!player1.value || !player2.value)
+    return
   if (player1.value === player2.value) {
     error.value = 'Please select two different players'
     stats.value = null
@@ -47,10 +48,12 @@ async function fetchH2H() {
       `/api/stats/head-to-head?player1=${encodeURIComponent(player1.value)}&player2=${encodeURIComponent(player2.value)}`,
     )
     stats.value = data
-  } catch (e: any) {
+  }
+  catch (e: any) {
     error.value = e.data?.message || 'Failed to load head-to-head stats'
     stats.value = null
-  } finally {
+  }
+  finally {
     loading.value = false
   }
 }
@@ -80,8 +83,10 @@ onMounted(async () => {
   // Pre-fill from query params
   const p1 = route.query.player1 as string | undefined
   const p2 = route.query.player2 as string | undefined
-  if (p1) player1.value = p1
-  if (p2) player2.value = p2
+  if (p1)
+    player1.value = p1
+  if (p2)
+    player2.value = p2
 })
 
 function formatDate(dateStr: string): string {
@@ -93,18 +98,21 @@ function formatDate(dateStr: string): string {
 }
 
 const winPctPlayer1 = computed(() => {
-  if (!stats.value || stats.value.total_games === 0) return 0
+  if (!stats.value || stats.value.total_games === 0)
+    return 0
   return Math.round((stats.value.player1_wins / stats.value.total_games) * 1000) / 10
 })
 
 const winPctPlayer2 = computed(() => {
-  if (!stats.value || stats.value.total_games === 0) return 0
+  if (!stats.value || stats.value.total_games === 0)
+    return 0
   return Math.round((stats.value.player2_wins / stats.value.total_games) * 1000) / 10
 })
 
 // Recent form: last 5 results from perspective of player1
 const recentForm = computed(() => {
-  if (!stats.value) return []
+  if (!stats.value)
+    return []
   return stats.value.recent_games.map(g => ({
     won: g.winner_name === stats.value!.player1,
     draw: g.winner_name === null,
@@ -117,12 +125,16 @@ const recentForm = computed(() => {
     <!-- Header -->
     <div class="h2h-hero mb-xl">
       <div class="flex-1">
-        <h2 class="text-[1.8rem] font-extrabold text-fg mb-xs">Head-to-Head</h2>
-        <p class="text-[0.85rem] text-fg-secondary">Compare two players side by side.</p>
+        <h2 class="text-[1.8rem] font-extrabold text-fg mb-xs">
+          Head-to-Head
+        </h2>
+        <p class="text-[0.85rem] text-fg-secondary">
+          Compare two players side by side.
+        </p>
       </div>
       <NuxtLink to="/stats" class="back-link">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="15 18 9 12 15 6"></polyline>
+          <polyline points="15 18 9 12 15 6" />
         </svg>
         Stats
       </NuxtLink>
@@ -133,27 +145,41 @@ const recentForm = computed(() => {
       <div class="selector-group">
         <label class="selector-label">Player 1</label>
         <select v-model="player1" class="selector-input">
-          <option value="" disabled>Select player</option>
-          <option v-for="p in players" :key="p.id" :value="p.name">{{ p.name }}</option>
+          <option value="" disabled>
+            Select player
+          </option>
+          <option v-for="p in players" :key="p.id" :value="p.name">
+            {{ p.name }}
+          </option>
         </select>
       </div>
 
-      <div class="vs-badge">VS</div>
+      <div class="vs-badge">
+        VS
+      </div>
 
       <div class="selector-group">
         <label class="selector-label">Player 2</label>
         <select v-model="player2" class="selector-input">
-          <option value="" disabled>Select player</option>
-          <option v-for="p in player2Options" :key="p.id" :value="p.name">{{ p.name }}</option>
+          <option value="" disabled>
+            Select player
+          </option>
+          <option v-for="p in player2Options" :key="p.id" :value="p.name">
+            {{ p.name }}
+          </option>
         </select>
       </div>
     </div>
 
     <!-- Error -->
-    <div v-if="error" class="text-center text-red text-[0.85rem] mb-lg">{{ error }}</div>
+    <div v-if="error" class="text-center text-red text-[0.85rem] mb-lg">
+      {{ error }}
+    </div>
 
     <!-- Loading -->
-    <div v-if="loading" class="text-center text-fg-muted p-2xl">Loading comparison...</div>
+    <div v-if="loading" class="text-center text-fg-muted p-2xl">
+      Loading comparison...
+    </div>
 
     <!-- No games -->
     <div v-if="stats && stats.total_games === 0 && !loading" class="text-center text-fg-muted p-2xl text-[0.9rem]">
@@ -167,28 +193,32 @@ const recentForm = computed(() => {
         <div class="win-record">
           <div class="win-record-player">
             <PlayerAvatar v-bind="getAvatarProps(stats.player1)" :size="56" />
-            <div class="win-record-name">{{ stats.player1 }}</div>
+            <div class="win-record-name">
+              {{ stats.player1 }}
+            </div>
             <div class="win-record-wins" :class="{ leading: stats.player1_wins > stats.player2_wins }">
               {{ stats.player1_wins }}
             </div>
           </div>
 
           <div class="win-record-center">
-            <div class="win-record-total">{{ stats.total_games }} game{{ stats.total_games !== 1 ? 's' : '' }}</div>
+            <div class="win-record-total">
+              {{ stats.total_games }} game{{ stats.total_games !== 1 ? 's' : '' }}
+            </div>
             <div class="win-record-bar">
               <div
                 class="win-record-bar-p1"
                 :style="{ width: `${stats.total_games > 0 ? (stats.player1_wins / stats.total_games) * 100 : 50}%` }"
-              ></div>
+              />
               <div
                 v-if="stats.draws > 0"
                 class="win-record-bar-draw"
                 :style="{ width: `${(stats.draws / stats.total_games) * 100}%` }"
-              ></div>
+              />
               <div
                 class="win-record-bar-p2"
                 :style="{ width: `${stats.total_games > 0 ? (stats.player2_wins / stats.total_games) * 100 : 50}%` }"
-              ></div>
+              />
             </div>
             <!-- Recent form dots -->
             <div v-if="recentForm.length > 0" class="flex items-center gap-[4px] mt-sm">
@@ -197,14 +227,16 @@ const recentForm = computed(() => {
                 :key="i"
                 class="form-dot"
                 :class="result.draw ? 'form-draw' : result.won ? 'form-win' : 'form-loss'"
-              ></span>
+              />
               <span class="text-[0.65rem] text-fg-muted ml-xs">recent</span>
             </div>
           </div>
 
           <div class="win-record-player">
             <PlayerAvatar v-bind="getAvatarProps(stats.player2)" :size="56" />
-            <div class="win-record-name">{{ stats.player2 }}</div>
+            <div class="win-record-name">
+              {{ stats.player2 }}
+            </div>
             <div class="win-record-wins" :class="{ leading: stats.player2_wins > stats.player1_wins }">
               {{ stats.player2_wins }}
             </div>
@@ -214,7 +246,9 @@ const recentForm = computed(() => {
 
       <!-- Stats comparison bars -->
       <section class="glass-card p-lg">
-        <h3 class="section-title">Comparison</h3>
+        <h3 class="section-title">
+          Comparison
+        </h3>
         <div class="flex flex-col gap-sm">
           <StatsComparisonBar
             label="Wins"
@@ -239,7 +273,9 @@ const recentForm = computed(() => {
 
       <!-- Recent H2H games -->
       <section v-if="stats.recent_games.length > 0" class="flex flex-col gap-md">
-        <h3 class="section-title">Recent Matches</h3>
+        <h3 class="section-title">
+          Recent Matches
+        </h3>
         <div class="flex flex-col gap-sm">
           <div
             v-for="game in stats.recent_games"

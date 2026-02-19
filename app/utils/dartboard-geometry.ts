@@ -126,7 +126,7 @@ export function generateSegmentPaths(colors?: BoardColors): SegmentPath[] {
   const c = colors ?? COLORS
   const paths: SegmentPath[] = []
 
-  const rings: { ring: RingType; inner: number; outer: number; mult: 1 | 2 | 3 }[] = [
+  const rings: { ring: RingType, inner: number, outer: number, mult: 1 | 2 | 3 }[] = [
     { ring: 'double', inner: R.outerSingleOuter, outer: R.doubleOuter, mult: 2 },
     { ring: 'outerSingle', inner: R.trebleOuter, outer: R.outerSingleOuter, mult: 1 },
     { ring: 'treble', inner: R.innerSingleOuter, outer: R.trebleOuter, mult: 3 },
@@ -136,7 +136,7 @@ export function generateSegmentPaths(colors?: BoardColors): SegmentPath[] {
   for (let i = 0; i < 20; i++) {
     const startAngle = i * SEGMENT_ANGLE - SEGMENT_ANGLE / 2
     const endAngle = startAngle + SEGMENT_ANGLE
-    const segment = SEGMENT_ORDER[i]
+    const segment = SEGMENT_ORDER[i]!
 
     for (const { ring, inner, outer, mult } of rings) {
       paths.push({
@@ -155,7 +155,7 @@ export function generateSegmentPaths(colors?: BoardColors): SegmentPath[] {
 /**
  * Generate number label positions (outside the double ring).
  */
-export function generateNumberPositions(): { segment: number; x: number; y: number }[] {
+export function generateNumberPositions(): { segment: number, x: number, y: number }[] {
   const labelR = R.doubleOuter + 14
   return SEGMENT_ORDER.map((segment, i) => {
     const angle = i * SEGMENT_ANGLE
@@ -168,29 +168,36 @@ export function generateNumberPositions(): { segment: number; x: number; y: numb
  * Determine the segment and multiplier from SVG click coordinates.
  * Used for manual score entry by clicking the dartboard.
  */
-export function svgToScore(svgX: number, svgY: number): { segment: number; multiplier: 1 | 2 | 3 } {
+export function svgToScore(svgX: number, svgY: number): { segment: number, multiplier: 1 | 2 | 3 } {
   const dx = svgX - CX
   const dy = svgY - CY
   const radius = Math.sqrt(dx * dx + dy * dy)
 
   // Bull zones
-  if (radius <= R.doubleBull) return { segment: 25, multiplier: 2 }
-  if (radius <= R.singleBull) return { segment: 25, multiplier: 1 }
-  if (radius > R.doubleOuter) return { segment: 0, multiplier: 1 }
+  if (radius <= R.doubleBull)
+    return { segment: 25, multiplier: 2 }
+  if (radius <= R.singleBull)
+    return { segment: 25, multiplier: 1 }
+  if (radius > R.doubleOuter)
+    return { segment: 0, multiplier: 1 }
 
   // Angle: 0° at top, clockwise
   let angle = Math.atan2(dx, -dy) * (180 / Math.PI)
-  if (angle < 0) angle += 360
+  if (angle < 0)
+    angle += 360
 
   const offsetAngle = (angle + SEGMENT_ANGLE / 2) % 360
   const segIndex = Math.floor(offsetAngle / SEGMENT_ANGLE)
-  const segment = SEGMENT_ORDER[segIndex]
+  const segment = SEGMENT_ORDER[segIndex]!
 
   // Ring
   let multiplier: 1 | 2 | 3 = 1
-  if (radius <= R.innerSingleOuter) multiplier = 1
-  else if (radius <= R.trebleOuter) multiplier = 3
-  else if (radius <= R.outerSingleOuter) multiplier = 1
+  if (radius <= R.innerSingleOuter)
+    multiplier = 1
+  else if (radius <= R.trebleOuter)
+    multiplier = 3
+  else if (radius <= R.outerSingleOuter)
+    multiplier = 1
   else multiplier = 2
 
   return { segment, multiplier }

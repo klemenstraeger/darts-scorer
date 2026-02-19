@@ -17,7 +17,8 @@ const modeInfo = computed(() =>
 )
 
 const statEntries = computed(() => {
-  if (!props.stats) return []
+  if (!props.stats)
+    return []
   return Object.entries(props.stats)
     .filter(([key]) => key !== 'mode' && key !== 'totalDarts')
     .map(([key, value]) => ({
@@ -35,10 +36,12 @@ function formatLabel(key: string): string {
 
 function formatValue(value: unknown): string {
   if (typeof value === 'number') {
-    if (Number.isInteger(value)) return String(value)
+    if (Number.isInteger(value))
+      return String(value)
     return (value as number).toFixed(1)
   }
-  if (typeof value === 'boolean') return value ? 'Yes' : 'No'
+  if (typeof value === 'boolean')
+    return value ? 'Yes' : 'No'
   return String(value ?? '-')
 }
 </script>
@@ -46,8 +49,12 @@ function formatValue(value: unknown): string {
 <template>
   <div class="training-complete-overlay">
     <div class="complete-card">
-      <div class="complete-title">Session Complete!</div>
-      <div class="complete-mode">{{ modeInfo?.name ?? state.mode }}</div>
+      <div class="complete-title">
+        Session Complete!
+      </div>
+      <div class="complete-mode">
+        {{ modeInfo?.name ?? state.mode }}
+      </div>
 
       <div class="complete-stats">
         <div class="stat-row highlight">
@@ -65,7 +72,9 @@ function formatValue(value: unknown): string {
       </div>
 
       <div class="complete-actions">
-        <button class="btn btn-gold" @click="emit('newSession')">Play Again</button>
+        <button class="btn btn-gold" @click="emit('newSession')">
+          Play Again
+        </button>
         <NuxtLink to="/training" class="btn btn-secondary" @click="emit('backToMenu')">
           Back to Training
         </NuxtLink>

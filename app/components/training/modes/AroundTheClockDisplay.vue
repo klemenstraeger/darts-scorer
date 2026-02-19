@@ -11,7 +11,8 @@ const currentTarget = computed(() =>
 
 const currentTargetLabel = computed(() => {
   const t = currentTarget.value
-  if (t === null) return 'Done'
+  if (t === null)
+    return 'Done'
   return t === 25 ? 'Bull' : String(t)
 })
 </script>

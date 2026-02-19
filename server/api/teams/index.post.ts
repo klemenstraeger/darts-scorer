@@ -1,10 +1,10 @@
-import { teams, teamMembers } from '../../db/schema'
+import { teamMembers, teams } from '../../db/schema'
 
 export default defineEventHandler(async (event) => {
   const { id: userId } = await requireAuth(event)
   const body = await readBody<{
     name: string
-    members: { playerName: string; position: number }[]
+    members: { playerName: string, position: number }[]
   }>(event)
 
   const name = body.name?.trim()

@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import type { TournamentMatch } from '~/types/tournament'
 
-const { getAvatarProps } = usePlayers()
-
 const props = defineProps<{
   matches: TournamentMatch[]
   showPlayButton?: boolean
@@ -11,6 +9,8 @@ const props = defineProps<{
 const emit = defineEmits<{
   play: [matchId: number]
 }>()
+
+const { getAvatarProps } = usePlayers()
 
 // Group matches by scheduled date
 const fixturesByDate = computed(() => {
@@ -23,7 +23,8 @@ const fixturesByDate = computed(() => {
   for (const match of props.matches) {
     if (match.scheduledAt) {
       scheduled.push(match)
-    } else {
+    }
+    else {
       unscheduled.push(match)
     }
   }
@@ -45,13 +46,14 @@ const fixturesByDate = computed(() => {
   // Sort matches within each group by round then position
   for (const [, matches] of groups) {
     matches.sort((a, b) => {
-      if (a.round !== b.round) return a.round - b.round
+      if (a.round !== b.round)
+        return a.round - b.round
       return a.position - b.position
     })
   }
 
   // Convert to array sorted by date
-  const result: { date: string; rawDate: Date; matches: TournamentMatch[] }[] = []
+  const result: { date: string, rawDate: Date, matches: TournamentMatch[] }[] = []
   for (const [date, matches] of groups) {
     result.push({
       date,
@@ -64,7 +66,8 @@ const fixturesByDate = computed(() => {
   // Add unscheduled group at the end if any
   if (unscheduled.length > 0) {
     unscheduled.sort((a, b) => {
-      if (a.round !== b.round) return a.round - b.round
+      if (a.round !== b.round)
+        return a.round - b.round
       return a.position - b.position
     })
     result.push({
@@ -86,7 +89,8 @@ function statusClass(match: TournamentMatch): string {
 }
 
 function isToday(dateStr: string): boolean {
-  if (dateStr === 'Unscheduled') return false
+  if (dateStr === 'Unscheduled')
+    return false
   const today = new Date()
   const todayStr = today.toLocaleDateString('en-US', {
     weekday: 'short',
@@ -133,7 +137,7 @@ function isPast(rawDate: Date): boolean {
           class="fixture-match"
           :class="[statusClass(match), { playable: isPlayable(match) && showPlayButton }]"
         >
-          <div class="fixture-status-dot" :class="statusClass(match)"></div>
+          <div class="fixture-status-dot" :class="statusClass(match)" />
           <div class="fixture-players">
             <div class="fixture-player" :class="{ winner: match.winnerName === match.player1Name }">
               <PlayerAvatar v-if="match.player1Name" v-bind="getAvatarProps(match.player1Name)" :size="18" />
@@ -153,7 +157,9 @@ function isPast(rawDate: Date): boolean {
               <PlayerAvatar v-if="match.player2Name" v-bind="getAvatarProps(match.player2Name)" :size="18" />
             </div>
           </div>
-          <div class="fixture-round">R{{ match.round }}</div>
+          <div class="fixture-round">
+            R{{ match.round }}
+          </div>
           <button
             v-if="isPlayable(match) && showPlayButton"
             class="btn btn-gold fixture-play-btn"

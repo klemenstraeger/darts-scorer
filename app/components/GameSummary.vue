@@ -12,7 +12,7 @@ const props = defineProps<{
 const { getAvatarProps } = usePlayers()
 
 const checkoutLabel = computed(() =>
-  props.checkout === 'double_out' ? 'Double Out' : 'Single Out'
+  props.checkout === 'double_out' ? 'Double Out' : 'Single Out',
 )
 </script>
 

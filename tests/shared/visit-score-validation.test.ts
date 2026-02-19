@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import { isAchievableScore, validateVisitScore, QUICK_SCORES } from '../../shared/visit-score-validation'
+import { describe, expect, it } from 'vitest'
+import { isAchievableScore, QUICK_SCORES, validateVisitScore } from '../../shared/visit-score-validation'
 
 describe('isAchievableScore', () => {
   it('accepts valid scores 0-180', () => {
@@ -99,7 +99,7 @@ describe('validateVisitScore', () => {
   })
 })
 
-describe('QUICK_SCORES', () => {
+describe('qUICK_SCORES', () => {
   it('contains expected common scores', () => {
     expect(QUICK_SCORES).toContain(180)
     expect(QUICK_SCORES).toContain(140)

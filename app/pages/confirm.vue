@@ -19,18 +19,21 @@ onMounted(async () => {
     }
 
     // Check if user has a profile
-    const { data } = await $fetch<{ profile: any }>('/api/profile')
+    const { profile } = await $fetch<{ profile: any }>('/api/profile')
 
-    if (!data?.profile) {
+    if (!profile) {
       navigateTo('/profile-setup')
-    } else {
+    }
+    else {
       navigateTo('/dashboard')
     }
-  } catch (err: any) {
+  }
+  catch (err: any) {
     error.value = err.message || 'Something went wrong'
     // Redirect to login after a delay
     setTimeout(() => navigateTo('/login'), 3000)
-  } finally {
+  }
+  finally {
     loading.value = false
   }
 })
@@ -41,12 +44,16 @@ onMounted(async () => {
     <ThemeToggle class="fixed top-sm right-sm z-50" />
     <div class="glass-card-heavy p-3xl text-center">
       <div v-if="loading" class="flex flex-col items-center gap-lg text-fg-secondary">
-        <div class="spinner"></div>
+        <div class="spinner" />
         <p>Confirming your account...</p>
       </div>
       <div v-else-if="error">
-        <p class="text-red mb-sm">{{ error }}</p>
-        <p class="text-fg-muted text-[0.85rem]">Redirecting to login...</p>
+        <p class="text-red mb-sm">
+          {{ error }}
+        </p>
+        <p class="text-fg-muted text-[0.85rem]">
+          Redirecting to login...
+        </p>
       </div>
     </div>
   </div>

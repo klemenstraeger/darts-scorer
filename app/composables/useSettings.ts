@@ -1,6 +1,6 @@
-import { DEFAULT_THEME_ID, getThemeById } from '~/utils/dartboard-themes'
-import type { DartboardTheme } from '~/utils/dartboard-themes'
 import type { CheckoutMode, GameMode, InputMode, PlayerDescriptor } from '#shared/game-models'
+import type { DartboardTheme } from '~/utils/dartboard-themes'
+import { DEFAULT_THEME_ID, getThemeById } from '~/utils/dartboard-themes'
 
 const STORAGE_KEY = 'darts-scorer:settings'
 
@@ -27,17 +27,22 @@ const settings = reactive<AppSettings>({
 let loaded = false
 
 function load() {
-  if (loaded) return
+  if (loaded)
+    return
   loaded = true
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (raw) {
       const parsed = JSON.parse(raw) as Partial<AppSettings>
-      if (parsed.dartboardTheme) settings.dartboardTheme = parsed.dartboardTheme
-      if (parsed.lastGameSettings) settings.lastGameSettings = parsed.lastGameSettings
-      if (parsed.inputMode) settings.inputMode = parsed.inputMode
+      if (parsed.dartboardTheme)
+        settings.dartboardTheme = parsed.dartboardTheme
+      if (parsed.lastGameSettings)
+        settings.lastGameSettings = parsed.lastGameSettings
+      if (parsed.inputMode)
+        settings.inputMode = parsed.inputMode
     }
-  } catch {
+  }
+  catch {
     // ignore corrupt data
   }
 }
@@ -45,13 +50,15 @@ function load() {
 function save() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings))
-  } catch {
+  }
+  catch {
     // storage full, ignore
   }
 }
 
 export function useSettings() {
-  if (import.meta.client) load()
+  if (import.meta.client)
+    load()
 
   const dartboardTheme = computed<DartboardTheme>({
     get: () => getThemeById(settings.dartboardTheme),

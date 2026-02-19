@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import { getCheckout, CHECKOUTS } from '../../shared/checkouts'
+import { describe, expect, it } from 'vitest'
+import { CHECKOUTS, getCheckout } from '../../shared/checkouts'
 
 // ── getCheckout ──
 
@@ -54,7 +54,7 @@ describe('getCheckout', () => {
 
 // ── CHECKOUTS table validation ──
 
-describe('CHECKOUTS', () => {
+describe('cHECKOUTS', () => {
   it('contains all 1-dart finishes (even 2-40 + 50)', () => {
     for (let score = 2; score <= 40; score += 2) {
       expect(CHECKOUTS[score]).toBeDefined()

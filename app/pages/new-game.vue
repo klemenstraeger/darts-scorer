@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CheckoutMode, BotDifficulty, PlayerDescriptor } from '~/types/game'
+import type { BotDifficulty, CheckoutMode, PlayerDescriptor } from '~/types/game'
 
 const { newGame, hasActiveGame, hasGame } = useGameState()
 
@@ -29,7 +29,8 @@ const canAdvanceStep1 = computed(() => {
 let botCounter = 0
 
 function addBot(difficulty: BotDifficulty) {
-  if (selectedPlayers.value.length >= 4) return
+  if (selectedPlayers.value.length >= 4)
+    return
   botCounter++
   const label = difficulty.charAt(0).toUpperCase() + difficulty.slice(1)
   const name = `Bot ${label}${botCounter > 1 ? ` #${botCounter}` : ''}`
@@ -51,7 +52,7 @@ const humanSelection = computed({
 })
 
 function buildDescriptors(): PlayerDescriptor[] {
-  return selectedPlayers.value.map(name => {
+  return selectedPlayers.value.map((name) => {
     const botDiff = botPlayers.value.get(name)
     if (botDiff) {
       return { name, isBot: true, botDifficulty: botDiff }
@@ -99,7 +100,8 @@ function doStartGame() {
 }
 
 function confirmAbandon() {
-  if (pendingAction.value === 'quick') doQuickStart()
+  if (pendingAction.value === 'quick')
+    doQuickStart()
   else doStartGame()
 }
 </script>
@@ -118,8 +120,12 @@ function confirmAbandon() {
 
     <!-- Title -->
     <div class="text-center">
-      <h1 class="text-[1.8rem] font-black text-fg max-sm:text-[1.5rem]">New Game</h1>
-      <p class="text-fg-muted text-[0.85rem] mt-xs">Set up a custom match</p>
+      <h1 class="text-[1.8rem] font-black text-fg max-sm:text-[1.5rem]">
+        New Game
+      </h1>
+      <p class="text-fg-muted text-[0.85rem] mt-xs">
+        Set up a custom match
+      </p>
     </div>
 
     <!-- Wizard -->
@@ -127,13 +133,17 @@ function confirmAbandon() {
       v-model:current-step="step"
       :total-steps="3"
       :can-advance="step === 1 ? canAdvanceStep1 : true"
-      :finish-label="'Start Game'"
+      finish-label="Start Game"
       @finish="startGame"
     >
       <!-- Step 1: Select Players -->
       <div v-if="step === 1" key="step-players" class="wizard-step">
-        <h3 class="step-title">Select Players</h3>
-        <p class="step-subtitle">Tap to select. Order = throw order.</p>
+        <h3 class="step-title">
+          Select Players
+        </h3>
+        <p class="step-subtitle">
+          Tap to select. Order = throw order.
+        </p>
 
         <PlayerPicker
           v-model="humanSelection"
@@ -160,7 +170,7 @@ function confirmAbandon() {
         <!-- Bot chips -->
         <div v-if="botPlayers.size > 0" class="w-full flex flex-wrap gap-xs justify-center">
           <span
-            v-for="[name, diff] in botPlayers"
+            v-for="[name] in botPlayers"
             :key="name"
             class="bot-chip"
           >
@@ -183,8 +193,12 @@ function confirmAbandon() {
 
       <!-- Step 2: Game Settings -->
       <div v-else-if="step === 2" key="step-settings" class="wizard-step">
-        <h3 class="step-title">Game Settings</h3>
-        <p class="step-subtitle">Customize or just tap Next for defaults.</p>
+        <h3 class="step-title">
+          Game Settings
+        </h3>
+        <p class="step-subtitle">
+          Customize or just tap Next for defaults.
+        </p>
 
         <GameSettingsPanel
           v-model:game-mode="gameMode"
@@ -196,8 +210,12 @@ function confirmAbandon() {
 
       <!-- Step 3: Review & Start -->
       <div v-else key="step-review" class="wizard-step">
-        <h3 class="step-title">Ready to Play</h3>
-        <p class="step-subtitle">Review your game setup.</p>
+        <h3 class="step-title">
+          Ready to Play
+        </h3>
+        <p class="step-subtitle">
+          Review your game setup.
+        </p>
 
         <GameSummary
           :players="selectedPlayers"
@@ -213,11 +231,19 @@ function confirmAbandon() {
     <Teleport to="body">
       <div v-if="showAbandonConfirm" class="modal-overlay" @click.self="showAbandonConfirm = false">
         <div class="glass-card-heavy w-full max-w-[380px] p-2xl flex flex-col gap-lg">
-          <h3 class="text-[1.1rem] font-bold text-fg">Abandon Current Game?</h3>
-          <p class="text-fg-secondary text-[0.9rem] leading-relaxed">Starting a new game will end your current game in progress.</p>
+          <h3 class="text-[1.1rem] font-bold text-fg">
+            Abandon Current Game?
+          </h3>
+          <p class="text-fg-secondary text-[0.9rem] leading-relaxed">
+            Starting a new game will end your current game in progress.
+          </p>
           <div class="flex gap-md justify-end">
-            <button class="btn btn-secondary" @click="showAbandonConfirm = false">Cancel</button>
-            <button class="btn btn-danger" @click="confirmAbandon">Start New Game</button>
+            <button class="btn btn-secondary" @click="showAbandonConfirm = false">
+              Cancel
+            </button>
+            <button class="btn btn-danger" @click="confirmAbandon">
+              Start New Game
+            </button>
           </div>
         </div>
       </div>

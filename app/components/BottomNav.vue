@@ -16,10 +16,14 @@ const items = [
 
 function isActive(match: string): boolean {
   const name = String(route.name ?? '')
-  if (name === match) return true
-  if (match === 'training' && name.startsWith('training')) return true
-  if (match === 'tournaments' && name.startsWith('tournaments')) return true
-  if (match === 'stats' && name.startsWith('stats')) return true
+  if (name === match)
+    return true
+  if (match === 'training' && name.startsWith('training'))
+    return true
+  if (match === 'tournaments' && name.startsWith('tournaments'))
+    return true
+  if (match === 'stats' && name.startsWith('stats'))
+    return true
   return false
 }
 </script>

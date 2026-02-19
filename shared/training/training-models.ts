@@ -4,14 +4,14 @@ import type { Multiplier } from '../game-models'
 
 // ── Training Mode Types ──────────────────────────────────────
 
-export type TrainingMode =
-  | 'scoring-practice'
-  | 'around-the-clock'
-  | 'bobs-27'
-  | 'hundred-darts'
-  | 'cricket'
-  | 'checkout-practice'
-  | 'shanghai'
+export type TrainingMode
+  = | 'scoring-practice'
+    | 'around-the-clock'
+    | 'bobs-27'
+    | 'hundred-darts'
+    | 'cricket'
+    | 'checkout-practice'
+    | 'shanghai'
 
 export type AroundTheClockVariant = 'singles' | 'doubles' | 'trebles'
 
@@ -105,29 +105,29 @@ export interface ShanghaiState extends TrainingStateBase {
   totalScore: number
   shanghaiCount: number
   /** Track per-round if S, D, T were hit for shanghai detection */
-  currentRoundHits: { single: boolean; double: boolean; treble: boolean }
+  currentRoundHits: { single: boolean, double: boolean, treble: boolean }
 }
 
 // ── Discriminated Union ──────────────────────────────────────
 
-export type TrainingModeState =
-  | ScoringPracticeState
-  | AroundTheClockState
-  | Bobs27State
-  | HundredDartsState
-  | CricketState
-  | CheckoutPracticeState
-  | ShanghaiState
+export type TrainingModeState
+  = | ScoringPracticeState
+    | AroundTheClockState
+    | Bobs27State
+    | HundredDartsState
+    | CricketState
+    | CheckoutPracticeState
+    | ShanghaiState
 
 // ── Events ───────────────────────────────────────────────────
 
-export type TrainingEvent =
-  | 'target_hit'
-  | 'target_missed'
-  | 'round_complete'
-  | 'session_complete'
-  | 'shanghai'
-  | 'failed'
+export type TrainingEvent
+  = | 'target_hit'
+    | 'target_missed'
+    | 'round_complete'
+    | 'session_complete'
+    | 'shanghai'
+    | 'failed'
 
 export interface TrainingThrowResult {
   events: TrainingEvent[]
@@ -170,7 +170,7 @@ export const TRAINING_MODES: TrainingModeInfo[] = [
   },
   {
     mode: 'bobs-27',
-    name: "Bob's 27",
+    name: 'Bob\'s 27',
     description: 'Start at 27, hit doubles to add, miss to subtract',
     icon: 'zap',
     color: '#f59e0b',

@@ -1,19 +1,25 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { GameEngine } from '../../shared/game-engine'
 import {
-  create501Game,
   create301Game,
+  create501Game,
+  D1,
+  D20,
+  D25,
+  MISS,
+  S1,
+  S19,
+  S20,
+  S25,
+  T19,
+  T20,
   throwDarts,
   throwMissTurn,
-  T20, T19, T15, T17,
-  D20, D25, D12, D16, D1, D10,
-  S20, S19, S1, S5, S10, S25,
-  MISS,
 } from '../helpers/darts'
 
 // ── Initialization ──
 
-describe('GameEngine initialization', () => {
+describe('gameEngine initialization', () => {
   it('creates 501 game with correct starting scores', () => {
     const engine = create501Game()
     expect(engine.state.mode).toBe('501')
@@ -69,7 +75,7 @@ describe('GameEngine initialization', () => {
 
 // ── Scoring ──
 
-describe('GameEngine scoring', () => {
+describe('gameEngine scoring', () => {
   let engine: GameEngine
 
   beforeEach(() => {
@@ -119,7 +125,7 @@ describe('GameEngine scoring', () => {
 
 // ── Turn Completion & Rotation ──
 
-describe('Turn completion & rotation', () => {
+describe('turn completion & rotation', () => {
   it('auto-completes turn after 3 darts', () => {
     const engine = create501Game()
     throwDarts(engine, [T20, T20, T20])
@@ -157,7 +163,7 @@ describe('Turn completion & rotation', () => {
 
 // ── Bust (double-out) ──
 
-describe('Bust conditions (double-out)', () => {
+describe('bust conditions (double-out)', () => {
   it('busts when score goes below 0', () => {
     const engine = create501Game()
     // Set Alice to 10, then throw T20 (60)
@@ -224,7 +230,7 @@ describe('Bust conditions (double-out)', () => {
 
 // ── Bust (single-out) ──
 
-describe('Bust conditions (single-out)', () => {
+describe('bust conditions (single-out)', () => {
   it('score = 0 with single is NOT bust', () => {
     const engine = create301Game()
     engine.state.players[0]!.score = 20
@@ -248,8 +254,8 @@ describe('Bust conditions (single-out)', () => {
 
 // ── Checkout ──
 
-describe('Checkout', () => {
-  it('D20 at 40 wins (double-out)', () => {
+describe('checkout', () => {
+  it('d20 at 40 wins (double-out)', () => {
     const engine = create501Game()
     engine.state.players[0]!.score = 40
     engine.state.score_before_turn = 40
@@ -260,7 +266,7 @@ describe('Checkout', () => {
     expect(engine.state.winner_index).toBe(0)
   })
 
-  it('D25 (bull) at 50 wins', () => {
+  it('d25 (bull) at 50 wins', () => {
     const engine = create501Game()
     engine.state.players[0]!.score = 50
     engine.state.score_before_turn = 50
@@ -270,7 +276,7 @@ describe('Checkout', () => {
     expect(engine.state.is_finished).toBe(true)
   })
 
-  it('D1 at 2 wins', () => {
+  it('d1 at 2 wins', () => {
     const engine = create501Game()
     engine.state.players[0]!.score = 2
     engine.state.score_before_turn = 2
@@ -304,7 +310,7 @@ describe('Checkout', () => {
 
 // ── Multi-leg ──
 
-describe('Multi-leg', () => {
+describe('multi-leg', () => {
   it('new leg starts after win', () => {
     const engine = create501Game(['Alice', 'Bob'], 2)
     // Alice wins leg 1
@@ -372,7 +378,7 @@ describe('Multi-leg', () => {
 
 // ── Multi-set ──
 
-describe('Multi-set', () => {
+describe('multi-set', () => {
   it('sets_won increments when set is won', () => {
     const engine = create501Game(['Alice', 'Bob'], 1, 2)
 
@@ -428,7 +434,7 @@ describe('Multi-set', () => {
 
 // ── Undo ──
 
-describe('Undo', () => {
+describe('undo', () => {
   it('undoes last throw and restores score', () => {
     const engine = create501Game()
     engine.throw(T20)

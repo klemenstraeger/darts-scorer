@@ -3,7 +3,7 @@ import { activeGames } from '../../db/schema'
 
 export default defineEventHandler(async (event) => {
   const { id: userId } = await requireAuth(event)
-  const body = await readBody<{ state: unknown; tournamentMatchId?: number | null }>(event)
+  const body = await readBody<{ state: unknown, tournamentMatchId?: number | null }>(event)
 
   if (!body.state) {
     // Clear active game

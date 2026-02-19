@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { TrainingModeState } from '~/types/training'
 
-const props = defineProps<{
+const _props = defineProps<{
   state: TrainingModeState
 }>()
 </script>

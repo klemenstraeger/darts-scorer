@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest'
 import type { CricketState } from '../../../shared/training/training-models'
+import { describe, expect, it } from 'vitest'
+import { D15, MISS, S1, S15, S16, S17, T15, T16, T17, T18, T19, T20, T25 } from '../../helpers/darts'
 import { createTrainingSession, trainingThrow } from '../../helpers/training'
-import { S15, D15, T15, S16, T16, S17, T17, S18, T18, S19, T19, S20, T20, S25, D25, T25, S1, MISS } from '../../helpers/darts'
 
 function cricketState(engine: { state: unknown }): CricketState {
   return engine.state as CricketState

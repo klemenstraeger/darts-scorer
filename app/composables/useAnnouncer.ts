@@ -33,7 +33,8 @@ let voiceListenerAttached = false
 
 function selectVoice(): SpeechSynthesisVoice | null {
   const voices = window.speechSynthesis.getVoices()
-  if (voices.length === 0) return null
+  if (voices.length === 0)
+    return null
   return voices.find(v => v.lang === 'en-GB' && /male/i.test(v.name))
     ?? voices.find(v => v.lang === 'en-GB')
     ?? voices.find(v => v.lang.startsWith('en-'))
@@ -42,8 +43,10 @@ function selectVoice(): SpeechSynthesisVoice | null {
 }
 
 function initVoiceCache() {
-  if (!import.meta.client || !('speechSynthesis' in window)) return
-  if (voiceListenerAttached) return
+  if (!import.meta.client || !('speechSynthesis' in window))
+    return
+  if (voiceListenerAttached)
+    return
   voiceListenerAttached = true
 
   // Attempt initial selection (may already be populated)
@@ -60,20 +63,24 @@ function initVoiceCache() {
 }
 
 function loadPreference() {
-  if (!import.meta.client || initialized) return
+  if (!import.meta.client || initialized)
+    return
   initialized = true
   const stored = localStorage.getItem(STORAGE_KEY)
   enabled.value = stored === 'true'
 }
 
 function savePreference() {
-  if (!import.meta.client) return
+  if (!import.meta.client)
+    return
   localStorage.setItem(STORAGE_KEY, String(enabled.value))
 }
 
-function speak(text: string, options?: { rate?: number; pitch?: number }) {
-  if (!import.meta.client || !enabled.value) return
-  if (!('speechSynthesis' in window)) return
+function speak(text: string, options?: { rate?: number, pitch?: number }) {
+  if (!import.meta.client || !enabled.value)
+    return
+  if (!('speechSynthesis' in window))
+    return
 
   // Ensure the voice cache is initialized
   initVoiceCache()

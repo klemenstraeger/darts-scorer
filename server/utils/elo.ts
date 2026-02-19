@@ -11,8 +11,8 @@ export interface EloResult {
 }
 
 export function computeElo(winnerRating: number, loserRating: number, k: number = 32): EloResult {
-  const expectedWinner = 1 / (1 + Math.pow(10, (loserRating - winnerRating) / 400))
-  const expectedLoser = 1 / (1 + Math.pow(10, (winnerRating - loserRating) / 400))
+  const expectedWinner = 1 / (1 + 10 ** ((loserRating - winnerRating) / 400))
+  const expectedLoser = 1 / (1 + 10 ** ((winnerRating - loserRating) / 400))
 
   const winnerDelta = Math.round(k * (1 - expectedWinner))
   const loserDelta = Math.round(k * (0 - expectedLoser))

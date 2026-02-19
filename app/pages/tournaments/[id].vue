@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import type { TournamentDetail, TournamentMatch, TournamentStanding } from '~/types/tournament'
-import { FORMAT_LABELS } from '~/types/tournament'
+import type { TournamentDetail } from '~/types/tournament'
 
 const route = useRoute()
 const tournamentId = computed(() => Number(route.params.id))
@@ -32,14 +31,18 @@ function copySpectateUrl() {
   const url = `${window.location.origin}/spectate/${tournamentId.value}`
   navigator.clipboard.writeText(url)
   spectateUrlCopied.value = true
-  setTimeout(() => { spectateUrlCopied.value = false }, 2000)
+  setTimeout(() => {
+    spectateUrlCopied.value = false
+  }, 2000)
 }
 
 function copyCameraUrl() {
   const url = `${window.location.origin}/camera/${tournamentId.value}`
   navigator.clipboard.writeText(url)
   cameraUrlCopied.value = true
-  setTimeout(() => { cameraUrlCopied.value = false }, 2000)
+  setTimeout(() => {
+    cameraUrlCopied.value = false
+  }, 2000)
 }
 
 async function fetchTournament() {
@@ -47,9 +50,11 @@ async function fetchTournament() {
   error.value = ''
   try {
     tournament.value = await $fetch<TournamentDetail>(`/api/tournament/${tournamentId.value}`)
-  } catch (e: any) {
+  }
+  catch (e: any) {
     error.value = e.data?.message || 'Failed to load tournament'
-  } finally {
+  }
+  finally {
     loading.value = false
   }
 }
@@ -107,11 +112,14 @@ const hasScheduledFixtures = computed(() =>
 
 // Settings summary
 const settingsSummary = computed(() => {
-  if (!tournament.value) return ''
+  if (!tournament.value)
+    return ''
   const t = tournament.value
   const parts = [t.gameMode, t.checkout === 'double_out' ? 'DO' : 'SO']
-  if (t.legsToWin > 1) parts.push(`${t.legsToWin} legs`)
-  if (t.setsToWin > 1) parts.push(`${t.setsToWin} sets`)
+  if (t.legsToWin > 1)
+    parts.push(`${t.legsToWin} legs`)
+  if (t.setsToWin > 1)
+    parts.push(`${t.setsToWin} sets`)
   return parts.join(' / ')
 })
 
@@ -126,7 +134,8 @@ function playMatch(matchId: number) {
 
 async function doPlayMatch(matchId: number) {
   confirmMatchId.value = null
-  if (playingMatch.value) return
+  if (playingMatch.value)
+    return
   playingMatch.value = true
   try {
     const config = await $fetch<{
@@ -156,14 +165,16 @@ async function doPlayMatch(matchId: number) {
     })
     setContext(config.matchId, config.tournamentId)
     navigateTo('/game')
-  } catch (e: any) {
+  }
+  catch (e: any) {
     error.value = e.data?.message || 'Failed to start match'
     playingMatch.value = false
   }
 }
 
 async function applySchedule() {
-  if (scheduling.value) return
+  if (scheduling.value)
+    return
   scheduling.value = true
   scheduleError.value = ''
   try {
@@ -178,19 +189,24 @@ async function applySchedule() {
     showScheduleModal.value = false
     // Switch to fixtures tab to show results
     leagueTab.value = 'fixtures'
-  } catch (e: any) {
+  }
+  catch (e: any) {
     scheduleError.value = e.data?.message || 'Failed to schedule fixtures'
-  } finally {
+  }
+  finally {
     scheduling.value = false
   }
 }
 
 async function deleteTournament() {
-  if (!confirm('Delete this tournament?')) return
+  // eslint-disable-next-line no-alert
+  if (!confirm('Delete this tournament?'))
+    return
   try {
     await $fetch(`/api/tournament/${tournamentId.value}`, { method: 'DELETE' })
     navigateTo('/tournaments')
-  } catch (e: any) {
+  }
+  catch (e: any) {
     error.value = e.data?.message || 'Failed to delete'
   }
 }
@@ -205,8 +221,12 @@ async function deleteTournament() {
 
     <!-- Error -->
     <div v-else-if="error && !tournament" class="glass-card w-full p-2xl text-center">
-      <p class="text-red text-[0.9rem] font-semibold">{{ error }}</p>
-      <NuxtLink to="/tournaments" class="btn btn-secondary mt-md">Back to Tournaments</NuxtLink>
+      <p class="text-red text-[0.9rem] font-semibold">
+        {{ error }}
+      </p>
+      <NuxtLink to="/tournaments" class="btn btn-secondary mt-md">
+        Back to Tournaments
+      </NuxtLink>
     </div>
 
     <!-- Tournament detail -->
@@ -256,7 +276,9 @@ async function deleteTournament() {
       </div>
 
       <!-- Error banner -->
-      <div v-if="error" class="w-full text-red text-[0.85rem] font-semibold text-center">{{ error }}</div>
+      <div v-if="error" class="w-full text-red text-[0.85rem] font-semibold text-center">
+        {{ error }}
+      </div>
 
       <!-- Knockout format -->
       <div v-if="isKnockout" class="w-full flex flex-col gap-lg">
@@ -359,7 +381,7 @@ async function deleteTournament() {
             <div
               class="mode-pill"
               :style="{ transform: activeTab === 'knockout' ? 'translateX(100%)' : 'translateX(0)' }"
-            ></div>
+            />
           </div>
         </div>
 
@@ -368,8 +390,8 @@ async function deleteTournament() {
           <div class="w-full flex flex-col gap-lg">
             <GroupTabs
               v-if="tournament.groupCount && tournament.groupCount > 1"
-              :group-count="tournament.groupCount"
               v-model="selectedGroup"
+              :group-count="tournament.groupCount"
             />
 
             <div class="glass-card p-md">
@@ -412,7 +434,9 @@ async function deleteTournament() {
           v-if="groupPhaseDone && isGroupKnockout && !hasKnockoutPhase"
           class="glass-card w-full p-lg text-center"
         >
-          <p class="text-fg-muted text-[0.85rem]">Group phase complete. Knockout bracket generating...</p>
+          <p class="text-fg-muted text-[0.85rem]">
+            Group phase complete. Knockout bracket generating...
+          </p>
         </div>
       </template>
     </template>
@@ -421,11 +445,19 @@ async function deleteTournament() {
     <Teleport to="body">
       <div v-if="confirmMatchId" class="modal-overlay" @click.self="confirmMatchId = null">
         <div class="glass-card-heavy w-full max-w-[380px] p-2xl flex flex-col gap-lg">
-          <h3 class="text-[1.1rem] font-bold text-fg">Abandon Current Game?</h3>
-          <p class="text-fg-secondary text-[0.9rem] leading-relaxed">Starting this tournament match will end your current game in progress.</p>
+          <h3 class="text-[1.1rem] font-bold text-fg">
+            Abandon Current Game?
+          </h3>
+          <p class="text-fg-secondary text-[0.9rem] leading-relaxed">
+            Starting this tournament match will end your current game in progress.
+          </p>
           <div class="flex gap-md justify-end">
-            <button class="btn btn-secondary" @click="confirmMatchId = null">Cancel</button>
-            <button class="btn btn-gold" @click="doPlayMatch(confirmMatchId!)">Start Match</button>
+            <button class="btn btn-secondary" @click="confirmMatchId = null">
+              Cancel
+            </button>
+            <button class="btn btn-gold" @click="doPlayMatch(confirmMatchId!)">
+              Start Match
+            </button>
           </div>
         </div>
       </div>
@@ -435,7 +467,9 @@ async function deleteTournament() {
     <Teleport to="body">
       <div v-if="showScheduleModal" class="modal-overlay" @click.self="showScheduleModal = false">
         <div class="glass-card-heavy w-full max-w-[420px] p-2xl flex flex-col gap-lg">
-          <h3 class="text-[1.1rem] font-bold text-fg">Schedule Fixtures</h3>
+          <h3 class="text-[1.1rem] font-bold text-fg">
+            Schedule Fixtures
+          </h3>
           <p class="text-fg-secondary text-[0.85rem] leading-relaxed">
             Distribute matches across dates. Existing schedules will be overwritten.
           </p>
@@ -447,37 +481,63 @@ async function deleteTournament() {
                 v-model="scheduleStartDate"
                 type="date"
                 class="schedule-input"
-              />
+              >
             </div>
 
             <div class="schedule-field">
               <label class="schedule-label">Days Between Match Days</label>
               <select v-model.number="scheduleIntervalDays" class="schedule-input">
-                <option :value="1">Every day</option>
-                <option :value="2">Every 2 days</option>
-                <option :value="3">Every 3 days</option>
-                <option :value="7">Weekly</option>
-                <option :value="14">Every 2 weeks</option>
+                <option :value="1">
+                  Every day
+                </option>
+                <option :value="2">
+                  Every 2 days
+                </option>
+                <option :value="3">
+                  Every 3 days
+                </option>
+                <option :value="7">
+                  Weekly
+                </option>
+                <option :value="14">
+                  Every 2 weeks
+                </option>
               </select>
             </div>
 
             <div class="schedule-field">
               <label class="schedule-label">Matches Per Day</label>
               <select v-model.number="scheduleMatchesPerDay" class="schedule-input">
-                <option :value="1">1</option>
-                <option :value="2">2</option>
-                <option :value="3">3</option>
-                <option :value="4">4</option>
-                <option :value="6">6</option>
-                <option :value="8">8</option>
+                <option :value="1">
+                  1
+                </option>
+                <option :value="2">
+                  2
+                </option>
+                <option :value="3">
+                  3
+                </option>
+                <option :value="4">
+                  4
+                </option>
+                <option :value="6">
+                  6
+                </option>
+                <option :value="8">
+                  8
+                </option>
               </select>
             </div>
           </div>
 
-          <div v-if="scheduleError" class="text-red text-[0.8rem] font-semibold">{{ scheduleError }}</div>
+          <div v-if="scheduleError" class="text-red text-[0.8rem] font-semibold">
+            {{ scheduleError }}
+          </div>
 
           <div class="flex gap-md justify-end">
-            <button class="btn btn-secondary" @click="showScheduleModal = false">Cancel</button>
+            <button class="btn btn-secondary" @click="showScheduleModal = false">
+              Cancel
+            </button>
             <button
               class="btn btn-gold"
               :disabled="scheduling || !scheduleStartDate"

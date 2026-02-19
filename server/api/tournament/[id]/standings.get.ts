@@ -1,5 +1,5 @@
-import { eq, and } from 'drizzle-orm'
-import { tournamentStandings, tournaments } from '../../../db/schema'
+import { and, eq } from 'drizzle-orm'
+import { tournaments, tournamentStandings } from '../../../db/schema'
 
 export default defineEventHandler(async (event) => {
   const { id: userId } = await requireAuth(event)
@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const groupFilter = query.group !== undefined ? Number(query.group) : undefined
 
-  if (!tournamentId || isNaN(tournamentId)) {
+  if (!tournamentId || Number.isNaN(tournamentId)) {
     throw createError({ statusCode: 400, message: 'Invalid tournament ID' })
   }
 
@@ -26,7 +26,7 @@ export default defineEventHandler(async (event) => {
     .from(tournamentStandings)
     .where(eq(tournamentStandings.tournamentId, tournamentId))
 
-  if (groupFilter !== undefined && !isNaN(groupFilter)) {
+  if (groupFilter !== undefined && !Number.isNaN(groupFilter)) {
     standings = standings.filter(s => s.groupIndex === groupFilter)
   }
 

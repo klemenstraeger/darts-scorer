@@ -1,16 +1,16 @@
 <script setup lang="ts">
+import type { DartboardTheme } from '~/utils/dartboard-themes'
 import {
-  generateSegmentPaths,
-  generateNumberPositions,
-  SEGMENT_ORDER,
-  R,
-  CX,
-  CY,
   COLORS,
   colorsFromTheme,
+  CX,
+  CY,
+  generateNumberPositions,
+  generateSegmentPaths,
+  R,
+  SEGMENT_ORDER,
   svgToScore,
 } from '~/utils/dartboard-geometry'
-import type { DartboardTheme } from '~/utils/dartboard-themes'
 
 export interface DartMarker {
   segment: number
@@ -41,11 +41,11 @@ const SEGMENT_ANGLE = 360 / 20
  * Compute (x, y) position for a dart marker on the board.
  * Places the marker at the center of the correct ring and segment.
  */
-function markerPosition(marker: DartMarker): { x: number; y: number } {
+function markerPosition(marker: DartMarker): { x: number, y: number } {
   // Bull
   if (marker.segment === 25) {
-    const r =
-      marker.multiplier === 2
+    const r
+      = marker.multiplier === 2
         ? R.doubleBull * 0.5
         : (R.doubleBull + R.singleBull) / 2
     // Place bull markers at distance r from the center along a fixed angle
@@ -64,7 +64,8 @@ function markerPosition(marker: DartMarker): { x: number; y: number } {
 
   // Find the segment index in SEGMENT_ORDER
   const segIndex = SEGMENT_ORDER.indexOf(marker.segment as typeof SEGMENT_ORDER[number])
-  if (segIndex === -1) return { x: CX, y: CY }
+  if (segIndex === -1)
+    return { x: CX, y: CY }
 
   const angle = segIndex * SEGMENT_ANGLE
 
@@ -72,9 +73,11 @@ function markerPosition(marker: DartMarker): { x: number; y: number } {
   let r: number
   if (marker.multiplier === 3) {
     r = (R.innerSingleOuter + R.trebleOuter) / 2
-  } else if (marker.multiplier === 2) {
+  }
+  else if (marker.multiplier === 2) {
     r = (R.outerSingleOuter + R.doubleOuter) / 2
-  } else {
+  }
+  else {
     // Single - place in outer single area
     r = (R.trebleOuter + R.outerSingleOuter) / 2
   }
@@ -87,7 +90,8 @@ function markerPosition(marker: DartMarker): { x: number; y: number } {
 }
 
 const dartMarkers = computed(() => {
-  if (!props.highlightSegments || props.highlightSegments.length === 0) return []
+  if (!props.highlightSegments || props.highlightSegments.length === 0)
+    return []
   return props.highlightSegments.map((marker, index) => ({
     ...marker,
     index,
@@ -96,8 +100,9 @@ const dartMarkers = computed(() => {
 })
 
 function handleClick(event: MouseEvent) {
-  if (props.disabled) return
-  const svg = (event.currentTarget as SVGSVGElement)
+  if (props.disabled)
+    return
+  const svg = event.currentTarget as SVGSVGElement
   const pt = svg.createSVGPoint()
   pt.x = event.clientX
   pt.y = event.clientY
@@ -113,8 +118,8 @@ function handleClick(event: MouseEvent) {
   <svg
     viewBox="-16 -16 432 432"
     class="w-full max-w-[500px] cursor-pointer select-none"
-    @click="handleClick"
     :class="{ 'cursor-default opacity-70': disabled }"
+    @click="handleClick"
   >
     <circle :cx="CX" :cy="CY" :r="R.doubleOuter + 5" :fill="boardColors.bg" />
 

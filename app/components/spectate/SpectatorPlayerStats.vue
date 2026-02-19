@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TournamentParticipant, TournamentMatch } from '~/types/tournament'
+import type { TournamentMatch, TournamentParticipant } from '~/types/tournament'
 
 interface PlayerStatsData {
   three_dart_average: number
@@ -28,7 +28,8 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  if (rotateTimer) clearInterval(rotateTimer)
+  if (rotateTimer)
+    clearInterval(rotateTimer)
 })
 
 // Derive per-player match stats from matches (client-side)
@@ -56,7 +57,7 @@ const playerMatchInfo = computed(() => {
     const gamesPlayed = completed.length
 
     // Recent matches — last 3
-    const recent = completed.slice(-3).map(m => {
+    const recent = completed.slice(-3).map((m) => {
       const isP1 = m.player1Name === name
       return {
         opponent: isP1 ? (m.player2Name ?? '?') : (m.player1Name ?? '?'),

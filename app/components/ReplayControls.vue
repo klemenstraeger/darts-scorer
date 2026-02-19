@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const props = defineProps<{
+defineProps<{
   isPlaying: boolean
   speed: number
   currentPosition: number
@@ -40,7 +40,7 @@ function onSeek(event: Event) {
         :max="totalPositions"
         :value="currentPosition"
         @input="onSeek"
-      />
+      >
     </div>
 
     <!-- Playback buttons -->

@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import type { Turn } from '~/types/game'
-import { turnTotal, isVisitScoreTurn } from '~/types/game'
-
-const { getAvatarProps } = usePlayers()
+import { isVisitScoreTurn, turnTotal } from '~/types/game'
 
 const props = defineProps<{
   turnHistory: Turn[]
   playerNames: string[]
 }>()
+
+const { getAvatarProps } = usePlayers()
 
 // Show most recent turns first, limited to last 20
 const recentTurns = computed(() => {
@@ -17,7 +17,9 @@ const recentTurns = computed(() => {
 
 <template>
   <div class="flex flex-col h-full overflow-hidden">
-    <div v-if="recentTurns.length === 0" class="text-fg-muted text-[0.75rem] italic p-xs">No turns yet</div>
+    <div v-if="recentTurns.length === 0" class="text-fg-muted text-[0.75rem] italic p-xs">
+      No turns yet
+    </div>
     <TransitionGroup name="list" tag="div" class="turn-list">
       <div
         v-for="(turn, i) in recentTurns"
@@ -30,7 +32,7 @@ const recentTurns = computed(() => {
           :size="16"
         />
         <span class="text-[0.65rem] font-bold text-fg-muted uppercase whitespace-nowrap min-w-[36px]">
-          {{ playerNames[turn.player_index] ?? 'P' + (turn.player_index + 1) }}
+          {{ playerNames[turn.player_index] ?? `P${turn.player_index + 1}` }}
         </span>
         <div v-if="isVisitScoreTurn(turn)" class="throw-badges">
           <span class="visit-badge">{{ turnTotal(turn) }} pts</span>

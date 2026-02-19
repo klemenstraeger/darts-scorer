@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ThrowResult } from '~/types/game'
-import { throwLabel, throwPoints, threeDartAverage, turnTotal, isVisitScoreTurn } from '~/types/game'
+import { isVisitScoreTurn, threeDartAverage, throwLabel, throwPoints, turnTotal } from '~/types/game'
 import { getCheckout } from '~/utils/checkouts'
 
 const {
@@ -92,7 +92,8 @@ const isMatch = computed(() => state.legs_to_win > 1 || state.sets_to_win > 1)
 const hasSets = computed(() => state.sets_to_win > 1)
 
 const legWonPlayerName = computed(() => {
-  if (state.players.length === 0) return ''
+  if (state.players.length === 0)
+    return ''
   const winnerIdx = (state.leg_starting_player - 1 + state.players.length) % state.players.length
   return state.players[winnerIdx]?.name ?? ''
 })
@@ -114,21 +115,28 @@ watch(
   (newScores, oldScores) => {
     if (!oldScores || displayScores.value.length !== newScores.length) {
       displayScores.value = [...newScores]
-      animFrames = new Array(newScores.length).fill(null)
+      animFrames = Array.from({ length: newScores.length }).fill(null) as (number | null)[]
       return
     }
     newScores.forEach((target, i) => {
-      if (target === displayScores.value[i]) return
-      if (animFrames[i]) cancelAnimationFrame(animFrames[i]!)
+      if (target === displayScores.value[i])
+        return
+      if (animFrames[i])
+        cancelAnimationFrame(animFrames[i]!)
       const start = performance.now()
       const from = displayScores.value[i]!
       const duration = 350
       function step(now: number) {
         const p = Math.min((now - start) / duration, 1)
-        const eased = 1 - Math.pow(1 - p, 3)
+        const eased = 1 - (1 - p) ** 3
         displayScores.value[i] = Math.round(from + (target - from) * eased)
-        if (p < 1) animFrames[i] = requestAnimationFrame(step)
-        else { displayScores.value[i] = target; animFrames[i] = null }
+        if (p < 1) {
+          animFrames[i] = requestAnimationFrame(step)
+        }
+        else {
+          displayScores.value[i] = target
+          animFrames[i] = null
+        }
       }
       animFrames[i] = requestAnimationFrame(step)
     })
@@ -154,10 +162,13 @@ watch(
       turnHistorySynced = true
       return
     }
-    if (newLen <= (oldLen ?? 0)) return
+    if (newLen <= (oldLen ?? 0))
+      return
     const lastTurn = state.turn_history[newLen - 1]
-    if (!lastTurn || lastTurn.busted) return
-    if (state.is_finished || legWonFlash.value || gameOverFlash.value) return
+    if (!lastTurn || lastTurn.busted)
+      return
+    if (state.is_finished || legWonFlash.value || gameOverFlash.value)
+      return
     triggerTurnTotalFlash(turnTotal(lastTurn))
   },
   { immediate: true },
@@ -167,10 +178,14 @@ const currentTurnTotal = computed(() =>
   state.current_turn.throws.reduce((s, t) => s + throwPoints(t), 0),
 )
 
+const isPerVisit = computed(() => inputMode.value === 'per_visit')
+
 const checkoutHint = computed(() => {
-  if (state.is_finished) return null
+  if (state.is_finished)
+    return null
   const player = state.players[state.current_player_index]
-  if (!player) return null
+  if (!player)
+    return null
   // In per-visit mode, always show checkout for full 3 darts
   const dartsRemaining = isPerVisit.value ? 3 : 3 - state.current_turn.throws.length
   return getCheckout(player.score, dartsRemaining)
@@ -183,7 +198,8 @@ function playerAvg(idx: number): string {
 
 function playerDarts(idx: number): number {
   const p = state.players[idx]
-  if (!p) return 0
+  if (!p)
+    return 0
   return p.turns.reduce((s, t) => s + (isVisitScoreTurn(t) ? 3 : t.throws.length), 0)
 }
 
@@ -193,9 +209,12 @@ const lastTurn = computed(() => {
 })
 
 function throwColor(t: ThrowResult): string {
-  if (t.segment === 0) return 'text-fg-muted'
-  if (t.multiplier === 3) return 'text-green'
-  if (t.multiplier === 2) return 'text-gold'
+  if (t.segment === 0)
+    return 'text-fg-muted'
+  if (t.multiplier === 3)
+    return 'text-green'
+  if (t.multiplier === 2)
+    return 'text-gold'
   return 'text-fg'
 }
 
@@ -207,22 +226,23 @@ const currentPlayerIsBot = computed(() => {
 })
 
 function handleScore(segment: number, multiplier: number) {
-  if (inputDisabled.value) return
+  if (inputDisabled.value)
+    return
   manualScore(segment, multiplier)
 }
 
 function handleVisitScore(score: number) {
-  if (inputDisabled.value) return
+  if (inputDisabled.value)
+    return
   visitScore(score)
 }
-
-const isPerVisit = computed(() => inputMode.value === 'per_visit')
 
 // Disable mode toggle when mid-turn (per-dart throws already entered)
 const canToggleMode = computed(() => state.current_turn.throws.length === 0)
 
 function toggleInputMode() {
-  if (!canToggleMode.value) return
+  if (!canToggleMode.value)
+    return
   setInputMode(isPerVisit.value ? 'per_dart' : 'per_visit')
 }
 
@@ -407,9 +427,9 @@ watch(hasGame, (active) => {
     <button
       class="announcer-fab"
       :class="{ active: announcerEnabled }"
-      @click="toggleAnnouncer"
       :title="announcerEnabled ? 'Disable announcer' : 'Enable announcer'"
       :aria-label="announcerEnabled ? 'Disable announcer' : 'Enable announcer'"
+      @click="toggleAnnouncer"
     >
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
@@ -424,8 +444,8 @@ watch(hasGame, (active) => {
     <button
       class="dartboard-fab"
       data-tour="dartboard-fab"
-      @click="showDartboard = !showDartboard"
       :title="showDartboard ? 'Close dartboard' : 'Open dartboard'"
+      @click="showDartboard = !showDartboard"
     >
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="12" cy="12" r="10" />
@@ -443,7 +463,9 @@ watch(hasGame, (active) => {
             :theme="dartboardTheme"
             @score="handleScore"
           />
-          <button class="dartboard-close" @click="showDartboard = false">&times;</button>
+          <button class="dartboard-close" @click="showDartboard = false">
+            &times;
+          </button>
         </div>
       </div>
     </Transition>
@@ -722,8 +744,6 @@ watch(hasGame, (active) => {
   color: var(--gold);
   box-shadow: 0 0 12px rgba(255, 215, 0, 0.15);
 }
-
-
 
 /* ── Dartboard FAB: fixed position + hover glow ── */
 .dartboard-fab {

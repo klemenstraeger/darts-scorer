@@ -79,7 +79,7 @@ const setOptions = [1, 3, 5]
           class="mode-pill"
           :style="{
             width: `calc(${100 / legOptions.length}% - 2px)`,
-            transform: `translateX(${legOptions.indexOf(legsToWin) * 100}%)`
+            transform: `translateX(${legOptions.indexOf(legsToWin) * 100}%)`,
           }"
         />
       </div>
@@ -105,7 +105,7 @@ const setOptions = [1, 3, 5]
           class="mode-pill"
           :style="{
             width: `calc(${100 / setOptions.length}% - 2px)`,
-            transform: `translateX(${setOptions.indexOf(setsToWin) * 100}%)`
+            transform: `translateX(${setOptions.indexOf(setsToWin) * 100}%)`,
           }"
         />
       </div>

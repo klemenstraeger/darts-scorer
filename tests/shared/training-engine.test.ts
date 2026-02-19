@@ -1,8 +1,8 @@
-import { describe, it, expect } from 'vitest'
-import { TrainingEngine } from '../../shared/training/training-engine'
 import type { TrainingMode } from '../../shared/training/training-models'
+import { describe, expect, it } from 'vitest'
+import { TrainingEngine } from '../../shared/training/training-engine'
+import { S20, T20 } from '../helpers/darts'
 import { createTrainingSession } from '../helpers/training'
-import { S20, T20, S1, MISS } from '../helpers/darts'
 
 // ── Construction ──
 

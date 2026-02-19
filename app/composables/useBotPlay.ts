@@ -3,8 +3,8 @@
  * Watches for bot turns and feeds generated throws through manualScore().
  */
 
+import type { BotDifficulty, CheckoutMode } from '#shared/game-models'
 import { generateBotThrow } from '#shared/bot-engine'
-import type { CheckoutMode, BotDifficulty } from '#shared/game-models'
 
 const isBotPlaying = ref(false)
 let botAbortController: AbortController | null = null
@@ -24,7 +24,8 @@ export function useBotPlay() {
   const { manualScore } = useGameState()
 
   async function playBotTurn(signal: AbortSignal) {
-    if (isBotPlaying.value) return
+    if (isBotPlaying.value)
+      return
     isBotPlaying.value = true
 
     try {
@@ -32,15 +33,19 @@ export function useBotPlay() {
       await sleep(800, signal)
 
       for (let dart = 0; dart < 3; dart++) {
-        if (signal.aborted) return
+        if (signal.aborted)
+          return
 
         const player = store.state.players[store.state.current_player_index]
-        if (!player?.isBot || !player.botDifficulty) break
-        if (store.state.is_finished) break
+        if (!player?.isBot || !player.botDifficulty)
+          break
+        if (store.state.is_finished)
+          break
 
         // Check if turn is already complete (bust happened on previous dart)
         const currentTurn = store.state.current_turn
-        if (currentTurn.busted || currentTurn.throws.length >= 3) break
+        if (currentTurn.busted || currentTurn.throws.length >= 3)
+          break
 
         const dartsLeft = 3 - currentTurn.throws.length
         const botThrow = generateBotThrow(
@@ -53,20 +58,25 @@ export function useBotPlay() {
         manualScore(botThrow.segment, botThrow.multiplier)
 
         // Check if bust, leg won, or game over happened
-        if (store.state.is_finished) break
+        if (store.state.is_finished)
+          break
 
         // If player index changed (turn ended due to bust or 3 darts), stop
-        if (store.state.current_player_index !== currentTurn.player_index) break
+        if (store.state.current_player_index !== currentTurn.player_index)
+          break
 
         // Delay between darts (600–1000ms)
         if (dart < 2 && currentTurn.throws.length < 3) {
           await sleep(600 + Math.random() * 400, signal)
         }
       }
-    } catch (e) {
-      if (e instanceof DOMException && e.name === 'AbortError') return
+    }
+    catch (e) {
+      if (e instanceof DOMException && e.name === 'AbortError')
+        return
       throw e
-    } finally {
+    }
+    finally {
       isBotPlaying.value = false
     }
   }
@@ -82,12 +92,15 @@ export function useBotPlay() {
       legWonFlash: store.legWonFlash,
     }),
     async (val) => {
-      if (!val.hasPlayers || val.isFinished || isBotPlaying.value) return
+      if (!val.hasPlayers || val.isFinished || isBotPlaying.value)
+        return
       // Wait for bust/leg flash to finish before starting bot turn
-      if (val.bustFlash || val.legWonFlash) return
+      if (val.bustFlash || val.legWonFlash)
+        return
 
       const player = store.state.players[val.playerIndex]
-      if (!player?.isBot) return
+      if (!player?.isBot)
+        return
 
       // Cancel any previous bot turn in progress
       if (botAbortController) {

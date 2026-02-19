@@ -1,5 +1,5 @@
 import { asc, eq } from 'drizzle-orm'
-import { teams, teamMembers } from '../../db/schema'
+import { teamMembers, teams } from '../../db/schema'
 
 export default defineEventHandler(async (event) => {
   const { id: userId } = await requireAuth(event)

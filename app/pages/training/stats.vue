@@ -4,8 +4,8 @@ import { TRAINING_MODES } from '~/types/training'
 
 const activeMode = ref<TrainingMode | null>(null)
 
-const { data: statsData, refresh: refreshStats } = await useFetch('/api/training/stats')
-const { data: sessionsData, refresh: refreshSessions } = await useFetch('/api/training/sessions', {
+const { data: statsData, refresh: _refreshStats } = await useFetch('/api/training/stats')
+const { data: sessionsData, refresh: _refreshSessions } = await useFetch('/api/training/sessions', {
   query: computed(() => ({
     mode: activeMode.value ?? undefined,
     limit: 20,
@@ -30,22 +30,27 @@ function formatDate(dateStr: string): string {
   const now = new Date()
   const diff = now.getTime() - d.getTime()
   const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-  if (days === 0) return 'Today'
-  if (days === 1) return 'Yesterday'
-  if (days < 7) return `${days}d ago`
+  if (days === 0)
+    return 'Today'
+  if (days === 1)
+    return 'Yesterday'
+  if (days < 7)
+    return `${days}d ago`
   return d.toLocaleDateString()
 }
 
 function formatStat(value: unknown): string {
-  if (value === null || value === undefined) return '-'
+  if (value === null || value === undefined)
+    return '-'
   if (typeof value === 'number') {
     return Number.isInteger(value) ? String(value) : (value as number).toFixed(1)
   }
   return String(value)
 }
 
-function sessionStatEntries(stats: Record<string, unknown> | null): { label: string; value: string }[] {
-  if (!stats) return []
+function sessionStatEntries(stats: Record<string, unknown> | null): { label: string, value: string }[] {
+  if (!stats)
+    return []
   return Object.entries(stats)
     .filter(([key]) => key !== 'mode' && key !== 'totalDarts')
     .slice(0, 4)
@@ -64,7 +69,9 @@ function sessionStatEntries(stats: Record<string, unknown> | null): { label: str
           <polyline points="15 18 9 12 15 6" />
         </svg>
       </NuxtLink>
-      <h1 class="text-[1.8rem] font-black text-fg max-sm:text-[1.4rem]">Training Stats</h1>
+      <h1 class="text-[1.8rem] font-black text-fg max-sm:text-[1.4rem]">
+        Training Stats
+      </h1>
     </div>
 
     <!-- Mode filter tabs -->
@@ -118,11 +125,17 @@ function sessionStatEntries(stats: Record<string, unknown> | null): { label: str
 
     <!-- Session history list -->
     <div class="sessions-list mt-xl">
-      <h2 class="text-[1.1rem] font-bold text-fg mb-md">Recent Sessions</h2>
+      <h2 class="text-[1.1rem] font-bold text-fg mb-md">
+        Recent Sessions
+      </h2>
 
       <div v-if="!sessionsData?.sessions?.length" class="empty-state">
-        <p class="text-fg-muted text-center">No training sessions yet. Start practicing!</p>
-        <NuxtLink to="/training" class="btn btn-gold mt-md">Start Training</NuxtLink>
+        <p class="text-fg-muted text-center">
+          No training sessions yet. Start practicing!
+        </p>
+        <NuxtLink to="/training" class="btn btn-gold mt-md">
+          Start Training
+        </NuxtLink>
       </div>
 
       <div v-else class="sessions-grid">

@@ -11,9 +11,9 @@
  */
 
 import type { ThrowResult } from '../../game-models'
-import { throwPoints } from '../../game-models'
-import type { TrainingConfig, CheckoutPracticeState, TrainingThrowResult, TrainingStats } from '../training-models'
+import type { CheckoutPracticeState, TrainingConfig, TrainingStats, TrainingThrowResult } from '../training-models'
 import type { TrainingModeStrategy } from '../training-strategy'
+import { throwPoints } from '../../game-models'
 
 /** Generate a random checkout target between 40 and 170. */
 function randomTarget(): number {
@@ -52,19 +52,22 @@ export const checkoutPracticeStrategy: TrainingModeStrategy<CheckoutPracticeStat
       events.push('target_hit')
       state.attempts++
       advanceToNextTarget(state, events)
-    } else if (remaining < 0 || remaining === 1 || (remaining === 0 && dart.multiplier !== 2)) {
+    }
+    else if (remaining < 0 || remaining === 1 || (remaining === 0 && dart.multiplier !== 2)) {
       // Bust — skip to next target
       events.push('target_missed')
       events.push('round_complete')
       state.attempts++
       advanceToNextTarget(state, events)
-    } else if (state.currentAttemptThrows >= 3) {
+    }
+    else if (state.currentAttemptThrows >= 3) {
       // Used all 3 darts without finishing
       events.push('target_missed')
       events.push('round_complete')
       state.attempts++
       advanceToNextTarget(state, events)
-    } else {
+    }
+    else {
       // Still throwing — deduct score (track it for display)
       state.currentTarget = remaining
     }
@@ -98,7 +101,8 @@ function advanceToNextTarget(state: CheckoutPracticeState, events: TrainingThrow
     state.isComplete = true
     state.completedAt = new Date().toISOString()
     events.push('session_complete')
-  } else {
+  }
+  else {
     const next = randomTarget()
     state.currentTarget = next
     state.targets.push(next)
@@ -132,7 +136,8 @@ function replayState(state: CheckoutPracticeState): CheckoutPracticeState {
         currentTarget = state.targets[targetIdx]!
         attemptThrows = 0
       }
-    } else if (remaining < 0 || remaining === 1 || (remaining === 0 && t.multiplier !== 2)) {
+    }
+    else if (remaining < 0 || remaining === 1 || (remaining === 0 && t.multiplier !== 2)) {
       // Bust
       attempts++
       targetIdx++
@@ -140,7 +145,8 @@ function replayState(state: CheckoutPracticeState): CheckoutPracticeState {
         currentTarget = state.targets[targetIdx]!
         attemptThrows = 0
       }
-    } else if (attemptThrows >= 3) {
+    }
+    else if (attemptThrows >= 3) {
       // 3 darts used
       attempts++
       targetIdx++
@@ -148,7 +154,8 @@ function replayState(state: CheckoutPracticeState): CheckoutPracticeState {
         currentTarget = state.targets[targetIdx]!
         attemptThrows = 0
       }
-    } else {
+    }
+    else {
       currentTarget = remaining
     }
   }

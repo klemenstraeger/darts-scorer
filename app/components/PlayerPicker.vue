@@ -1,6 +1,4 @@
 <script setup lang="ts">
-const { players, ensureLoaded } = usePlayers()
-
 const props = withDefaults(defineProps<{
   modelValue: string[]
   min?: number
@@ -14,6 +12,8 @@ const emit = defineEmits<{
   'update:modelValue': [value: string[]]
 }>()
 
+const { players, ensureLoaded } = usePlayers()
+
 const search = ref('')
 
 onMounted(() => {
@@ -24,7 +24,8 @@ const showSearch = computed(() => players.value.length > 6)
 
 const filteredPlayers = computed(() => {
   const q = search.value.toLowerCase()
-  if (!q) return players.value
+  if (!q)
+    return players.value
   return players.value.filter(p => p.name.toLowerCase().includes(q))
 })
 
@@ -41,7 +42,8 @@ function togglePlayer(name: string) {
     const updated = [...props.modelValue]
     updated.splice(idx, 1)
     emit('update:modelValue', updated)
-  } else if (!maxReached.value) {
+  }
+  else if (!maxReached.value) {
     // Select
     emit('update:modelValue', [...props.modelValue, name])
   }
@@ -70,7 +72,7 @@ function getAvatarProps(name: string) {
       class="picker-search"
       type="text"
       placeholder="Search players..."
-    />
+    >
 
     <!-- Player grid -->
     <div class="player-grid">
@@ -106,7 +108,9 @@ function getAvatarProps(name: string) {
             Manage Players
           </NuxtLink>
         </template>
-        <p v-else>No players match "{{ search }}"</p>
+        <p v-else>
+          No players match "{{ search }}"
+        </p>
       </div>
     </div>
 

@@ -1,5 +1,6 @@
-import { pgTable, serial, text, integer, boolean, timestamp, unique, uuid, jsonb } from 'drizzle-orm/pg-core'
+/* eslint-disable ts/no-use-before-define */
 import { relations } from 'drizzle-orm'
+import { boolean, integer, jsonb, pgTable, serial, text, timestamp, unique, uuid } from 'drizzle-orm/pg-core'
 
 // ── Team Tables ─────────────────────────────────────────────
 
@@ -8,7 +9,7 @@ export const teams = pgTable('teams', {
   userId: uuid('user_id').notNull().references(() => profiles.id, { onDelete: 'cascade' }),
   name: text('name').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-}, (table) => [
+}, table => [
   unique().on(table.userId, table.name),
 ]).enableRLS()
 
@@ -17,7 +18,7 @@ export const teamMembers = pgTable('team_members', {
   teamId: integer('team_id').notNull().references(() => teams.id, { onDelete: 'cascade' }),
   playerName: text('player_name').notNull(),
   position: integer('position').notNull(),
-}, (table) => [
+}, table => [
   unique().on(table.teamId, table.playerName),
 ]).enableRLS()
 
@@ -48,7 +49,7 @@ export const tournamentParticipants = pgTable('tournament_participants', {
   seed: integer('seed').notNull(),
   groupIndex: integer('group_index'),
   teamId: integer('team_id').references(() => teams.id, { onDelete: 'set null' }),
-}, (table) => [
+}, table => [
   unique().on(table.tournamentId, table.playerName),
   unique().on(table.tournamentId, table.seed),
 ]).enableRLS()
@@ -70,7 +71,7 @@ export const tournamentMatches = pgTable('tournament_matches', {
   player2LegsWon: integer('player2_legs_won').notNull().default(0),
   scheduledAt: timestamp('scheduled_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-}, (table) => [
+}, table => [
   unique().on(table.tournamentId, table.phase, table.round, table.position, table.groupIndex),
 ]).enableRLS()
 
@@ -86,7 +87,7 @@ export const tournamentStandings = pgTable('tournament_standings', {
   legsWon: integer('legs_won').notNull().default(0),
   legsLost: integer('legs_lost').notNull().default(0),
   legDifference: integer('leg_difference').notNull().default(0),
-}, (table) => [
+}, table => [
   unique().on(table.tournamentId, table.playerName),
 ]).enableRLS()
 
@@ -106,7 +107,7 @@ export const players = pgTable('players', {
   avatarSeed: text('avatar_seed'),
   currentElo: integer('current_elo').notNull().default(1500),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-}, (table) => [
+}, table => [
   unique().on(table.userId, table.name),
 ]).enableRLS()
 
@@ -125,7 +126,7 @@ export const gamePlayers = pgTable('game_players', {
   playerName: text('player_name').notNull(),
   position: integer('position').notNull(),
   finalScore: integer('final_score').notNull(),
-}, (table) => [
+}, table => [
   unique().on(table.gameId, table.position),
 ]).enableRLS()
 
@@ -187,7 +188,7 @@ export const achievements = pgTable('achievements', {
   gameId: integer('game_id').references(() => games.id, { onDelete: 'set null' }),
   metadata: jsonb('metadata'),
   unlockedAt: timestamp('unlocked_at').defaultNow().notNull(),
-}, (table) => [
+}, table => [
   unique().on(table.userId, table.playerName, table.type),
 ]).enableRLS()
 

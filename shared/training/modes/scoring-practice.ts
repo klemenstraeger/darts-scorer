@@ -4,9 +4,9 @@
  */
 
 import type { ThrowResult } from '../../game-models'
-import { throwPoints } from '../../game-models'
-import type { TrainingConfig, ScoringPracticeState, TrainingThrowResult, TrainingStats } from '../training-models'
+import type { ScoringPracticeState, TrainingConfig, TrainingStats, TrainingThrowResult } from '../training-models'
 import type { TrainingModeStrategy } from '../training-strategy'
+import { throwPoints } from '../../game-models'
 
 export const scoringPracticeStrategy: TrainingModeStrategy<ScoringPracticeState> = {
   createInitialState(config: TrainingConfig): ScoringPracticeState {
@@ -27,7 +27,7 @@ export const scoringPracticeStrategy: TrainingModeStrategy<ScoringPracticeState>
   },
 
   processThrow(state: ScoringPracticeState, dart: ThrowResult): TrainingThrowResult {
-    const points = throwPoints(dart)
+    const _points = throwPoints(dart)
     state.currentRoundThrows++
     const events: TrainingThrowResult['events'] = []
 
@@ -45,7 +45,8 @@ export const scoringPracticeStrategy: TrainingModeStrategy<ScoringPracticeState>
         state.isComplete = true
         state.completedAt = new Date().toISOString()
         events.push('session_complete')
-      } else {
+      }
+      else {
         state.currentRound++
         state.currentRoundThrows = 0
       }
@@ -57,7 +58,8 @@ export const scoringPracticeStrategy: TrainingModeStrategy<ScoringPracticeState>
   undoLastThrow(state: ScoringPracticeState): ScoringPracticeState {
     if (state.currentRoundThrows > 0) {
       state.currentRoundThrows--
-    } else if (state.roundScores.length > 0) {
+    }
+    else if (state.roundScores.length > 0) {
       // Go back to previous round
       state.roundScores.pop()
       state.currentRound = Math.max(1, state.currentRound - 1)

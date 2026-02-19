@@ -30,7 +30,7 @@ const groupLabels = computed(() =>
         width: `calc(${100 / groupCount}% - 2px)`,
         transform: `translateX(${modelValue * 100}%)`,
       }"
-    ></div>
+    />
   </div>
 </template>
 

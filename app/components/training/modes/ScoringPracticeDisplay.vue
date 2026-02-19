@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { ScoringPracticeState } from '~/types/training'
-import { throwPoints } from '~/types/game'
 
 const props = defineProps<{
   state: ScoringPracticeState
@@ -8,14 +7,16 @@ const props = defineProps<{
 
 const average = computed(() => {
   const rounds = props.state.roundScores
-  if (rounds.length === 0) return '0.0'
+  if (rounds.length === 0)
+    return '0.0'
   const total = rounds.reduce((s, r) => s + r, 0)
   return (total / rounds.length).toFixed(1)
 })
 
 const currentRoundScore = computed(() => {
   const throwCount = props.state.currentRoundThrows
-  if (throwCount === 0) return 0
+  if (throwCount === 0)
+    return 0
   const start = props.state.throws.length - throwCount
   let score = 0
   for (let i = Math.max(0, start); i < props.state.throws.length; i++) {

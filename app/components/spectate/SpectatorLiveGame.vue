@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import type { GameState, ThrowResult } from '~/types/game'
-import { throwLabel, throwPoints, threeDartAverage, turnTotal } from '~/types/game'
-
-const { getAvatarProps } = usePlayers()
+import { threeDartAverage, throwPoints, turnTotal } from '~/types/game'
 
 const props = defineProps<{
   gameState: GameState
 }>()
+
+const { getAvatarProps } = usePlayers()
 
 const isMatch = computed(() => props.gameState.legs_to_win > 1 || props.gameState.sets_to_win > 1)
 const hasSets = computed(() => props.gameState.sets_to_win > 1)
@@ -20,21 +20,28 @@ watch(
   (newScores, oldScores) => {
     if (!oldScores || displayScores.value.length !== newScores.length) {
       displayScores.value = [...newScores]
-      animFrames = new Array(newScores.length).fill(null)
+      animFrames = Array.from({ length: newScores.length }).fill(null) as (number | null)[]
       return
     }
     newScores.forEach((target, i) => {
-      if (target === displayScores.value[i]) return
-      if (animFrames[i]) cancelAnimationFrame(animFrames[i]!)
+      if (target === displayScores.value[i])
+        return
+      if (animFrames[i])
+        cancelAnimationFrame(animFrames[i]!)
       const start = performance.now()
       const from = displayScores.value[i]!
       const duration = 350
       function step(now: number) {
         const p = Math.min((now - start) / duration, 1)
-        const eased = 1 - Math.pow(1 - p, 3)
+        const eased = 1 - (1 - p) ** 3
         displayScores.value[i] = Math.round(from + (target - from) * eased)
-        if (p < 1) animFrames[i] = requestAnimationFrame(step)
-        else { displayScores.value[i] = target; animFrames[i] = null }
+        if (p < 1) {
+          animFrames[i] = requestAnimationFrame(step)
+        }
+        else {
+          displayScores.value[i] = target
+          animFrames[i] = null
+        }
       }
       animFrames[i] = requestAnimationFrame(step)
     })
@@ -47,7 +54,7 @@ function playerAvg(idx: number): string {
   return p ? threeDartAverage(p).toFixed(1) : '0.0'
 }
 
-function playerDarts(idx: number): number {
+function _playerDarts(idx: number): number {
   const p = props.gameState.players[idx]
   return p ? p.turns.reduce((s, t) => s + t.throws.length, 0) : 0
 }
@@ -81,12 +88,16 @@ function turnPlayerName(turn: { player_index: number }): string {
           <span v-if="isMatch" class="stat-chip">L {{ gameState.current_set_legs[i] ?? 0 }}</span>
         </div>
       </div>
-      <div class="panel-score">{{ displayScores[i] ?? player.score }}</div>
+      <div class="panel-score">
+        {{ displayScores[i] ?? player.score }}
+      </div>
     </div>
 
     <!-- Current turn darts -->
     <div class="current-turn">
-      <div class="turn-label">Current Turn</div>
+      <div class="turn-label">
+        Current Turn
+      </div>
       <div class="turn-darts">
         <span
           v-for="slot in 3"
@@ -109,7 +120,9 @@ function turnPlayerName(turn: { player_index: number }): string {
 
     <!-- Recent throws -->
     <div v-if="recentTurns.length > 0" class="recent-throws">
-      <div class="turn-label">Recent</div>
+      <div class="turn-label">
+        Recent
+      </div>
       <div class="recent-list">
         <div
           v-for="(turn, i) in recentTurns"

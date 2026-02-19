@@ -6,7 +6,8 @@ const user = useSupabaseUser()
 // Redirect logged-in users to dashboard
 if (import.meta.client) {
   watchEffect(() => {
-    if (user.value) navigateTo('/dashboard')
+    if (user.value)
+      navigateTo('/dashboard')
   })
 }
 
@@ -24,11 +25,11 @@ useHead({
       innerHTML: JSON.stringify({
         '@context': 'https://schema.org',
         '@type': 'WebApplication',
-        name: 'Darts Scorer',
-        description: 'Professional darts scoring app with tournament management and statistics',
-        applicationCategory: 'SportsApplication',
-        operatingSystem: 'Any',
-        offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+        'name': 'Darts Scorer',
+        'description': 'Professional darts scoring app with tournament management and statistics',
+        'applicationCategory': 'SportsApplication',
+        'operatingSystem': 'Any',
+        'offers': { '@type': 'Offer', 'price': '0', 'priceCurrency': 'USD' },
       }),
     },
   ],
@@ -103,16 +104,24 @@ function scrollToFeatures() {
         </p>
 
         <div class="hero-ctas anim-fade-in-up" style="--delay: 500ms;">
-          <NuxtLink to="/login" class="btn btn-gold hero-btn">Get Started Free</NuxtLink>
-          <button class="btn btn-secondary hero-btn" @click="scrollToFeatures">Learn More</button>
+          <NuxtLink to="/login" class="btn btn-gold hero-btn">
+            Get Started Free
+          </NuxtLink>
+          <button class="btn btn-secondary hero-btn" @click="scrollToFeatures">
+            Learn More
+          </button>
         </div>
       </div>
     </section>
 
     <!-- ── Features ────────────────────────────────────────────────── -->
     <section id="features" class="landing-section">
-      <h2 class="section-title">Everything You Need</h2>
-      <p class="section-subtitle">A complete darts companion built for players who take their game seriously.</p>
+      <h2 class="section-title">
+        Everything You Need
+      </h2>
+      <p class="section-subtitle">
+        A complete darts companion built for players who take their game seriously.
+      </p>
 
       <div class="features-grid">
         <div
@@ -139,16 +148,24 @@ function scrollToFeatures() {
               <line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" />
             </svg>
           </div>
-          <h3 class="feature-title">{{ feature.title }}</h3>
-          <p class="feature-description">{{ feature.description }}</p>
+          <h3 class="feature-title">
+            {{ feature.title }}
+          </h3>
+          <p class="feature-description">
+            {{ feature.description }}
+          </p>
         </div>
       </div>
     </section>
 
     <!-- ── How It Works ────────────────────────────────────────────── -->
     <section class="landing-section how-it-works-section">
-      <h2 class="section-title">Get Started in Seconds</h2>
-      <p class="section-subtitle">From sign-up to first throw in under a minute.</p>
+      <h2 class="section-title">
+        Get Started in Seconds
+      </h2>
+      <p class="section-subtitle">
+        From sign-up to first throw in under a minute.
+      </p>
 
       <div class="steps-grid">
         <div
@@ -157,9 +174,15 @@ function scrollToFeatures() {
           class="step-card anim-fade-in-up"
           :style="{ '--delay': `${i * 120}ms` }"
         >
-          <div class="step-number">{{ step.number }}</div>
-          <h3 class="step-title">{{ step.title }}</h3>
-          <p class="step-description">{{ step.description }}</p>
+          <div class="step-number">
+            {{ step.number }}
+          </div>
+          <h3 class="step-title">
+            {{ step.title }}
+          </h3>
+          <p class="step-description">
+            {{ step.description }}
+          </p>
         </div>
       </div>
     </section>
@@ -182,9 +205,15 @@ function scrollToFeatures() {
     <!-- ── Final CTA ───────────────────────────────────────────────── -->
     <section class="landing-section cta-section">
       <div class="cta-card glass-card-heavy anim-fade-in-up">
-        <h2 class="cta-title">Ready to Level Up Your Darts Game?</h2>
-        <p class="cta-subtitle">Join players using Darts Scorer for professional-grade game tracking.</p>
-        <NuxtLink to="/login" class="btn btn-gold cta-btn">Get Started Now</NuxtLink>
+        <h2 class="cta-title">
+          Ready to Level Up Your Darts Game?
+        </h2>
+        <p class="cta-subtitle">
+          Join players using Darts Scorer for professional-grade game tracking.
+        </p>
+        <NuxtLink to="/login" class="btn btn-gold cta-btn">
+          Get Started Now
+        </NuxtLink>
       </div>
     </section>
 
@@ -196,9 +225,13 @@ function scrollToFeatures() {
           <span class="footer-brand-text">Darts Scorer</span>
         </div>
         <nav class="footer-nav">
-          <NuxtLink to="/login" class="footer-link">Login</NuxtLink>
+          <NuxtLink to="/login" class="footer-link">
+            Login
+          </NuxtLink>
         </nav>
-        <p class="footer-copy">&copy; {{ new Date().getFullYear() }} Darts Scorer</p>
+        <p class="footer-copy">
+          &copy; {{ new Date().getFullYear() }} Darts Scorer
+        </p>
       </div>
     </footer>
   </div>

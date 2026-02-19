@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import type { CheckoutMode } from '~/types/game'
 import type { TournamentFormat } from '~/types/tournament'
 import { FORMAT_LABELS } from '~/types/tournament'
-import type { CheckoutMode } from '~/types/game'
 
 const props = defineProps<{
   name: string
@@ -19,18 +19,20 @@ const props = defineProps<{
 const { getAvatarProps } = usePlayers()
 
 const isGroupFormat = computed(() =>
-  props.format === 'group_only' || props.format === 'group_knockout'
+  props.format === 'group_only' || props.format === 'group_knockout',
 )
 
 const checkoutLabel = computed(() =>
-  props.checkout === 'double_out' ? 'Double Out' : 'Single Out'
+  props.checkout === 'double_out' ? 'Double Out' : 'Single Out',
 )
 </script>
 
 <template>
   <div class="tournament-summary">
     <!-- Tournament name -->
-    <h3 class="tourney-name">{{ name || 'Untitled Tournament' }}</h3>
+    <h3 class="tourney-name">
+      {{ name || 'Untitled Tournament' }}
+    </h3>
 
     <!-- Format badge -->
     <div class="flex gap-sm flex-wrap justify-center">

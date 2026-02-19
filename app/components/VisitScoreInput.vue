@@ -14,12 +14,14 @@ const emit = defineEmits<{
 const display = ref('')
 
 const displayValue = computed(() => {
-  if (display.value === '') return null
-  return parseInt(display.value, 10)
+  if (display.value === '')
+    return null
+  return Number.parseInt(display.value, 10)
 })
 
 const isValid = computed(() => {
-  if (displayValue.value === null) return true
+  if (displayValue.value === null)
+    return true
   return isAchievableScore(displayValue.value)
 })
 
@@ -29,9 +31,11 @@ const canSubmit = computed(() => {
 
 function appendDigit(d: number) {
   const next = display.value + d
-  const val = parseInt(next, 10)
-  if (val > 180) return
-  if (next.length > 3) return
+  const val = Number.parseInt(next, 10)
+  if (val > 180)
+    return
+  if (next.length > 3)
+    return
   display.value = next
   haptic()
 }
@@ -42,7 +46,8 @@ function backspace() {
 }
 
 function submit() {
-  if (!canSubmit.value) return
+  if (!canSubmit.value)
+    return
   emit('visitScore', displayValue.value!)
   display.value = ''
   haptic()
@@ -61,14 +66,17 @@ function haptic() {
 }
 
 function onKeydown(e: KeyboardEvent) {
-  if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+  if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)
+    return
   if (e.key >= '0' && e.key <= '9') {
     e.preventDefault()
-    appendDigit(parseInt(e.key, 10))
-  } else if (e.key === 'Backspace') {
+    appendDigit(Number.parseInt(e.key, 10))
+  }
+  else if (e.key === 'Backspace') {
     e.preventDefault()
     backspace()
-  } else if (e.key === 'Enter') {
+  }
+  else if (e.key === 'Enter') {
     e.preventDefault()
     submit()
   }
@@ -101,10 +109,18 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
     <!-- Calculator numpad -->
     <div class="numpad-grid">
-      <button v-for="n in [1,2,3,4,5,6,7,8,9]" :key="n" class="num-btn" :disabled="disabled" @click="appendDigit(n)">{{ n }}</button>
-      <button class="num-btn backspace" :disabled="disabled" @click="backspace">&#x232B;</button>
-      <button class="num-btn" :disabled="disabled" @click="appendDigit(0)">0</button>
-      <button class="num-btn ok" :disabled="disabled || !canSubmit" @click="submit">OK</button>
+      <button v-for="n in [1, 2, 3, 4, 5, 6, 7, 8, 9]" :key="n" class="num-btn" :disabled="disabled" @click="appendDigit(n)">
+        {{ n }}
+      </button>
+      <button class="num-btn backspace" :disabled="disabled" @click="backspace">
+        &#x232B;
+      </button>
+      <button class="num-btn" :disabled="disabled" @click="appendDigit(0)">
+        0
+      </button>
+      <button class="num-btn ok" :disabled="disabled || !canSubmit" @click="submit">
+        OK
+      </button>
     </div>
   </div>
 </template>

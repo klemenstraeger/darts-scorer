@@ -1,8 +1,8 @@
-import { describe, it, expect } from 'vitest'
-import { scoringPracticeStrategy } from '../../../shared/training/modes/scoring-practice'
 import type { ScoringPracticeState } from '../../../shared/training/training-models'
-import { createTrainingSession, trainingThrow, trainingMisses } from '../../helpers/training'
-import { T20, S20, S1, T19, S5, D20, MISS } from '../../helpers/darts'
+import { describe, expect, it } from 'vitest'
+import { scoringPracticeStrategy } from '../../../shared/training/modes/scoring-practice'
+import { S1, S5, S20, T19, T20 } from '../../helpers/darts'
+import { createTrainingSession, trainingMisses, trainingThrow } from '../../helpers/training'
 
 // ── Direct Strategy Tests ──
 

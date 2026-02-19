@@ -17,7 +17,7 @@ export default defineEventHandler(async (event) => {
     .where(eq(achievements.userId, userId))
 
   // Build a lookup: type -> array of unlock records
-  const unlockedMap = new Map<string, { playerName: string; unlockedAt: Date; metadata: unknown }[]>()
+  const unlockedMap = new Map<string, { playerName: string, unlockedAt: Date, metadata: unknown }[]>()
   for (const u of unlocked) {
     const arr = unlockedMap.get(u.type) ?? []
     arr.push({ playerName: u.playerName, unlockedAt: u.unlockedAt, metadata: u.metadata })
@@ -25,7 +25,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // Return catalog with unlock status
-  return ACHIEVEMENT_CATALOG.map((def) => ({
+  return ACHIEVEMENT_CATALOG.map(def => ({
     ...def,
     unlocked: unlockedMap.has(def.id),
     unlockedBy: unlockedMap.get(def.id) ?? [],

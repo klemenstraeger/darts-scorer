@@ -1,8 +1,8 @@
-import { describe, it, expect } from 'vitest'
-import { bobs27Strategy } from '../../../shared/training/modes/bobs-27'
 import type { Bobs27State } from '../../../shared/training/training-models'
-import { createTrainingSession, trainingThrow, trainingMisses } from '../../helpers/training'
-import { D1, D2, D3, D5, D20, D25, S1, S5, S20, T20, MISS } from '../../helpers/darts'
+import { describe, expect, it } from 'vitest'
+import { bobs27Strategy } from '../../../shared/training/modes/bobs-27'
+import { D1, D2, D3, D5, D25, MISS, S1 } from '../../helpers/darts'
+import { createTrainingSession, trainingMisses, trainingThrow } from '../../helpers/training'
 
 // ── Direct Strategy Tests ──
 
@@ -25,7 +25,7 @@ describe('bobs27Strategy.createInitialState', () => {
 // ── Hitting Doubles ──
 
 describe('bobs-27 hitting doubles', () => {
-  it('D1 in round 1 adds 2 and emits target_hit', () => {
+  it('d1 in round 1 adds 2 and emits target_hit', () => {
     const { engine } = createTrainingSession('bobs-27')
 
     const result = engine.throw(D1)
@@ -47,7 +47,7 @@ describe('bobs-27 hitting doubles', () => {
     expect((engine.state as Bobs27State).roundResults[0]).toBe('hit')
   })
 
-  it('D5 in round 1 is a miss (wrong double)', () => {
+  it('d5 in round 1 is a miss (wrong double)', () => {
     const { engine } = createTrainingSession('bobs-27')
 
     const result = engine.throw(D5)
@@ -55,7 +55,7 @@ describe('bobs-27 hitting doubles', () => {
     expect((engine.state as Bobs27State).currentRoundHits).toBe(0)
   })
 
-  it('S1 in round 1 is a miss (not a double)', () => {
+  it('s1 in round 1 is a miss (not a double)', () => {
     const { engine } = createTrainingSession('bobs-27')
 
     const result = engine.throw(S1)
@@ -171,7 +171,8 @@ describe('bobs-27 failure', () => {
     // Fail quickly
     for (let i = 0; i < 5; i++) {
       trainingMisses(engine, 3)
-      if (engine.state!.isComplete) break
+      if (engine.state!.isComplete)
+        break
     }
     expect(engine.state!.isComplete).toBe(true)
 
@@ -245,7 +246,8 @@ describe('bobs-27 undo', () => {
     // Round 1: 27-2=25, Round 2: 25-4=21, Round 3: 21-6=15, Round 4: 15-8=7, Round 5: 7-10=-3
     for (let i = 0; i < 5; i++) {
       trainingMisses(engine, 3)
-      if (engine.state!.isComplete) break
+      if (engine.state!.isComplete)
+        break
     }
     expect((engine.state as Bobs27State).isFailed).toBe(true)
 
@@ -284,7 +286,8 @@ describe('bobs-27 stats', () => {
     // Fail: miss all for 5 rounds
     for (let i = 0; i < 5; i++) {
       trainingMisses(engine, 3)
-      if (engine.state!.isComplete) break
+      if (engine.state!.isComplete)
+        break
     }
 
     const stats = engine.getStats()!

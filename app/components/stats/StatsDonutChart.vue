@@ -19,10 +19,10 @@ const props = withDefaults(defineProps<{
 
 const total = computed(() => props.data.reduce((sum, d) => sum + d.value, 0))
 
-const colors = computed(() => props.data.map((d) => d.color ?? 'var(--text-muted)'))
+const colors = computed(() => props.data.map(d => d.color ?? 'var(--text-muted)'))
 
 const legendItems = computed(() =>
-  props.data.map((d) => ({
+  props.data.map(d => ({
     label: d.label,
     value: d.value,
     pct: total.value > 0 ? ((d.value / total.value) * 100).toFixed(1) : '0',

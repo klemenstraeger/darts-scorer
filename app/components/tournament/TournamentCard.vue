@@ -16,6 +16,7 @@ const statusLabel = computed(() => {
     case 'created': return 'Upcoming'
     case 'in_progress': return 'In Progress'
     case 'completed': return 'Completed'
+    default: return props.status
   }
 })
 
@@ -51,12 +52,14 @@ const dateLabel = computed(() => {
           'bg-gold': status === 'created',
           'bg-fg-muted': status === 'completed',
         }"
-      ></span>
-      <span class="text-[0.75rem] font-semibold" :class="{
-        'text-green': status === 'in_progress',
-        'text-gold': status === 'created',
-        'text-fg-muted': status === 'completed',
-      }">{{ statusLabel }}</span>
+      />
+      <span
+        class="text-[0.75rem] font-semibold" :class="{
+          'text-green': status === 'in_progress',
+          'text-gold': status === 'created',
+          'text-fg-muted': status === 'completed',
+        }"
+      >{{ statusLabel }}</span>
       <span v-if="winnerName" class="text-[0.75rem] text-fg-muted ml-auto">
         Winner: <span class="font-bold text-gold">{{ winnerName }}</span>
       </span>

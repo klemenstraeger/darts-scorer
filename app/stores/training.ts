@@ -1,4 +1,4 @@
-import type { TrainingModeState, TrainingEvent } from '#shared/training/training-models'
+import type { TrainingEvent, TrainingModeState } from '#shared/training/training-models'
 
 export const useTrainingStore = defineStore('training', () => {
   const state = ref<TrainingModeState | null>(null)
@@ -11,7 +11,9 @@ export const useTrainingStore = defineStore('training', () => {
 
   function triggerEvent(event: TrainingEvent) {
     lastEvent.value = event
-    setTimeout(() => { lastEvent.value = null }, 2000)
+    setTimeout(() => {
+      lastEvent.value = null
+    }, 2000)
   }
 
   function reset() {

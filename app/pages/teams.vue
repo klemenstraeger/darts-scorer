@@ -12,7 +12,8 @@ const creating = ref(false)
 
 function addMember() {
   const name = newMemberName.value.trim()
-  if (!name || newMembers.value.includes(name)) return
+  if (!name || newMembers.value.includes(name))
+    return
   newMembers.value.push(name)
   newMemberName.value = ''
 }
@@ -23,7 +24,8 @@ function removeMember(index: number) {
 
 function moveMember(index: number, direction: -1 | 1) {
   const target = index + direction
-  if (target < 0 || target >= newMembers.value.length) return
+  if (target < 0 || target >= newMembers.value.length)
+    return
   const items = [...newMembers.value]
   ;[items[index]!, items[target]!] = [items[target]!, items[index]!]
   newMembers.value = items
@@ -35,7 +37,8 @@ const availablePlayersForCreate = computed(() =>
 
 async function createTeam() {
   const name = newTeamName.value.trim()
-  if (!name || newMembers.value.length < 2 || creating.value) return
+  if (!name || newMembers.value.length < 2 || creating.value)
+    return
   creating.value = true
   try {
     await $fetch('/api/teams', {
@@ -48,9 +51,11 @@ async function createTeam() {
     newTeamName.value = ''
     newMembers.value = []
     await fetchTeams()
-  } catch {
+  }
+  catch {
     // ignore duplicate
-  } finally {
+  }
+  finally {
     creating.value = false
   }
 }
@@ -75,7 +80,8 @@ function cancelEdit() {
 
 function editAddMember() {
   const name = editMemberName.value.trim()
-  if (!name || editMembers.value.includes(name)) return
+  if (!name || editMembers.value.includes(name))
+    return
   editMembers.value.push(name)
   editMemberName.value = ''
 }
@@ -86,7 +92,8 @@ function editRemoveMember(index: number) {
 
 function editMoveMember(index: number, direction: -1 | 1) {
   const target = index + direction
-  if (target < 0 || target >= editMembers.value.length) return
+  if (target < 0 || target >= editMembers.value.length)
+    return
   const items = [...editMembers.value]
   ;[items[index]!, items[target]!] = [items[target]!, items[index]!]
   editMembers.value = items
@@ -97,7 +104,8 @@ const availablePlayersForEdit = computed(() =>
 )
 
 async function saveEdit() {
-  if (!editingId.value || saving.value) return
+  if (!editingId.value || saving.value)
+    return
   saving.value = true
   try {
     await $fetch(`/api/teams/${editingId.value}`, {
@@ -109,9 +117,11 @@ async function saveEdit() {
     })
     editingId.value = null
     await fetchTeams()
-  } catch {
+  }
+  catch {
     // ignore
-  } finally {
+  }
+  finally {
     saving.value = false
   }
 }
@@ -121,15 +131,18 @@ const deleteTarget = ref<TeamRecord | null>(null)
 const deleting = ref(false)
 
 async function confirmDelete() {
-  if (!deleteTarget.value || deleting.value) return
+  if (!deleteTarget.value || deleting.value)
+    return
   deleting.value = true
   try {
     await $fetch(`/api/teams/${deleteTarget.value.id}`, { method: 'DELETE' })
     deleteTarget.value = null
     await fetchTeams()
-  } catch {
+  }
+  catch {
     // ignore
-  } finally {
+  }
+  finally {
     deleting.value = false
   }
 }
@@ -144,26 +157,32 @@ onMounted(() => {
   <div class="px-lg py-xl max-w-[700px] mx-auto w-full">
     <!-- Hero -->
     <div
-      class="page-hero"
       v-motion
+      class="page-hero"
       :initial="{ opacity: 0, y: -10 }"
       :enter="{ opacity: 1, y: 0, transition: { duration: 300 } }"
     >
       <div>
-        <h2 class="text-[2rem] font-extrabold text-fg mb-xs">Teams</h2>
-        <p class="text-[0.9rem] text-fg-secondary">Create and manage your teams for doubles tournaments.</p>
+        <h2 class="text-[2rem] font-extrabold text-fg mb-xs">
+          Teams
+        </h2>
+        <p class="text-[0.9rem] text-fg-secondary">
+          Create and manage your teams for doubles tournaments.
+        </p>
       </div>
-      <div class="hero-glow"></div>
+      <div class="hero-glow" />
     </div>
 
     <!-- Create team -->
     <section
-      class="glass-card p-xl mb-xl"
       v-motion
+      class="glass-card p-xl mb-xl"
       :initial="{ opacity: 0, y: 10 }"
       :enter="{ opacity: 1, y: 0, transition: { duration: 300, delay: 100 } }"
     >
-      <h3 class="section-title mb-lg">New Team</h3>
+      <h3 class="section-title mb-lg">
+        New Team
+      </h3>
       <div class="flex flex-col gap-md">
         <input
           v-model="newTeamName"
@@ -171,11 +190,13 @@ onMounted(() => {
           type="text"
           placeholder="Team name"
           maxlength="30"
-        />
+        >
 
         <!-- Member list -->
         <div v-if="newMembers.length > 0" class="flex flex-col gap-xs">
-          <div class="text-[0.75rem] text-fg-muted uppercase tracking-wide">Members (throw order)</div>
+          <div class="text-[0.75rem] text-fg-muted uppercase tracking-wide">
+            Members (throw order)
+          </div>
           <div
             v-for="(member, i) in newMembers"
             :key="member"
@@ -184,14 +205,14 @@ onMounted(() => {
             <span class="member-pos">{{ i + 1 }}</span>
             <PlayerAvatar v-bind="usePlayers().getAvatarProps(member)" :size="28" />
             <span class="flex-1 text-[0.85rem] text-fg truncate">{{ member }}</span>
-            <button class="order-btn" :disabled="i === 0" @click="moveMember(i, -1)" title="Move up">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6"/></svg>
+            <button class="order-btn" :disabled="i === 0" title="Move up" @click="moveMember(i, -1)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6" /></svg>
             </button>
-            <button class="order-btn" :disabled="i === newMembers.length - 1" @click="moveMember(i, 1)" title="Move down">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+            <button class="order-btn" :disabled="i === newMembers.length - 1" title="Move down" @click="moveMember(i, 1)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" /></svg>
             </button>
-            <button class="order-btn order-btn-danger" @click="removeMember(i)" title="Remove">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            <button class="order-btn order-btn-danger" title="Remove" @click="removeMember(i)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
             </button>
           </div>
         </div>
@@ -207,7 +228,7 @@ onMounted(() => {
               maxlength="20"
               list="create-player-list"
               @keyup.enter="addMember"
-            />
+            >
             <datalist id="create-player-list">
               <option v-for="p in availablePlayersForCreate" :key="p.id" :value="p.name" />
             </datalist>
@@ -255,8 +276,12 @@ onMounted(() => {
                 </svg>
               </div>
               <div class="flex-1 min-w-0">
-                <div class="text-[0.95rem] font-bold text-fg truncate">{{ team.name }}</div>
-                <div class="text-[0.7rem] text-fg-muted">{{ team.members.length }} members</div>
+                <div class="text-[0.95rem] font-bold text-fg truncate">
+                  {{ team.name }}
+                </div>
+                <div class="text-[0.7rem] text-fg-muted">
+                  {{ team.members.length }} members
+                </div>
               </div>
               <div class="flex gap-xs shrink-0">
                 <button class="action-btn" title="Edit" @click="startEdit(team)">
@@ -290,10 +315,12 @@ onMounted(() => {
               type="text"
               placeholder="Team name"
               maxlength="30"
-            />
+            >
 
             <div v-if="editMembers.length > 0" class="flex flex-col gap-xs">
-              <div class="text-[0.75rem] text-fg-muted uppercase tracking-wide">Members (throw order)</div>
+              <div class="text-[0.75rem] text-fg-muted uppercase tracking-wide">
+                Members (throw order)
+              </div>
               <div
                 v-for="(member, i) in editMembers"
                 :key="member"
@@ -302,14 +329,14 @@ onMounted(() => {
                 <span class="member-pos">{{ i + 1 }}</span>
                 <PlayerAvatar v-bind="usePlayers().getAvatarProps(member)" :size="28" />
                 <span class="flex-1 text-[0.85rem] text-fg truncate">{{ member }}</span>
-                <button class="order-btn" :disabled="i === 0" @click="editMoveMember(i, -1)" title="Move up">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6"/></svg>
+                <button class="order-btn" :disabled="i === 0" title="Move up" @click="editMoveMember(i, -1)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6" /></svg>
                 </button>
-                <button class="order-btn" :disabled="i === editMembers.length - 1" @click="editMoveMember(i, 1)" title="Move down">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                <button class="order-btn" :disabled="i === editMembers.length - 1" title="Move down" @click="editMoveMember(i, 1)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" /></svg>
                 </button>
-                <button class="order-btn order-btn-danger" @click="editRemoveMember(i)" title="Remove">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                <button class="order-btn order-btn-danger" title="Remove" @click="editRemoveMember(i)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
                 </button>
               </div>
             </div>
@@ -324,7 +351,7 @@ onMounted(() => {
                   maxlength="20"
                   list="edit-player-list"
                   @keyup.enter="editAddMember"
-                />
+                >
                 <datalist id="edit-player-list">
                   <option v-for="p in availablePlayersForEdit" :key="p.id" :value="p.name" />
                 </datalist>
@@ -339,7 +366,9 @@ onMounted(() => {
             </div>
 
             <div class="flex gap-sm justify-end">
-              <button class="btn btn-secondary" @click="cancelEdit">Cancel</button>
+              <button class="btn btn-secondary" @click="cancelEdit">
+                Cancel
+              </button>
               <button class="btn btn-gold" :disabled="!editName.trim() || editMembers.length < 2 || saving" @click="saveEdit">
                 {{ saving ? 'Saving...' : 'Save' }}
               </button>
@@ -353,7 +382,9 @@ onMounted(() => {
     <Transition name="fade">
       <div v-if="deleteTarget" class="modal-overlay" @click.self="deleteTarget = null">
         <div class="modal-card">
-          <h3 class="text-[1rem] font-bold text-fg mb-sm">Delete Team</h3>
+          <h3 class="text-[1rem] font-bold text-fg mb-sm">
+            Delete Team
+          </h3>
           <div class="flex items-center gap-md mb-md">
             <div class="team-icon">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -369,7 +400,9 @@ onMounted(() => {
             This will remove the team. Tournament history will be kept.
           </p>
           <div class="flex gap-sm justify-end">
-            <button class="btn btn-secondary" @click="deleteTarget = null">Cancel</button>
+            <button class="btn btn-secondary" @click="deleteTarget = null">
+              Cancel
+            </button>
             <button class="btn btn-danger" :disabled="deleting" @click="confirmDelete">
               {{ deleting ? 'Deleting...' : 'Delete' }}
             </button>

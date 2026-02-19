@@ -7,11 +7,21 @@ export default defineEventHandler(async (event) => {
   const f = buildFilterClauses(filters)
 
   const [
-    gamesWonResult, totalGamesResult, turnAggResult,
-    totalDartsResult, bustsResult, bestLegResult,
-    count180Result, count140PlusResult, count100PlusResult,
-    highestTurnResult, scoringAvgResult, first9AvgResult,
-    missCountResult, totalThrowCountResult, bestGameDartsResult,
+    gamesWonResult,
+    totalGamesResult,
+    turnAggResult,
+    totalDartsResult,
+    bustsResult,
+    bestLegResult,
+    count180Result,
+    count140PlusResult,
+    count100PlusResult,
+    highestTurnResult,
+    scoringAvgResult,
+    first9AvgResult,
+    missCountResult,
+    totalThrowCountResult,
+    bestGameDartsResult,
     avgDartsPerLegResult,
   ] = await Promise.all([
     // Games won
@@ -28,7 +38,7 @@ export default defineEventHandler(async (event) => {
     `),
 
     // Turn stats: total turns, total points
-    db.execute<{ count: number; total_points: string | null }>(sql`
+    db.execute<{ count: number, total_points: string | null }>(sql`
       SELECT COUNT(*)::int as count, SUM(t.total_points)::text as total_points
       FROM turns t JOIN games g ON t.game_id = g.id
       WHERE t.player_name = ${playerName} AND g.user_id = ${userId} ${f}

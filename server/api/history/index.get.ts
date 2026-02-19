@@ -1,5 +1,6 @@
-import { eq, and, desc, gte, lte, type SQL } from 'drizzle-orm'
-import { games, gamePlayers } from '../../db/schema'
+import type { SQL } from 'drizzle-orm'
+import { and, desc, eq, gte, lte } from 'drizzle-orm'
+import { gamePlayers, games } from '../../db/schema'
 
 export default defineEventHandler(async (event) => {
   const { id: userId } = await requireAuth(event)
@@ -23,13 +24,16 @@ export default defineEventHandler(async (event) => {
           exists(
             db.select({ _: gamePlayers.id })
               .from(gamePlayers)
-              .where(and(eq(gamePlayers.playerName, playerName), eq(gamePlayers.gameId, g.id)))
-          )
+              .where(and(eq(gamePlayers.playerName, playerName), eq(gamePlayers.gameId, g.id))),
+          ),
         )
       }
-      if (from) conditions.push(gte(g.createdAt, new Date(from)))
-      if (to) conditions.push(lte(g.createdAt, new Date(to)))
-      if (mode) conditions.push(eq(g.mode, mode))
+      if (from)
+        conditions.push(gte(g.createdAt, new Date(from)))
+      if (to)
+        conditions.push(lte(g.createdAt, new Date(to)))
+      if (mode)
+        conditions.push(eq(g.mode, mode))
       return and(...conditions)
     },
     orderBy: [desc(games.createdAt)],

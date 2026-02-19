@@ -7,7 +7,7 @@ export interface TeamMember {
 export interface TeamRecord {
   id: number
   name: string
-  members: TeamMember[]
+  members: readonly TeamMember[]
   createdAt: string
 }
 
@@ -18,7 +18,8 @@ let fetchPromise: Promise<void> | null = null
 async function fetchTeams() {
   try {
     teams.value = await $fetch<TeamRecord[]>('/api/teams')
-  } catch {
+  }
+  catch {
     // silently fail — list stays empty
   }
   fetchPromise = null
