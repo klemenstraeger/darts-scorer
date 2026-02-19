@@ -10,17 +10,28 @@ onMounted(() => {
 })
 
 const navItems = [
-  { path: '/dashboard', label: 'Home', name: 'dashboard' },
-  { path: '/players', label: 'Players', name: 'players' },
-  { path: '/teams', label: 'Teams', name: 'teams' },
-  { path: '/tournaments', label: 'Tourneys', name: 'tournaments' },
-  { path: '/training', label: 'Training', name: 'training' },
-  { path: '/stats', label: 'Stats', name: 'stats' },
-  { path: '/settings', label: 'Settings', name: 'settings' },
+  { path: '/dashboard', label: 'Home', name: 'dashboard', icon: 'home' },
+  { path: '/players', label: 'Players', name: 'players', icon: 'users' },
+  { path: '/teams', label: 'Teams', name: 'teams', icon: 'users' },
+  { path: '/tournaments', label: 'Tourneys', name: 'tournaments', icon: 'trophy' },
+  { path: '/training', label: 'Training', name: 'training', icon: 'target' },
+  { path: '/stats', label: 'Stats', name: 'stats', icon: 'bar-chart' },
+  { path: '/settings', label: 'Settings', name: 'settings', icon: 'settings' },
 ]
 
 const isGamePage = computed(() => route.name === 'game')
+const isFullScreenPage = computed(() => isGamePage.value || route.name === 'training-play')
 const { isTournamentMatch } = useTournamentContext()
+
+function isNavItemActive(item: typeof navItems[number]): boolean {
+  const name = String(route.name ?? '')
+  return item.name === name
+    || (item.name === 'tournaments' && name.startsWith('tournaments'))
+    || (item.name === 'players' && name.startsWith('players'))
+    || (item.name === 'teams' && name.startsWith('teams'))
+    || (item.name === 'training' && name.startsWith('training'))
+    || (item.name === 'stats' && name.startsWith('stats'))
+}
 
 // Game page dots menu
 const gameMenuOpen = ref(false)
@@ -62,13 +73,13 @@ function handleNewGame() {
       </div>
 
       <!-- Desktop inline nav links (hidden on mobile) -->
-      <div v-else-if="!isGamePage" class="nav-links hidden sm:flex">
+      <div v-else-if="!isFullScreenPage" class="nav-links hidden sm:flex">
         <NuxtLink
           v-for="item in navItems"
           :key="item.path"
           :to="item.path"
           class="nav-link"
-          :class="{ active: item.name === route.name || (item.name === 'tournaments' && String(route.name ?? '').startsWith('tournaments')) || (item.name === 'players' && String(route.name ?? '').startsWith('players')) || (item.name === 'teams' && String(route.name ?? '').startsWith('teams')) || (item.name === 'training' && String(route.name ?? '').startsWith('training')) }"
+          :class="{ active: isNavItemActive(item) }"
         >
           {{ item.label }}
         </NuxtLink>
@@ -124,7 +135,7 @@ function handleNewGame() {
         </div>
 
         <!-- Desktop logout button -->
-        <button v-if="profile && !isGamePage" class="logout-btn hidden sm:flex" title="Log out" @click="logout">
+        <button v-if="profile && !isFullScreenPage" class="logout-btn hidden sm:flex" title="Log out" @click="logout">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
             <polyline points="16 17 21 12 16 7" />
@@ -134,6 +145,69 @@ function handleNewGame() {
       </div>
     </div>
   </nav>
+
+  <!-- Bottom navigation bar (mobile only) -->
+  <Transition name="bottom-nav">
+    <nav
+      v-if="!isFullScreenPage"
+      class="bottom-nav glass-card sm:hidden"
+      aria-label="Main navigation"
+    >
+      <NuxtLink
+        v-for="item in navItems"
+        :key="item.path"
+        :to="item.path"
+        class="bottom-nav-item"
+        :class="{ active: isNavItemActive(item) }"
+        :aria-label="item.label"
+        :aria-current="isNavItemActive(item) ? 'page' : undefined"
+      >
+        <!-- Home -->
+        <svg v-if="item.icon === 'home'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+          <polyline points="9 22 9 12 15 12 15 22" />
+        </svg>
+        <!-- Users -->
+        <svg v-else-if="item.icon === 'users'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+        <!-- Trophy -->
+        <svg v-else-if="item.icon === 'trophy'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+          <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+          <path d="M4 22h16" />
+          <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
+          <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
+          <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+        </svg>
+        <!-- Target -->
+        <svg v-else-if="item.icon === 'target'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10" />
+          <circle cx="12" cy="12" r="6" />
+          <circle cx="12" cy="12" r="2" />
+        </svg>
+        <!-- Bar Chart -->
+        <svg v-else-if="item.icon === 'bar-chart'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="20" x2="12" y2="10" />
+          <line x1="18" y1="20" x2="18" y2="4" />
+          <line x1="6" y1="20" x2="6" y2="16" />
+        </svg>
+        <!-- Settings -->
+        <svg v-else-if="item.icon === 'settings'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3" />
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+        </svg>
+        <!-- Fallback icon for unknown values -->
+        <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10" />
+        </svg>
+        <span class="bottom-nav-label">{{ item.label }}</span>
+      </NuxtLink>
+    </nav>
+  </Transition>
 </template>
 
 <style scoped>
@@ -249,6 +323,76 @@ function handleNewGame() {
 .logout-btn:hover {
   color: var(--red);
   background: rgba(239, 68, 68, 0.1);
+}
+
+/* ── Bottom navigation bar (mobile only) ── */
+.bottom-nav {
+  --bottom-nav-height: 48px;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  height: var(--bottom-nav-height);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-top: 0;
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  border-radius: 0;
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
+  border-top: 1px solid var(--surface-glass-border);
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  flex: 1;
+  padding: var(--spacing-xs) 0;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  transition: color var(--duration-fast) var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bottom-nav-item.active {
+  color: var(--gold);
+}
+
+.bottom-nav-item.active svg {
+  filter: drop-shadow(0 0 4px var(--gold-glow));
+}
+
+.bottom-nav-label {
+  line-height: 1;
+}
+
+/* Bottom nav transition */
+.bottom-nav-enter-active {
+  transition: transform var(--duration-normal) var(--ease-out),
+              opacity var(--duration-normal) var(--ease-out);
+}
+
+.bottom-nav-leave-active {
+  transition: transform var(--duration-fast) var(--ease-out),
+              opacity var(--duration-fast) var(--ease-out);
+}
+
+.bottom-nav-enter-from,
+.bottom-nav-leave-to {
+  opacity: 0;
+  transform: translateY(100%);
 }
 
 /* Game context menu */
