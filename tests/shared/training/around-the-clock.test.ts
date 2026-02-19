@@ -1,8 +1,8 @@
-import { describe, it, expect } from 'vitest'
-import { aroundTheClockStrategy } from '../../../shared/training/modes/around-the-clock'
 import type { AroundTheClockState } from '../../../shared/training/training-models'
-import { createTrainingSession, trainingThrow, trainingMisses } from '../../helpers/training'
-import { S1, S2, S3, S5, S20, S25, D1, D2, D20, D25, T1, T2, T20, T25, MISS } from '../../helpers/darts'
+import { describe, expect, it } from 'vitest'
+import { aroundTheClockStrategy } from '../../../shared/training/modes/around-the-clock'
+import { D1, MISS, S1, S2, S5, S25, T1, T25 } from '../../helpers/darts'
+import { createTrainingSession } from '../../helpers/training'
 
 // ── Direct Strategy Tests ──
 
@@ -118,9 +118,9 @@ describe('around-the-clock trebles via TrainingEngine', () => {
     expect((engine.state as AroundTheClockState).currentTargetIndex).toBe(0)
   })
 
-  it('T25 does NOT count when target is 25 (bull cannot be trebled)', () => {
+  it('t25 does NOT count when target is 25 (bull cannot be trebled)', () => {
     const { engine } = createTrainingSession('around-the-clock', { variant: 'trebles' })
-    const state = engine.state as AroundTheClockState
+    const _state = engine.state as AroundTheClockState
 
     // Advance to target 25 (index 20) by hitting T1-T20
     for (let seg = 1; seg <= 20; seg++) {

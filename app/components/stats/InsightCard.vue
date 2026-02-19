@@ -11,8 +11,12 @@ defineProps<{
     class="flex flex-col gap-xs p-md px-lg rounded-lg border border-border-subtle bg-glass shadow-sm"
     :class="tone ?? 'gold'"
   >
-    <div class="text-[0.75rem] tracking-[1px] uppercase text-fg-muted font-bold">{{ title }}</div>
-    <div class="text-[0.95rem] font-bold text-fg">{{ detail }}</div>
+    <div class="text-[0.75rem] tracking-[1px] uppercase text-fg-muted font-bold">
+      {{ title }}
+    </div>
+    <div class="text-[0.95rem] font-bold text-fg">
+      {{ detail }}
+    </div>
   </div>
 </template>
 

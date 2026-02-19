@@ -11,7 +11,8 @@ export default defineEventHandler(async (event) => {
 
   try {
     await db.insert(profiles).values({ id, displayName })
-  } catch (err: any) {
+  }
+  catch (err: any) {
     if (err.code === '23505') {
       throw createError({ statusCode: 409, message: 'Display name already taken' })
     }

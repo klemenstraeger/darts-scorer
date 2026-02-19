@@ -1,6 +1,6 @@
-import { TrainingEngine } from '#shared/training/training-engine'
-import type { TrainingConfig, TrainingModeState, TrainingEvent } from '#shared/training/training-models'
 import type { Multiplier } from '#shared/game-models'
+import type { TrainingConfig, TrainingEvent, TrainingModeState } from '#shared/training/training-models'
+import { TrainingEngine } from '#shared/training/training-engine'
 
 const STORAGE_KEY = 'darts-scorer:active-training'
 
@@ -13,7 +13,8 @@ let engine: TrainingEngine | null = null
 const hasActiveSession = ref(false)
 
 function persistToStorage() {
-  if (!engine?.state || !import.meta.client) return
+  if (!engine?.state || !import.meta.client)
+    return
   const data: PersistedTraining = {
     state: JSON.parse(JSON.stringify(engine.state)),
   }
@@ -21,17 +22,21 @@ function persistToStorage() {
 }
 
 function clearStorage() {
-  if (!import.meta.client) return
+  if (!import.meta.client)
+    return
   localStorage.removeItem(STORAGE_KEY)
 }
 
 function readStorage(): PersistedTraining | null {
-  if (!import.meta.client) return null
+  if (!import.meta.client)
+    return null
   const raw = localStorage.getItem(STORAGE_KEY)
-  if (!raw) return null
+  if (!raw)
+    return null
   try {
     return JSON.parse(raw)
-  } catch {
+  }
+  catch {
     return null
   }
 }
@@ -41,7 +46,8 @@ export function useTrainingState() {
   const { play, vibrate } = useAudio()
 
   function syncToStore() {
-    if (!engine?.state) return
+    if (!engine?.state)
+      return
     store.updateState(JSON.parse(JSON.stringify(engine.state)))
   }
 
@@ -55,8 +61,10 @@ export function useTrainingState() {
   }
 
   function handleThrow(segment: number, multiplier: Multiplier) {
-    if (!engine?.state) return
-    if (engine.state.isComplete) return
+    if (!engine?.state)
+      return
+    if (engine.state.isComplete)
+      return
 
     const result = engine.manualScore(segment, multiplier)
     syncToStore()
@@ -82,7 +90,8 @@ export function useTrainingState() {
         console.warn('Failed to save training session:', err)
       })
       clearStorage()
-    } else {
+    }
+    else {
       persistToStorage()
     }
   }
@@ -117,7 +126,8 @@ export function useTrainingState() {
   }
 
   function undoThrow() {
-    if (!engine?.state) return
+    if (!engine?.state)
+      return
     engine.undo()
     // Un-complete the store if needed
     if (!engine.state.isComplete) {
@@ -130,7 +140,8 @@ export function useTrainingState() {
   function loadSession() {
     store.reset()
     const persisted = readStorage()
-    if (!persisted?.state) return
+    if (!persisted?.state)
+      return
     engine = new TrainingEngine(persisted.state)
     syncToStore()
     hasActiveSession.value = true

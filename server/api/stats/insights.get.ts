@@ -1,5 +1,6 @@
-import { eq, and, desc, gte, lte, type SQL } from 'drizzle-orm'
-import { games, turns, dartsThrows } from '../../db/schema'
+import type { SQL } from 'drizzle-orm'
+import { and, desc, eq, gte, lte } from 'drizzle-orm'
+import { dartsThrows, games, turns } from '../../db/schema'
 
 export default defineEventHandler(async (event) => {
   const { id: userId } = await requireAuth(event)
@@ -14,9 +15,12 @@ export default defineEventHandler(async (event) => {
     eq(turns.playerName, playerName),
     eq(games.userId, userId),
   ]
-  if (filters.from) conditions.push(gte(games.createdAt, new Date(filters.from)))
-  if (filters.to) conditions.push(lte(games.createdAt, new Date(filters.to)))
-  if (filters.mode) conditions.push(eq(games.mode, filters.mode))
+  if (filters.from)
+    conditions.push(gte(games.createdAt, new Date(filters.from)))
+  if (filters.to)
+    conditions.push(lte(games.createdAt, new Date(filters.to)))
+  if (filters.mode)
+    conditions.push(eq(games.mode, filters.mode))
 
   const [turnsResult, throwsResult] = await Promise.all([
     db.select({

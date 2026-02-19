@@ -64,7 +64,8 @@ export function useBroadcaster(tournamentId: Ref<number> | number) {
       pc.addEventListener('connectionstatechange', () => {
         if (pc?.connectionState === 'connected') {
           state.value = 'connected'
-        } else if (pc?.connectionState === 'disconnected' || pc?.connectionState === 'failed') {
+        }
+        else if (pc?.connectionState === 'disconnected' || pc?.connectionState === 'failed') {
           state.value = 'error'
           errorMsg.value = 'Connection lost'
         }
@@ -87,7 +88,7 @@ export function useBroadcaster(tournamentId: Ref<number> | number) {
       pollTimer = setInterval(async () => {
         try {
           const data = await $fetch<{
-            session: { status: string; answer: unknown } | null
+            session: { status: string, answer: unknown } | null
           }>(`/api/broadcast/${tid}`)
 
           if (data.session?.answer && pc && !pc.remoteDescription) {
@@ -99,11 +100,13 @@ export function useBroadcaster(tournamentId: Ref<number> | number) {
               pollTimer = null
             }
           }
-        } catch {
+        }
+        catch {
           // Ignore poll errors
         }
       }, 2000)
-    } catch (e: any) {
+    }
+    catch (e: any) {
       state.value = 'error'
       errorMsg.value = e.message || 'Failed to start broadcast'
     }
@@ -128,7 +131,8 @@ export function useBroadcaster(tournamentId: Ref<number> | number) {
     // Clean up DB session
     try {
       await $fetch(`/api/broadcast/${tid}`, { method: 'DELETE' })
-    } catch {
+    }
+    catch {
       // Best effort cleanup
     }
 
@@ -186,13 +190,15 @@ export function useViewer(tournamentId: Ref<number> | number) {
    * Only creates a new peer connection if the offer SDP has changed.
    */
   async function handleOffer(offer: unknown, hasAnswer: boolean) {
-    if (!offer || hasAnswer) return
+    if (!offer || hasAnswer)
+      return
 
     const offerDesc = offer as RTCSessionDescriptionInit
     const offerSdp = offerDesc.sdp ?? ''
 
     // Skip if we already processed this exact offer
-    if (offerSdp === currentOfferSdp && pc) return
+    if (offerSdp === currentOfferSdp && pc)
+      return
 
     // New offer — create fresh peer connection
     if (pc) {
@@ -214,7 +220,8 @@ export function useViewer(tournamentId: Ref<number> | number) {
       pc.addEventListener('connectionstatechange', () => {
         if (pc?.connectionState === 'connected') {
           state.value = 'connected'
-        } else if (pc?.connectionState === 'disconnected' || pc?.connectionState === 'failed') {
+        }
+        else if (pc?.connectionState === 'disconnected' || pc?.connectionState === 'failed') {
           state.value = 'error'
         }
       })
@@ -230,7 +237,8 @@ export function useViewer(tournamentId: Ref<number> | number) {
         method: 'POST',
         body: { tournamentId: tid, answer: completeSdp.toJSON() },
       })
-    } catch {
+    }
+    catch {
       state.value = 'error'
     }
   }

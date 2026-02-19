@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { FORMAT_LABELS, type TournamentFormat } from '~/types/tournament'
+import type { TournamentFormat } from '~/types/tournament'
 
 const props = defineProps<{
   name: string
@@ -14,8 +14,10 @@ const props = defineProps<{
 
 const settingsStr = computed(() => {
   const parts = [props.gameMode, props.checkout === 'double_out' ? 'DO' : 'SO']
-  if (props.setsToWin > 1) parts.push(`Best of ${props.setsToWin * 2 - 1} sets`)
-  else if (props.legsToWin > 1) parts.push(`Best of ${props.legsToWin * 2 - 1} legs`)
+  if (props.setsToWin > 1)
+    parts.push(`Best of ${props.setsToWin * 2 - 1} sets`)
+  else if (props.legsToWin > 1)
+    parts.push(`Best of ${props.legsToWin * 2 - 1} legs`)
   return parts.join(' / ')
 })
 
@@ -25,7 +27,8 @@ function toggleFullscreen() {
   if (!document.fullscreenElement) {
     document.documentElement.requestFullscreen()
     isFullscreen.value = true
-  } else {
+  }
+  else {
     document.exitFullscreen()
     isFullscreen.value = false
   }
@@ -41,7 +44,9 @@ onMounted(() => {
 <template>
   <div class="spectator-header">
     <div class="header-left">
-      <h1 class="header-title">{{ name }}</h1>
+      <h1 class="header-title">
+        {{ name }}
+      </h1>
       <FormatBadge :format="format" />
       <span class="header-settings">{{ settingsStr }}</span>
     </div>
@@ -50,10 +55,10 @@ onMounted(() => {
         {{ winnerName }} wins!
       </span>
       <span v-if="isLive" class="live-badge">
-        <span class="live-dot"></span>
+        <span class="live-dot" />
         LIVE
       </span>
-      <button class="fullscreen-btn" @click="toggleFullscreen" :title="isFullscreen ? 'Exit fullscreen' : 'Fullscreen'">
+      <button class="fullscreen-btn" :title="isFullscreen ? 'Exit fullscreen' : 'Fullscreen'" @click="toggleFullscreen">
         <svg v-if="!isFullscreen" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
         </svg>

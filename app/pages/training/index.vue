@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TrainingMode, TrainingConfig, AroundTheClockVariant } from '~/types/training'
+import type { AroundTheClockVariant, TrainingConfig, TrainingMode } from '~/types/training'
 import { TRAINING_MODES } from '~/types/training'
 
 const { hasActiveSession, checkActiveSession, newSession } = useTrainingState()
@@ -23,7 +23,8 @@ function selectMode(mode: TrainingMode) {
 }
 
 function startSession() {
-  if (!selectedMode.value) return
+  if (!selectedMode.value)
+    return
   const config: TrainingConfig = {
     mode: selectedMode.value,
     rounds: rounds.value,
@@ -40,21 +41,25 @@ function resumeSession() {
 }
 
 const modeIcons: Record<string, string> = {
-  target: '🎯',
-  clock: '🕐',
-  zap: '⚡',
-  crosshair: '🔘',
-  grid: '📊',
+  'target': '🎯',
+  'clock': '🕐',
+  'zap': '⚡',
+  'crosshair': '🔘',
+  'grid': '📊',
   'check-circle': '✅',
-  star: '⭐',
+  'star': '⭐',
 }
 </script>
 
 <template>
   <div class="training-page px-lg py-xl max-w-[700px] mx-auto w-full max-sm:px-md">
     <div class="text-center mb-xl">
-      <h1 class="text-[2rem] font-black text-fg max-sm:text-[1.6rem]">Solo Training</h1>
-      <p class="text-fg-muted text-[0.9rem] mt-xs">Choose a practice mode to improve your game</p>
+      <h1 class="text-[2rem] font-black text-fg max-sm:text-[1.6rem]">
+        Solo Training
+      </h1>
+      <p class="text-fg-muted text-[0.9rem] mt-xs">
+        Choose a practice mode to improve your game
+      </p>
     </div>
 
     <!-- Resume session banner -->
@@ -69,7 +74,9 @@ const modeIcons: Record<string, string> = {
           <span class="text-[0.75rem] text-fg-muted">Pick up where you left off</span>
         </div>
       </div>
-      <button class="btn btn-gold" @click="resumeSession">Resume</button>
+      <button class="btn btn-gold" @click="resumeSession">
+        Resume
+      </button>
     </div>
 
     <!-- Mode selection grid or config panel -->
@@ -103,7 +110,9 @@ const modeIcons: Record<string, string> = {
           <span class="config-icon" :style="{ color: TRAINING_MODES.find(m => m.mode === selectedMode)?.color }">
             {{ modeIcons[TRAINING_MODES.find(m => m.mode === selectedMode)?.icon ?? ''] ?? '🎯' }}
           </span>
-          <h2 class="config-title">{{ TRAINING_MODES.find(m => m.mode === selectedMode)?.name }}</h2>
+          <h2 class="config-title">
+            {{ TRAINING_MODES.find(m => m.mode === selectedMode)?.name }}
+          </h2>
         </div>
 
         <div class="config-options glass-card p-lg">
@@ -112,19 +121,35 @@ const modeIcons: Record<string, string> = {
             <div class="config-row">
               <label class="config-label">Rounds</label>
               <select v-model.number="rounds" class="config-select">
-                <option :value="5">5</option>
-                <option :value="10">10</option>
-                <option :value="15">15</option>
-                <option :value="20">20</option>
+                <option :value="5">
+                  5
+                </option>
+                <option :value="10">
+                  10
+                </option>
+                <option :value="15">
+                  15
+                </option>
+                <option :value="20">
+                  20
+                </option>
               </select>
             </div>
             <div class="config-row">
               <label class="config-label">Target (3-dart avg)</label>
               <select v-model.number="targetScore" class="config-select">
-                <option :value="40">40+ (Beginner)</option>
-                <option :value="60">60+ (Intermediate)</option>
-                <option :value="80">80+ (Advanced)</option>
-                <option :value="100">100+ (Pro)</option>
+                <option :value="40">
+                  40+ (Beginner)
+                </option>
+                <option :value="60">
+                  60+ (Intermediate)
+                </option>
+                <option :value="80">
+                  80+ (Advanced)
+                </option>
+                <option :value="100">
+                  100+ (Pro)
+                </option>
               </select>
             </div>
           </template>
@@ -134,16 +159,24 @@ const modeIcons: Record<string, string> = {
             <div class="config-row">
               <label class="config-label">Variant</label>
               <select v-model="variant" class="config-select">
-                <option value="singles">Singles (any hit)</option>
-                <option value="doubles">Doubles only</option>
-                <option value="trebles">Trebles only</option>
+                <option value="singles">
+                  Singles (any hit)
+                </option>
+                <option value="doubles">
+                  Doubles only
+                </option>
+                <option value="trebles">
+                  Trebles only
+                </option>
               </select>
             </div>
           </template>
 
           <!-- Bob's 27 — no config needed -->
           <template v-else-if="selectedMode === 'bobs-27'">
-            <p class="config-info">Start at 27 points. Hit doubles to add, miss all 3 to subtract. Score below 0 = failed.</p>
+            <p class="config-info">
+              Start at 27 points. Hit doubles to add, miss all 3 to subtract. Score below 0 = failed.
+            </p>
           </template>
 
           <!-- 100 Darts at Target options -->
@@ -151,15 +184,21 @@ const modeIcons: Record<string, string> = {
             <div class="config-row">
               <label class="config-label">Target Segment</label>
               <select v-model.number="targetSegment" class="config-select">
-                <option v-for="n in 20" :key="n" :value="n">{{ n }}</option>
-                <option :value="25">Bull</option>
+                <option v-for="n in 20" :key="n" :value="n">
+                  {{ n }}
+                </option>
+                <option :value="25">
+                  Bull
+                </option>
               </select>
             </div>
           </template>
 
           <!-- Cricket — no config needed -->
           <template v-else-if="selectedMode === 'cricket'">
-            <p class="config-info">Close all cricket numbers (15-20 + Bull). 3 marks each: Single=1, Double=2, Treble=3.</p>
+            <p class="config-info">
+              Close all cricket numbers (15-20 + Bull). 3 marks each: Single=1, Double=2, Treble=3.
+            </p>
           </template>
 
           <!-- Checkout Practice options -->
@@ -167,17 +206,27 @@ const modeIcons: Record<string, string> = {
             <div class="config-row">
               <label class="config-label">Number of targets</label>
               <select v-model.number="rounds" class="config-select">
-                <option :value="5">5</option>
-                <option :value="10">10</option>
-                <option :value="15">15</option>
-                <option :value="20">20</option>
+                <option :value="5">
+                  5
+                </option>
+                <option :value="10">
+                  10
+                </option>
+                <option :value="15">
+                  15
+                </option>
+                <option :value="20">
+                  20
+                </option>
               </select>
             </div>
           </template>
 
           <!-- Shanghai — no config needed -->
           <template v-else-if="selectedMode === 'shanghai'">
-            <p class="config-info">20 rounds targeting 1-20. Score on target number only. Hit S+D+T in one round for Shanghai bonus!</p>
+            <p class="config-info">
+              20 rounds targeting 1-20. Score on target number only. Hit S+D+T in one round for Shanghai bonus!
+            </p>
           </template>
         </div>
 

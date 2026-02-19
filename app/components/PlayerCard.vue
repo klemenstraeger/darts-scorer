@@ -9,7 +9,7 @@ const props = defineProps<{
 
 const average = computed(() => threeDartAverage(props.player).toFixed(1))
 const dartsThrown = computed(() =>
-  props.player.turns.reduce((sum, t) => sum + t.throws.length, 0)
+  props.player.turns.reduce((sum, t) => sum + t.throws.length, 0),
 )
 
 // Animated score display
@@ -27,22 +27,26 @@ watch(
 
     // Flash effect
     scoreFlash.value = true
-    setTimeout(() => { scoreFlash.value = false }, 500)
+    setTimeout(() => {
+      scoreFlash.value = false
+    }, 500)
 
     // Count animation
-    if (animationFrame) cancelAnimationFrame(animationFrame)
+    if (animationFrame)
+      cancelAnimationFrame(animationFrame)
     const start = performance.now()
     const duration = 400
     const from = displayScore.value
 
     function step(now: number) {
       const progress = Math.min((now - start) / duration, 1)
-      const eased = 1 - Math.pow(1 - progress, 3) // ease-out cubic
+      const eased = 1 - (1 - progress) ** 3 // ease-out cubic
       displayScore.value = Math.round(from + (newScore - from) * eased)
 
       if (progress < 1) {
         animationFrame = requestAnimationFrame(step)
-      } else {
+      }
+      else {
         displayScore.value = newScore
         animationFrame = null
       }

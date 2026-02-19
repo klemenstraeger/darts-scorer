@@ -1,15 +1,15 @@
 <script setup lang="ts">
+import type { DartboardTheme } from '~/utils/dartboard-themes'
 import {
-  generateSegmentPaths,
-  generateNumberPositions,
-  R,
-  CX,
-  CY,
   COLORS,
   colorsFromTheme,
+  CX,
+  CY,
+  generateNumberPositions,
+  generateSegmentPaths,
+  R,
   svgToScore,
 } from '~/utils/dartboard-geometry'
-import type { DartboardTheme } from '~/utils/dartboard-themes'
 
 const props = defineProps<{
   disabled?: boolean
@@ -28,8 +28,9 @@ const segments = computed(() => generateSegmentPaths(boardColors.value))
 const numbers = computed(() => generateNumberPositions())
 
 function handleClick(event: MouseEvent) {
-  if (props.disabled) return
-  const svg = (event.currentTarget as SVGSVGElement)
+  if (props.disabled)
+    return
+  const svg = event.currentTarget as SVGSVGElement
   const pt = svg.createSVGPoint()
   pt.x = event.clientX
   pt.y = event.clientY
@@ -45,8 +46,8 @@ function handleClick(event: MouseEvent) {
   <svg
     viewBox="-16 -16 432 432"
     class="w-full max-w-[500px] cursor-pointer select-none"
-    @click="handleClick"
     :class="{ 'cursor-default opacity-70': disabled }"
+    @click="handleClick"
   >
     <circle :cx="CX" :cy="CY" :r="R.doubleOuter + 5" :fill="boardColors.bg" />
 

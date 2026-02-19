@@ -15,6 +15,9 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "nuxt typecheck",
     "generate:pwa-icons": "node scripts/generate-pwa-icons.mjs"
   },
   "dependencies": {
@@ -43,15 +46,13 @@
     "vue-router": "^5.0.2"
   },
   "devDependencies": {
+    "@antfu/eslint-config": "^7.4.3",
     "@vitest/coverage-v8": "^4.0.18",
     "drizzle-kit": "^0.31.8",
+    "eslint": "^9.39.2",
+    "jiti": "^2.6.1",
     "sharp": "^0.34.5",
     "typescript": "^5.9.3",
     "vitest": "^4.0.18"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "sharp"
-    ]
   }
 }

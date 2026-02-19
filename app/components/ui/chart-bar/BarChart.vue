@@ -1,19 +1,19 @@
 <script setup lang="ts" generic="T extends Record<string, any>">
-import type { BulletLegendItemInterface } from "@unovis/ts"
-import type { BaseChartProps } from "."
+import type { BulletLegendItemInterface } from '@unovis/ts'
+import type { BaseChartProps } from '.'
 import type { ChartConfig } from '@/components/ui/chart'
-import { Axis, GroupedBar, StackedBar } from "@unovis/ts"
-import { VisAxis, VisGroupedBar, VisStackedBar, VisXYContainer } from "@unovis/vue"
-import { useMounted } from "@vueuse/core"
-import { computed, ref } from "vue"
+import { Axis, GroupedBar, StackedBar } from '@unovis/ts'
+import { VisAxis, VisGroupedBar, VisStackedBar, VisXYContainer } from '@unovis/vue'
+import { useMounted } from '@vueuse/core'
+import { computed, ref } from 'vue'
 import { ChartCrosshair, ChartTooltipContent, componentToString, defaultColors } from '@/components/ui/chart'
 
 const props = withDefaults(defineProps<BaseChartProps<T> & {
   chartConfig?: ChartConfig
-  type?: "stacked" | "grouped"
+  type?: 'stacked' | 'grouped'
   roundedCorners?: number
 }>(), {
-  type: "grouped",
+  type: 'grouped',
   margin: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
   filterOpacity: 0.2,
   roundedCorners: 0,
@@ -24,7 +24,7 @@ const props = withDefaults(defineProps<BaseChartProps<T> & {
   showGridLine: true,
 })
 
-const emits = defineEmits<{
+const _emits = defineEmits<{
   legendItemClick: [d: BulletLegendItemInterface, i: number]
 }>()
 
@@ -42,12 +42,13 @@ const legendItems = ref<BulletLegendItemInterface[]>(props.categories.map((categ
 const isMounted = useMounted()
 
 const tooltipTemplate = computed(() => {
-  if (!props.chartConfig) return undefined
+  if (!props.chartConfig)
+    return undefined
   return componentToString(props.chartConfig, ChartTooltipContent)
 })
 
-const VisBarComponent = computed(() => props.type === "grouped" ? VisGroupedBar : VisStackedBar)
-const selectorsBar = computed(() => props.type === "grouped" ? GroupedBar.selectors.bar : StackedBar.selectors.bar)
+const VisBarComponent = computed(() => props.type === 'grouped' ? VisGroupedBar : VisStackedBar)
+const selectorsBar = computed(() => props.type === 'grouped' ? GroupedBar.selectors.bar : StackedBar.selectors.bar)
 </script>
 
 <template>
@@ -92,7 +93,7 @@ const selectorsBar = computed(() => props.type === "grouped" ? GroupedBar.select
         :grid-line="showGridLine"
         :attributes="{
           [Axis.selectors.grid]: {
-            stroke: 'var(--border-subtle)',
+            'stroke': 'var(--border-subtle)',
             'stroke-dasharray': '3 3',
           },
         }"

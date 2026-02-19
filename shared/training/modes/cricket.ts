@@ -9,7 +9,7 @@
  */
 
 import type { ThrowResult } from '../../game-models'
-import type { TrainingConfig, CricketState, TrainingThrowResult, TrainingStats } from '../training-models'
+import type { CricketState, TrainingConfig, TrainingStats, TrainingThrowResult } from '../training-models'
 import type { TrainingModeStrategy } from '../training-strategy'
 
 const CRICKET_TARGETS = [15, 16, 17, 18, 19, 20, 25]
@@ -43,10 +43,12 @@ export const cricketStrategy: TrainingModeStrategy<CricketState> = {
         const marksToAdd = Math.min(dart.multiplier, 3 - current)
         state.marks[dart.segment] = current + marksToAdd
         events.push('target_hit')
-      } else {
+      }
+      else {
         events.push('target_missed') // already closed
       }
-    } else {
+    }
+    else {
       events.push('target_missed')
     }
 

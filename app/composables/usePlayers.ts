@@ -13,7 +13,8 @@ let fetchPromise: Promise<void> | null = null
 async function fetchPlayers() {
   try {
     players.value = await $fetch<PlayerRecord[]>('/api/players')
-  } catch {
+  }
+  catch {
     // silently fail — list stays empty
   }
   fetchPromise = null
@@ -43,12 +44,13 @@ export function usePlayers() {
     players.value = records
   }
 
-  async function createPlayer(data: { name: string; avatarStyle?: string; avatarSeed?: string }): Promise<{ ok: boolean; error?: string }> {
+  async function createPlayer(data: { name: string, avatarStyle?: string, avatarSeed?: string }): Promise<{ ok: boolean, error?: string }> {
     try {
       await $fetch('/api/players', { method: 'POST', body: data })
       await fetchPlayers()
       return { ok: true }
-    } catch (e: any) {
+    }
+    catch (e: any) {
       return { ok: false, error: e.data?.message || 'Failed to create player' }
     }
   }

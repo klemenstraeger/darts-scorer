@@ -1,4 +1,5 @@
-import { eq, and, desc, sql, type SQL } from 'drizzle-orm'
+import type { SQL } from 'drizzle-orm'
+import { and, desc, eq, sql } from 'drizzle-orm'
 import { trainingSessions } from '../../db/schema'
 
 export default defineEventHandler(async (event) => {

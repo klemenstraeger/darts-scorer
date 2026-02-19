@@ -5,14 +5,14 @@
 
 const STORAGE_KEY = 'darts-scorer:audio-enabled'
 
-type SoundName =
-  | 'throw'
-  | 'bust'
-  | '180'
-  | 'ton-plus'
-  | 'leg-won'
-  | 'game-won'
-  | 'checkout'
+type SoundName
+  = | 'throw'
+    | 'bust'
+    | '180'
+    | 'ton-plus'
+    | 'leg-won'
+    | 'game-won'
+    | 'checkout'
 
 // Module-level singletons (shared across all consumers)
 let audioCtx: AudioContext | null = null
@@ -28,11 +28,13 @@ if (import.meta.client) {
 }
 
 function ensureAudioContext(): AudioContext | null {
-  if (!import.meta.client) return null
+  if (!import.meta.client)
+    return null
   if (!audioCtx) {
     try {
       audioCtx = new AudioContext()
-    } catch {
+    }
+    catch {
       return null
     }
   }
@@ -44,7 +46,8 @@ function ensureAudioContext(): AudioContext | null {
 
 /** Initialize AudioContext on first user interaction (browser autoplay policy). */
 function initOnInteraction() {
-  if (audioInitialized || !import.meta.client) return
+  if (audioInitialized || !import.meta.client)
+    return
   const handler = () => {
     ensureAudioContext()
     audioInitialized = true
@@ -207,8 +210,10 @@ function synthesize(ctx: AudioContext, sound: SoundName, volume: number) {
  * @param pattern - Duration in ms or pattern array [vibrate, pause, vibrate, ...]
  */
 function vibrate(pattern: number | number[]) {
-  if (!import.meta.client) return
-  if (!audioEnabled.value) return
+  if (!import.meta.client)
+    return
+  if (!audioEnabled.value)
+    return
   navigator?.vibrate?.(pattern)
 }
 
@@ -218,9 +223,11 @@ function vibrate(pattern: number | number[]) {
  * @param volume - Volume multiplier (0-1), defaults to 1
  */
 function play(sound: SoundName, volume: number = 1) {
-  if (!audioEnabled.value) return
+  if (!audioEnabled.value)
+    return
   const ctx = ensureAudioContext()
-  if (!ctx) return
+  if (!ctx)
+    return
   synthesize(ctx, sound, Math.max(0, Math.min(1, volume)))
 }
 

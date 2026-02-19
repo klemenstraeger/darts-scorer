@@ -1,13 +1,13 @@
-import { describe, it, expect } from 'vitest'
+import type { Player, Turn } from '../../shared/game-models'
+import { describe, expect, it } from 'vitest'
 import {
-  throwPoints,
-  throwLabel,
-  turnTotalPoints,
-  turnIsComplete,
-  threeDartAverage,
   createDefaultGameState,
+  threeDartAverage,
+  throwLabel,
+  throwPoints,
+  turnIsComplete,
+  turnTotalPoints,
 } from '../../shared/game-models'
-import type { ThrowResult, Turn, Player } from '../../shared/game-models'
 
 // ── throwPoints ──
 

@@ -3,8 +3,8 @@ import type { GameState } from '~/types/game'
 import type {
   TournamentFormat,
   TournamentMatch,
-  TournamentStanding,
   TournamentParticipant,
+  TournamentStanding,
 } from '~/types/tournament'
 
 definePageMeta({ layout: 'spectate' })
@@ -50,7 +50,7 @@ const participants = ref<TournamentParticipant[]>([])
 const matches = ref<TournamentMatch[]>([])
 const standings = ref<TournamentStanding[]>([])
 const playerStats = ref<Record<string, PlayerStatsData>>({})
-const liveGame = ref<{ matchId: number; state: GameState } | null>(null)
+const liveGame = ref<{ matchId: number, state: GameState } | null>(null)
 const loading = ref(true)
 const error = ref('')
 let pollTimer: ReturnType<typeof setInterval> | null = null
@@ -62,10 +62,10 @@ async function fetchData() {
       participants: TournamentParticipant[]
       matches: TournamentMatch[]
       standings: TournamentStanding[]
-      players: { name: string; avatarStyle: string | null; avatarSeed: string | null }[]
+      players: { name: string, avatarStyle: string | null, avatarSeed: string | null }[]
       playerStats: Record<string, PlayerStatsData>
-      liveGame: { matchId: number; state: GameState } | null
-      broadcast: { status: string; offer: unknown; hasAnswer: boolean } | null
+      liveGame: { matchId: number, state: GameState } | null
+      broadcast: { status: string, offer: unknown, hasAnswer: boolean } | null
     }>(`/api/spectate/${tournamentId.value}`)
 
     tournament.value = data.tournament
@@ -78,7 +78,8 @@ async function fetchData() {
     // Handle broadcast signaling
     if (data.broadcast?.offer && data.broadcast.status === 'waiting') {
       handleOffer(data.broadcast.offer, data.broadcast.hasAnswer)
-    } else if (!data.broadcast) {
+    }
+    else if (!data.broadcast) {
       handleBroadcastEnded()
     }
 
@@ -94,9 +95,11 @@ async function fetchData() {
     }
 
     error.value = ''
-  } catch (e: any) {
+  }
+  catch (e: any) {
     error.value = e.data?.message || 'Failed to load tournament'
-  } finally {
+  }
+  finally {
     loading.value = false
   }
 }
@@ -111,9 +114,11 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  if (pollTimer) clearInterval(pollTimer)
+  if (pollTimer)
+    clearInterval(pollTimer)
   // Restore original color mode
-  if (originalMode) colorMode.preference = originalMode
+  if (originalMode)
+    colorMode.preference = originalMode
 })
 
 const isLive = computed(() => liveGame.value !== null)
@@ -130,7 +135,9 @@ const liveMatchId = computed(() => liveGame.value?.matchId)
 
     <!-- Error -->
     <div v-else-if="error && !tournament" class="error-state">
-      <p class="text-red text-lg font-bold">{{ error }}</p>
+      <p class="text-red text-lg font-bold">
+        {{ error }}
+      </p>
     </div>
 
     <!-- Spectate dashboard -->

@@ -3,10 +3,10 @@
  * Called after a finished game is saved to check for newly unlocked achievements.
  */
 
-import { eq, and, count as drizzleCount } from 'drizzle-orm'
-import { achievements, games, gamePlayers } from '../db/schema'
 import type { GameState } from '../../shared/game-models'
+import { and, count as drizzleCount, eq } from 'drizzle-orm'
 import { throwPoints } from '../../shared/game-models'
+import { achievements, gamePlayers, games } from '../db/schema'
 
 export interface AchievementDef {
   id: string
@@ -66,31 +66,34 @@ export async function checkAchievements(
 
   for (const player of state.players) {
     // Skip bot players
-    if (player.isBot) continue
+    if (player.isBot)
+      continue
 
     const playerName = player.name
 
     // Gather per-game data for this player
     const playerTurns = state.turn_history.filter(
-      (t) => state.players[t.player_index]?.name === playerName,
+      t => state.players[t.player_index]?.name === playerName,
     )
 
     const turnTotals = playerTurns.map((turn) => {
-      if (turn.busted) return 0
+      if (turn.busted)
+        return 0
       return turn.throws.reduce((sum, t) => sum + throwPoints(t), 0)
     })
 
-    const threeDartTurns = playerTurns.filter((t) => t.throws.length === 3)
+    const threeDartTurns = playerTurns.filter(t => t.throws.length === 3)
     const threeDartAvg = threeDartTurns.length > 0
       ? threeDartTurns.reduce((sum, t) => {
-        if (t.busted) return sum
+        if (t.busted)
+          return sum
         return sum + t.throws.reduce((s, th) => s + throwPoints(th), 0)
       }, 0) / threeDartTurns.length
       : 0
 
     const isWinner = state.winner_index !== null && state.players[state.winner_index]?.name === playerName
-    const count180 = turnTotals.filter((v) => v === 180).length
-    const hasBust = playerTurns.some((t) => t.busted)
+    const count180 = turnTotals.filter(v => v === 180).length
+    const hasBust = playerTurns.some(t => t.busted)
 
     // Determine checkout score (last turn of a won leg for this player)
     const checkoutScores: number[] = []
@@ -125,9 +128,9 @@ export async function checkAchievements(
     }
 
     // Per-game achievements
-    const perGameChecks: { type: string; condition: boolean; metadata?: Record<string, unknown> }[] = [
+    const perGameChecks: { type: string, condition: boolean, metadata?: Record<string, unknown> }[] = [
       { type: 'first_180', condition: count180 > 0 },
-      { type: 'first_ton_plus', condition: turnTotals.some((v) => v >= 100) },
+      { type: 'first_ton_plus', condition: turnTotals.some(v => v >= 100) },
       { type: 'nine_darter', condition: minDartsInLeg === 9 },
       { type: 'sub_15_leg', condition: minDartsInLeg !== null && minDartsInLeg < 15 },
       { type: 'avg_80_plus', condition: threeDartAvg >= 80, metadata: { average: Math.round(threeDartAvg * 10) / 10 } },
@@ -139,7 +142,7 @@ export async function checkAchievements(
     ]
 
     // Check for 100+ checkout separately to avoid computing max on empty array
-    const checkout100Plus = checkoutScores.filter((s) => s >= 100)
+    const checkout100Plus = checkoutScores.filter(s => s >= 100)
     if (checkout100Plus.length > 0) {
       perGameChecks.push({
         type: 'checkout_100plus',
@@ -151,7 +154,8 @@ export async function checkAchievements(
     for (const check of perGameChecks) {
       if (check.condition) {
         const unlocked = await tryUnlockAchievement(userId, playerName, check.type, gameId, check.metadata)
-        if (unlocked) newlyUnlocked.push(unlocked)
+        if (unlocked)
+          newlyUnlocked.push(unlocked)
       }
     }
 
@@ -171,7 +175,7 @@ export async function checkAchievements(
 
     const gamesWon = gamesWonResult?.count ?? 0
 
-    const cumulativeChecks: { type: string; condition: boolean; metadata?: Record<string, unknown> }[] = [
+    const cumulativeChecks: { type: string, condition: boolean, metadata?: Record<string, unknown> }[] = [
       { type: 'games_10', condition: gamesPlayed >= 10, metadata: { gamesPlayed } },
       { type: 'games_50', condition: gamesPlayed >= 50, metadata: { gamesPlayed } },
       { type: 'games_100', condition: gamesPlayed >= 100, metadata: { gamesPlayed } },
@@ -184,7 +188,8 @@ export async function checkAchievements(
     for (const check of cumulativeChecks) {
       if (check.condition) {
         const unlocked = await tryUnlockAchievement(userId, playerName, check.type, gameId, check.metadata)
-        if (unlocked) newlyUnlocked.push(unlocked)
+        if (unlocked)
+          newlyUnlocked.push(unlocked)
       }
     }
   }
@@ -203,8 +208,9 @@ async function tryUnlockAchievement(
   gameId: number,
   metadata?: Record<string, unknown>,
 ): Promise<UnlockedAchievement | null> {
-  const def = ACHIEVEMENT_CATALOG.find((a) => a.id === type)
-  if (!def) return null
+  const def = ACHIEVEMENT_CATALOG.find(a => a.id === type)
+  if (!def)
+    return null
 
   const result = await db
     .insert(achievements)

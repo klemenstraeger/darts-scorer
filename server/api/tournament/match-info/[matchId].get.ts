@@ -5,7 +5,7 @@ export default defineEventHandler(async (event) => {
   await requireAuth(event)
   const matchId = Number(getRouterParam(event, 'matchId'))
 
-  if (!matchId || isNaN(matchId)) {
+  if (!matchId || Number.isNaN(matchId)) {
     throw createError({ statusCode: 400, message: 'Invalid match ID' })
   }
 

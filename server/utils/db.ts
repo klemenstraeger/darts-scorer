@@ -1,3 +1,4 @@
+import process from 'node:process'
 import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
 import * as schema from '../db/schema'
@@ -14,4 +15,5 @@ function createDb() {
 
 export const db = globalForDb.db ?? createDb()
 
-if (process.env.NODE_ENV !== 'production') globalForDb.db = db
+if (process.env.NODE_ENV !== 'production')
+  globalForDb.db = db

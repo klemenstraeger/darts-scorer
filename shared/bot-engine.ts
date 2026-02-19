@@ -3,8 +3,7 @@
  * Pure logic — no Vue dependencies. Used by useBotPlay composable.
  */
 
-import type { BotDifficulty, Multiplier, ThrowResult } from './game-models'
-import type { CheckoutMode } from './game-models'
+import type { BotDifficulty, CheckoutMode, Multiplier, ThrowResult } from './game-models'
 import { CHECKOUTS } from './checkouts'
 
 // Dartboard segment order (clockwise from top)
@@ -58,24 +57,26 @@ export const BOT_PROFILES: Record<BotDifficulty, BotConfig> = {
 export function parseCheckoutDart(label: string): ThrowResult {
   const upper = label.toUpperCase()
   if (upper.startsWith('T')) {
-    return { segment: parseInt(upper.slice(1), 10), multiplier: 3 }
+    return { segment: Number.parseInt(upper.slice(1), 10), multiplier: 3 }
   }
   if (upper.startsWith('D')) {
-    const seg = parseInt(upper.slice(1), 10)
+    const seg = Number.parseInt(upper.slice(1), 10)
     return { segment: seg, multiplier: 2 }
   }
   if (upper.startsWith('S')) {
-    return { segment: parseInt(upper.slice(1), 10), multiplier: 1 }
+    return { segment: Number.parseInt(upper.slice(1), 10), multiplier: 1 }
   }
   // Plain number = single
-  return { segment: parseInt(upper, 10), multiplier: 1 }
+  return { segment: Number.parseInt(upper, 10), multiplier: 1 }
 }
 
 /** Get adjacent segments on the dartboard (the two physical neighbors) */
 function getAdjacentSegments(segment: number): [number, number] {
-  if (segment === 25) return [20, 20] // bull → fallback to 20
+  if (segment === 25)
+    return [20, 20] // bull → fallback to 20
   const idx = SEGMENT_ORDER.indexOf(segment as typeof SEGMENT_ORDER[number])
-  if (idx === -1) return [20, 20]
+  if (idx === -1)
+    return [20, 20]
   const left = SEGMENT_ORDER[(idx - 1 + 20) % 20]!
   const right = SEGMENT_ORDER[(idx + 1) % 20]!
   return [left, right]
@@ -84,7 +85,8 @@ function getAdjacentSegments(segment: number): [number, number] {
 /** Generate a miss result — either total miss or adjacent segment hit */
 function generateMissedSegment(intended: number, config: BotConfig): number {
   // Total miss check
-  if (Math.random() < config.missRate) return 0
+  if (Math.random() < config.missRate)
+    return 0
 
   // Hit adjacent segment
   const [left, right] = getAdjacentSegments(intended)
@@ -93,7 +95,8 @@ function generateMissedSegment(intended: number, config: BotConfig): number {
 
 /** Generate the multiplier the bot actually hits when aiming for a specific ring */
 function generateActualMultiplier(intended: Multiplier, config: BotConfig): Multiplier {
-  if (Math.random() < config.ringAccuracy) return intended
+  if (Math.random() < config.ringAccuracy)
+    return intended
 
   // Missed the ring — land on an adjacent ring
   if (intended === 3) {
@@ -170,7 +173,8 @@ function attemptThrow(segment: number, multiplier: Multiplier, config: BotConfig
   let actualSegment: number
   if (Math.random() < config.segmentAccuracy) {
     actualSegment = segment
-  } else {
+  }
+  else {
     actualSegment = generateMissedSegment(segment, config)
   }
 

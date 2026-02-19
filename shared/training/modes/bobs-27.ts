@@ -12,7 +12,7 @@
  */
 
 import type { ThrowResult } from '../../game-models'
-import type { TrainingConfig, Bobs27State, TrainingThrowResult, TrainingStats } from '../training-models'
+import type { Bobs27State, TrainingConfig, TrainingStats, TrainingThrowResult } from '../training-models'
 import type { TrainingModeStrategy } from '../training-strategy'
 
 /** Get the target double for a given round (1-indexed). Round 21 = DBull. */
@@ -43,7 +43,7 @@ export const bobs27Strategy: TrainingModeStrategy<Bobs27State> = {
       score: 27,
       currentRound: 1,
       totalRounds: 21,
-      roundResults: new Array(21).fill(null),
+      roundResults: Array.from({ length: 21 }).fill(null),
       currentRoundHits: 0,
       currentRoundThrows: 0,
       isFailed: false,
@@ -58,7 +58,8 @@ export const bobs27Strategy: TrainingModeStrategy<Bobs27State> = {
       state.currentRoundHits++
       state.score += doubleValue(state.currentRound)
       events.push('target_hit')
-    } else {
+    }
+    else {
       events.push('target_missed')
     }
 
@@ -66,7 +67,8 @@ export const bobs27Strategy: TrainingModeStrategy<Bobs27State> = {
     if (state.currentRoundThrows >= 3) {
       if (state.currentRoundHits > 0) {
         state.roundResults[state.currentRound - 1] = 'hit'
-      } else {
+      }
+      else {
         state.score -= doubleValue(state.currentRound)
         state.roundResults[state.currentRound - 1] = 'miss'
       }
@@ -80,11 +82,13 @@ export const bobs27Strategy: TrainingModeStrategy<Bobs27State> = {
         state.completedAt = new Date().toISOString()
         events.push('failed')
         events.push('session_complete')
-      } else if (state.currentRound >= 21) {
+      }
+      else if (state.currentRound >= 21) {
         state.isComplete = true
         state.completedAt = new Date().toISOString()
         events.push('session_complete')
-      } else {
+      }
+      else {
         state.currentRound++
         state.currentRoundHits = 0
         state.currentRoundThrows = 0
@@ -126,7 +130,7 @@ function replayState(state: Bobs27State): Bobs27State {
   let round = 1
   let roundThrows = 0
   let roundHits = 0
-  const roundResults: ('hit' | 'miss' | null)[] = new Array(21).fill(null)
+  const roundResults: ('hit' | 'miss' | null)[] = Array.from({ length: 21 }).fill(null)
 
   for (const t of state.throws) {
     const dart: ThrowResult = { segment: t.segment, multiplier: t.multiplier }
@@ -140,7 +144,8 @@ function replayState(state: Bobs27State): Bobs27State {
     if (roundThrows >= 3) {
       if (roundHits > 0) {
         roundResults[round - 1] = 'hit'
-      } else {
+      }
+      else {
         score -= doubleValue(round)
         roundResults[round - 1] = 'miss'
       }

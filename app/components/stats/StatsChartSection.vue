@@ -10,11 +10,15 @@ defineProps<{
   <div class="glass-card p-lg">
     <div class="flex items-baseline justify-between gap-md mb-md">
       <div class="flex items-baseline gap-sm">
-        <h3 class="section-title !mb-0">{{ title }}</h3>
+        <h3 class="section-title !mb-0">
+          {{ title }}
+        </h3>
         <span v-if="badge" class="text-[0.7rem] text-fg-muted uppercase tracking-widest">{{ badge }}</span>
       </div>
     </div>
-    <p v-if="description" class="chart-description">{{ description }}</p>
+    <p v-if="description" class="chart-description">
+      {{ description }}
+    </p>
     <slot />
   </div>
 </template>

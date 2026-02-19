@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest'
 import type { ShanghaiState } from '../../../shared/training/training-models'
-import { createTrainingSession, trainingThrow, trainingMisses } from '../../helpers/training'
-import { S1, D1, T1, S2, D2, T2, S5, S20, D20, T20, MISS } from '../../helpers/darts'
+import { describe, expect, it } from 'vitest'
+import { D1, D2, MISS, S1, S2, S5, T1, T2 } from '../../helpers/darts'
+import { createTrainingSession, trainingMisses, trainingThrow } from '../../helpers/training'
 
 function shanghaiState(engine: { state: unknown }): ShanghaiState {
   return engine.state as ShanghaiState
@@ -96,7 +96,7 @@ describe('round progression', () => {
 // ── Shanghai Bonus ──
 
 describe('shanghai bonus', () => {
-  it('S+D+T in same round emits shanghai event', () => {
+  it('s+D+T in same round emits shanghai event', () => {
     const { engine } = createTrainingSession('shanghai')
     const results = trainingThrow(engine, [S1, D1, T1])
     const lastResult = results[results.length - 1]

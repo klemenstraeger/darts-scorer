@@ -9,7 +9,7 @@ import { serverSupabaseUser } from '#supabase/server'
  * @nuxtjs/supabase v2 returns JWT claims from serverSupabaseUser(),
  * where `sub` is the user ID and `email` is in the claims.
  */
-export async function requireAuth(event: H3Event): Promise<{ id: string; email: string }> {
+export async function requireAuth(event: H3Event): Promise<{ id: string, email: string }> {
   const claims = await serverSupabaseUser(event)
 
   if (!claims) {

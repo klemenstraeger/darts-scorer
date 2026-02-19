@@ -1,3 +1,4 @@
+import process from 'node:process'
 import { createClient } from '@supabase/supabase-js'
 
 let supabaseAdmin: ReturnType<typeof createClient> | null = null
@@ -20,9 +21,11 @@ export async function verifySupabaseToken(token: string): Promise<string | null>
   try {
     const supabase = getSupabaseAdmin()
     const { data, error } = await supabase.auth.getUser(token)
-    if (error || !data.user) return null
+    if (error || !data.user)
+      return null
     return data.user.id
-  } catch {
+  }
+  catch {
     return null
   }
 }

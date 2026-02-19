@@ -1,13 +1,18 @@
-import { describe, it, expect, afterEach, vi } from 'vitest'
+import type { AroundTheClockState, Bobs27State, CheckoutPracticeState, ScoringPracticeState } from '../../shared/training/training-models'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { TrainingEngine } from '../../shared/training/training-engine'
-import type { ScoringPracticeState, AroundTheClockState, Bobs27State, CricketState, HundredDartsState, ShanghaiState, CheckoutPracticeState } from '../../shared/training/training-models'
 import {
-  S1, S2, S3, S5, S10, S15, S16, S17, S18, S19, S20, S25,
-  D1, D2, D3, D4, D5, D15, D16, D17, D18, D19, D20, D25,
-  T1, T2, T3, T5, T15, T16, T17, T18, T19, T20,
-  MISS,
+  D1,
+  D20,
+  D25,
+  S1,
+  S5,
+  S20,
+  S25,
+  T1,
+  T20,
 } from '../helpers/darts'
-import { createTrainingSession, trainingThrow, trainingMisses } from '../helpers/training'
+import { createTrainingSession, trainingMisses, trainingThrow } from '../helpers/training'
 
 afterEach(() => {
   vi.restoreAllMocks()
@@ -15,7 +20,7 @@ afterEach(() => {
 
 // ── Scoring Practice ──
 
-describe('Scoring Practice: 3-round session', () => {
+describe('scoring Practice: 3-round session', () => {
   it('completes 3 rounds and produces correct stats', () => {
     const { engine } = createTrainingSession('scoring-practice', { rounds: 3 })
 
@@ -41,10 +46,10 @@ describe('Scoring Practice: 3-round session', () => {
 
 // ── Around the Clock ──
 
-describe('Around the Clock: complete singles run', () => {
+describe('around the Clock: complete singles run', () => {
   it('completes all 21 targets', () => {
     const { engine } = createTrainingSession('around-the-clock', { variant: 'singles' })
-    const state = engine.state as AroundTheClockState
+    const _state = engine.state as AroundTheClockState
 
     // Hit targets 1 through 20
     for (let i = 1; i <= 20; i++) {
@@ -69,7 +74,7 @@ describe('Around the Clock: complete singles run', () => {
 
 // ── Bob's 27 ──
 
-describe("Bob's 27: failure scenario", () => {
+describe('bobs 27: failure scenario', () => {
   it('fails when score drops below 0', () => {
     const { engine } = createTrainingSession('bobs-27')
 
@@ -97,7 +102,7 @@ describe("Bob's 27: failure scenario", () => {
   })
 })
 
-describe("Bob's 27: completion scenario", () => {
+describe('bobs 27: completion scenario', () => {
   it('completes all 21 rounds with hits', () => {
     const { engine } = createTrainingSession('bobs-27')
 
@@ -109,7 +114,7 @@ describe("Bob's 27: completion scenario", () => {
     }
     // Round 21 = DBull (segment 25)
     engine.throw(D25)
-    const results = trainingMisses(engine, 2)
+    const _results = trainingMisses(engine, 2)
 
     const state = engine.state as Bobs27State
     expect(state.isComplete).toBe(true)
@@ -127,7 +132,7 @@ describe("Bob's 27: completion scenario", () => {
 
 // ── Cricket ──
 
-describe('Cricket: close all targets', () => {
+describe('cricket: close all targets', () => {
   it('completes by closing all 7 targets with trebles', () => {
     const { engine } = createTrainingSession('cricket')
 
@@ -176,7 +181,7 @@ describe('100 Darts: full session', () => {
 
 // ── Shanghai ──
 
-describe('Shanghai: 20 rounds with shanghai bonus', () => {
+describe('shanghai: 20 rounds with shanghai bonus', () => {
   it('detects shanghai in round 1 and completes all rounds', () => {
     const { engine } = createTrainingSession('shanghai')
 
@@ -201,7 +206,7 @@ describe('Shanghai: 20 rounds with shanghai bonus', () => {
 
 // ── Checkout Practice ──
 
-describe('Checkout Practice: mix of successes and busts', () => {
+describe('checkout Practice: mix of successes and busts', () => {
   it('tracks successes and failures correctly', () => {
     // Mock random to always return 0 → target = 40
     vi.spyOn(Math, 'random').mockReturnValue(0)
@@ -232,7 +237,7 @@ describe('Checkout Practice: mix of successes and busts', () => {
 
 // ── Undo-Redo Consistency ──
 
-describe('Undo-redo consistency', () => {
+describe('undo-redo consistency', () => {
   it('maintains correct state through undo and re-throw', () => {
     const { engine } = createTrainingSession('scoring-practice', { rounds: 5 })
 
@@ -270,7 +275,7 @@ describe('Undo-redo consistency', () => {
 
 // ── Session Hydration ──
 
-describe('Session hydration across engine restart', () => {
+describe('session hydration across engine restart', () => {
   it('continues session from serialized state', () => {
     const { engine: engine1 } = createTrainingSession('scoring-practice', { rounds: 3 })
 

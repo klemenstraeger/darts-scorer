@@ -3,19 +3,19 @@
  * Each method loads from DB, processes, saves back.
  */
 
-import { eq, and, desc } from 'drizzle-orm'
+import type { GameState } from '../../shared/game-models'
+import { and, desc, eq } from 'drizzle-orm'
 import {
-  tournaments,
-  tournamentParticipants,
   tournamentMatches,
+  tournamentParticipants,
+  tournaments,
   tournamentStandings,
 } from '../db/schema'
 import {
+  generateGroupSchedule,
   generateKnockoutBracket,
   generateRoundRobinSchedule,
-  generateGroupSchedule,
 } from './tournament-scheduler'
-import type { GameState } from '../../shared/game-models'
 
 export interface CreateTournamentConfig {
   name: string
@@ -83,7 +83,8 @@ class TournamentManager {
           matchTemplates.map(m => ({ tournamentId, ...m })),
         )
       }
-    } else if (format === 'league') {
+    }
+    else if (format === 'league') {
       const matchTemplates = generateRoundRobinSchedule(playerNames)
 
       await db.insert(tournamentParticipants).values(participantValues)
@@ -97,13 +98,14 @@ class TournamentManager {
       await db.insert(tournamentStandings).values(
         playerNames.map(pn => ({ tournamentId, playerName: pn })),
       )
-    } else if (format === 'group_only' || format === 'group_knockout') {
+    }
+    else if (format === 'group_only' || format === 'group_knockout') {
       const gc = groupCount ?? 2
       const apg = advancePerGroup ?? 2
       const { assignments, matches: matchTemplates } = generateGroupSchedule(playerNames, gc)
 
       // Update participant group assignments
-      const participantsWithGroups = participantValues.map(p => {
+      const participantsWithGroups = participantValues.map((p) => {
         const assignment = assignments.find(a => a.playerName === p.playerName)
         return { ...p, groupIndex: assignment?.groupIndex ?? null }
       })
@@ -192,10 +194,12 @@ class TournamentManager {
       .from(tournamentMatches)
       .where(eq(tournamentMatches.id, matchId))
 
-    if (!match) return
+    if (!match)
+      return
 
     const winnerIndex = gameState.winner_index
-    if (winnerIndex === null) return
+    if (winnerIndex === null)
+      return
 
     const winnerName = gameState.players[winnerIndex]!.name
     const loserIndex = winnerIndex === 0 ? 1 : 0
@@ -232,14 +236,17 @@ class TournamentManager {
       .from(tournaments)
       .where(eq(tournaments.id, match.tournamentId))
 
-    if (!tournament) return
+    if (!tournament)
+      return
 
     if (match.phase === 'knockout') {
       await this.advanceKnockout(match.tournamentId, match, winnerName)
-    } else if (match.phase === 'group') {
+    }
+    else if (match.phase === 'group') {
       await this.updateStandings(match.tournamentId, match, winnerName, loserName, p1LegsWon, p2LegsWon)
       await this.checkGroupPhaseComplete(match.tournamentId, tournament.format)
-    } else if (match.phase === 'main') {
+    }
+    else if (match.phase === 'main') {
       // League format
       await this.updateStandings(match.tournamentId, match, winnerName, loserName, p1LegsWon, p2LegsWon)
       await this.checkLeagueComplete(match.tournamentId)
@@ -286,7 +293,8 @@ class TournamentManager {
       await db.update(tournamentMatches)
         .set(updateData)
         .where(eq(tournamentMatches.id, nextMatch.id))
-    } else {
+    }
+    else {
       // No next match — this was the final. Tournament complete!
       await db.update(tournaments)
         .set({ status: 'completed', winnerName, updatedAt: new Date() })
@@ -361,11 +369,13 @@ class TournamentManager {
       ))
 
     const allDone = pendingGroupMatches.every(m => m.status === 'completed')
-    if (!allDone) return
+    if (!allDone)
+      return
 
     if (format === 'group_knockout') {
       await this.transitionToKnockout(tournamentId)
-    } else {
+    }
+    else {
       // group_only — find overall winner (most points)
       await this.finishGroupOnly(tournamentId)
     }
@@ -378,7 +388,8 @@ class TournamentManager {
       .where(eq(tournamentMatches.tournamentId, tournamentId))
 
     const allDone = matches.every(m => m.status === 'completed')
-    if (!allDone) return
+    if (!allDone)
+      return
 
     // League complete — determine winner by points then leg difference
     const standings = await db
@@ -418,7 +429,8 @@ class TournamentManager {
       .from(tournaments)
       .where(eq(tournaments.id, tournamentId))
 
-    if (!tournament) return
+    if (!tournament)
+      return
 
     const advanceCount = tournament.advancePerGroup ?? 2
     const groupCount = tournament.groupCount ?? 2
@@ -432,7 +444,8 @@ class TournamentManager {
     const groupedStandings: Map<number, typeof allStandings> = new Map()
     for (const s of allStandings) {
       const gi = s.groupIndex ?? 0
-      if (!groupedStandings.has(gi)) groupedStandings.set(gi, [])
+      if (!groupedStandings.has(gi))
+        groupedStandings.set(gi, [])
       groupedStandings.get(gi)!.push(s)
     }
 
@@ -503,7 +516,7 @@ class TournamentManager {
   }
 
   async getList(userId: string, status?: string, limit = 50, offset = 0) {
-    let query = db
+    const query = db
       .select()
       .from(tournaments)
       .where(eq(tournaments.userId, userId))
@@ -519,7 +532,7 @@ class TournamentManager {
     // Get participant counts
     const result = await Promise.all(
       filtered.map(async (t) => {
-        const [countRow] = await db
+        const [_countRow] = await db
           .select()
           .from(tournamentParticipants)
           .where(eq(tournamentParticipants.tournamentId, t.id))
@@ -586,13 +599,14 @@ class TournamentManager {
 
     // Sort matches by round then position for deterministic ordering
     const sortedMatches = [...matches].sort((a, b) => {
-      if (a.round !== b.round) return a.round - b.round
+      if (a.round !== b.round)
+        return a.round - b.round
       return a.position - b.position
     })
 
     // Distribute matches across dates
     const start = new Date(startDate)
-    if (isNaN(start.getTime())) {
+    if (Number.isNaN(start.getTime())) {
       throw createError({ statusCode: 400, message: 'Invalid start date' })
     }
 

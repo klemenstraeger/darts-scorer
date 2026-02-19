@@ -8,9 +8,11 @@ async function fetchTournaments() {
   loading.value = true
   try {
     tournaments.value = await $fetch<TournamentSummary[]>('/api/tournament/list')
-  } catch {
+  }
+  catch {
     tournaments.value = []
-  } finally {
+  }
+  finally {
     loading.value = false
   }
 }
@@ -25,7 +27,9 @@ const completed = computed(() => tournaments.value.filter(t => t.status === 'com
 <template>
   <div class="flex flex-col items-center gap-xl px-lg py-2xl max-w-[700px] mx-auto w-full max-sm:px-md max-sm:py-xl">
     <div class="flex items-center justify-between w-full">
-      <h2 class="text-[1.8rem] font-black text-fg max-sm:text-[1.4rem]">Tournaments</h2>
+      <h2 class="text-[1.8rem] font-black text-fg max-sm:text-[1.4rem]">
+        Tournaments
+      </h2>
       <NuxtLink to="/tournaments/new" class="btn btn-gold">
         + Create
       </NuxtLink>
@@ -37,8 +41,12 @@ const completed = computed(() => tournaments.value.filter(t => t.status === 'com
 
     <template v-else>
       <div v-if="tournaments.length === 0" class="glass-card w-full p-2xl text-center">
-        <p class="text-fg-muted text-[0.9rem] mb-md">No tournaments yet</p>
-        <NuxtLink to="/tournaments/new" class="btn btn-gold">Create Your First Tournament</NuxtLink>
+        <p class="text-fg-muted text-[0.9rem] mb-md">
+          No tournaments yet
+        </p>
+        <NuxtLink to="/tournaments/new" class="btn btn-gold">
+          Create Your First Tournament
+        </NuxtLink>
       </div>
 
       <!-- Active tournaments -->

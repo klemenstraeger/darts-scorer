@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { GameState } from '~/types/game'
-import { throwLabel } from '~/types/game'
 import { getCheckoutDart } from '#shared/game-models'
+import { throwLabel } from '~/types/game'
 
 const props = defineProps<{
   state: GameState
@@ -14,14 +14,17 @@ defineEmits<{
 }>()
 
 const winnerName = computed(() => {
-  if (props.state.winner_index == null) return ''
+  if (props.state.winner_index == null)
+    return ''
   return props.state.players[props.state.winner_index]?.name ?? ''
 })
 
 const checkoutDartLabel = computed(() => {
-  if (props.state.winner_index == null) return null
+  if (props.state.winner_index == null)
+    return null
   const winner = props.state.players[props.state.winner_index]
-  if (!winner) return null
+  if (!winner)
+    return null
   const dart = getCheckoutDart(winner)
   return dart ? throwLabel(dart) : null
 })
@@ -30,7 +33,9 @@ const checkoutDartLabel = computed(() => {
 <template>
   <div class="confirm-overlay">
     <div class="confirm-card">
-      <div class="confirm-title">Confirm Game Over?</div>
+      <div class="confirm-title">
+        Confirm Game Over?
+      </div>
       <div class="confirm-detail">
         <span class="confirm-winner">{{ winnerName }}</span> checked out
         <span v-if="checkoutDartLabel" class="confirm-dart">{{ checkoutDartLabel }}</span>

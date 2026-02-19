@@ -7,7 +7,7 @@ interface Achievement {
   readonly playerName: string
 }
 
-const props = defineProps<{
+const _props = defineProps<{
   achievements: readonly Achievement[]
 }>()
 
@@ -30,16 +30,26 @@ onMounted(() => {
     <div v-if="visible && achievements.length > 0" class="achievement-toast-container">
       <div
         v-for="(achievement, i) in achievements"
-        :key="achievement.type + '-' + achievement.playerName"
+        :key="`${achievement.type}-${achievement.playerName}`"
         class="achievement-toast"
         :style="{ animationDelay: `${i * 150}ms` }"
       >
-        <div class="achievement-icon">{{ achievement.icon }}</div>
+        <div class="achievement-icon">
+          {{ achievement.icon }}
+        </div>
         <div class="achievement-info">
-          <div class="achievement-label">Achievement Unlocked!</div>
-          <div class="achievement-name">{{ achievement.name }}</div>
-          <div class="achievement-desc">{{ achievement.description }}</div>
-          <div class="achievement-player">{{ achievement.playerName }}</div>
+          <div class="achievement-label">
+            Achievement Unlocked!
+          </div>
+          <div class="achievement-name">
+            {{ achievement.name }}
+          </div>
+          <div class="achievement-desc">
+            {{ achievement.description }}
+          </div>
+          <div class="achievement-player">
+            {{ achievement.playerName }}
+          </div>
         </div>
       </div>
     </div>

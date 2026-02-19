@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, afterEach } from 'vitest'
 import type { CheckoutPracticeState } from '../../../shared/training/training-models'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { D10, D20, S1, S20, T20 } from '../../helpers/darts'
 import { createTrainingSession, trainingThrow } from '../../helpers/training'
-import { S20, D20, T20, S10, D10, D16, S1, MISS } from '../../helpers/darts'
 
 afterEach(() => {
   vi.restoreAllMocks()

@@ -1,7 +1,7 @@
+import { readFileSync } from 'node:fs'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import sharp from 'sharp'
-import { readFileSync } from 'fs'
-import { resolve, dirname } from 'path'
-import { fileURLToPath } from 'url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const root = resolve(__dirname, '..')
@@ -18,5 +18,6 @@ for (const { name, size } of sizes) {
     .resize(size, size)
     .png()
     .toFile(resolve(root, 'public', name))
+  // eslint-disable-next-line no-console
   console.log(`Generated public/${name} (${size}x${size})`)
 }

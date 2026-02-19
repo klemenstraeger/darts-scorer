@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { TrainingModeState } from '~/types/training'
 import type { Multiplier } from '~/types/game'
-import { TRAINING_MODES } from '~/types/training'
+import type { TrainingModeState } from '~/types/training'
 import { TrainingEngine } from '#shared/training/training-engine'
+import { TRAINING_MODES } from '~/types/training'
 
 const {
   state,
@@ -31,7 +31,8 @@ watch(hasActiveSession, (active) => {
 })
 
 const modeInfo = computed(() => {
-  if (!state.value) return null
+  if (!state.value)
+    return null
   return TRAINING_MODES.find(m => m.mode === state.value!.mode)
 })
 
@@ -39,12 +40,14 @@ const showDartboard = ref(false)
 const confirmStop = ref(false)
 
 function onScore(segment: number, multiplier: number) {
-  if (!state.value || state.value.isComplete) return
+  if (!state.value || state.value.isComplete)
+    return
   handleThrow(segment, multiplier as Multiplier)
 }
 
 function handleNewSession() {
-  if (!state.value) return
+  if (!state.value)
+    return
   const config = { ...state.value.config }
   stopSession()
   newSession(config)
@@ -57,14 +60,15 @@ function handleStop() {
 
 // Compute stats for completion overlay
 const completionStats = computed(() => {
-  if (!state.value?.isComplete) return null
+  if (!state.value?.isComplete)
+    return null
   const engine = new TrainingEngine(JSON.parse(JSON.stringify(state.value)))
   return engine.getStats()
 })
 </script>
 
 <template>
-  <div class="training-play" v-if="state">
+  <div v-if="state" class="training-play">
     <!-- Top bar -->
     <div class="play-header">
       <div class="play-header-left">
@@ -152,8 +156,8 @@ const completionStats = computed(() => {
     <!-- Dartboard FAB -->
     <button
       class="dartboard-fab"
-      @click="showDartboard = !showDartboard"
       :title="showDartboard ? 'Close dartboard' : 'Open dartboard'"
+      @click="showDartboard = !showDartboard"
     >
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="12" cy="12" r="10" />
@@ -170,7 +174,9 @@ const completionStats = computed(() => {
             :disabled="state.isComplete"
             @score="onScore"
           />
-          <button class="dartboard-close" @click="showDartboard = false">&times;</button>
+          <button class="dartboard-close" @click="showDartboard = false">
+            &times;
+          </button>
         </div>
       </div>
     </Transition>

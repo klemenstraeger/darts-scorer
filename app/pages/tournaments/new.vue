@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { TournamentFormat } from '~/types/tournament'
 import type { CheckoutMode } from '~/types/game'
+import type { TournamentFormat } from '~/types/tournament'
 
 // ── Wizard state ──────────────────────────────────────────────────────
 const step = ref(1)
@@ -18,7 +18,7 @@ const advancePerGroup = ref(2)
 const submitting = ref(false)
 const error = ref('')
 
-const formats: { value: TournamentFormat; label: string }[] = [
+const formats: { value: TournamentFormat, label: string }[] = [
   { value: 'knockout', label: 'Knockout' },
   { value: 'league', label: 'League' },
   { value: 'group_only', label: 'Groups' },
@@ -84,9 +84,11 @@ async function createTournament() {
       },
     })
     navigateTo(`/tournaments/${result.id}`)
-  } catch (e: any) {
+  }
+  catch (e: any) {
     error.value = e.data?.message || 'Failed to create tournament'
-  } finally {
+  }
+  finally {
     submitting.value = false
   }
 }
@@ -95,21 +97,27 @@ async function createTournament() {
 <template>
   <div class="flex flex-col items-center gap-xl px-lg py-2xl max-w-[600px] mx-auto w-full max-sm:px-md max-sm:py-xl">
     <div class="text-center">
-      <h2 class="text-[2rem] font-black text-fg max-sm:text-[1.5rem]">New Tournament</h2>
+      <h2 class="text-[2rem] font-black text-fg max-sm:text-[1.5rem]">
+        New Tournament
+      </h2>
     </div>
 
     <WizardShell
       v-model:current-step="step"
       :total-steps="4"
       :can-advance="canAdvance"
-      :finish-label="'Create Tournament'"
+      finish-label="Create Tournament"
       :loading="submitting"
       @finish="createTournament"
     >
       <!-- Step 1: Tournament Info -->
       <div v-if="step === 1" key="step-info" class="wizard-step">
-        <h3 class="step-title">Tournament Info</h3>
-        <p class="step-subtitle">Give your tournament a name and pick a format.</p>
+        <h3 class="step-title">
+          Tournament Info
+        </h3>
+        <p class="step-subtitle">
+          Give your tournament a name and pick a format.
+        </p>
 
         <!-- Name -->
         <div class="glass-card w-full p-lg flex flex-col gap-md">
@@ -120,7 +128,7 @@ async function createTournament() {
             type="text"
             placeholder="Friday Night Darts"
             maxlength="50"
-          />
+          >
         </div>
 
         <!-- Format -->
@@ -140,7 +148,7 @@ async function createTournament() {
               class="mode-pill"
               :style="{
                 width: `calc(${100 / formats.length}% - 2px)`,
-                transform: `translateX(${formatIndex * 100}%)`
+                transform: `translateX(${formatIndex * 100}%)`,
               }"
             />
           </div>
@@ -149,7 +157,9 @@ async function createTournament() {
 
       <!-- Step 2: Select Players -->
       <div v-else-if="step === 2" key="step-players" class="wizard-step">
-        <h3 class="step-title">Select Players</h3>
+        <h3 class="step-title">
+          Select Players
+        </h3>
         <p class="step-subtitle">
           Pick at least {{ minPlayers }} players for this format.
         </p>
@@ -163,8 +173,12 @@ async function createTournament() {
 
       <!-- Step 3: Match Settings -->
       <div v-else-if="step === 3" key="step-settings" class="wizard-step">
-        <h3 class="step-title">Match Settings</h3>
-        <p class="step-subtitle">How should each match be played?</p>
+        <h3 class="step-title">
+          Match Settings
+        </h3>
+        <p class="step-subtitle">
+          How should each match be played?
+        </p>
 
         <GameSettingsPanel
           v-model:game-mode="gameMode"
@@ -183,7 +197,9 @@ async function createTournament() {
                   class="mode-option"
                   :class="{ active: groupCount === opt }"
                   @click="groupCount = opt"
-                >{{ opt }}</button>
+                >
+                  {{ opt }}
+                </button>
                 <div class="mode-pill" :style="{ width: `calc(${100 / groupOptions.length}% - 2px)`, transform: `translateX(${groupOptions.indexOf(groupCount) * 100}%)` }" />
               </div>
             </div>
@@ -197,7 +213,9 @@ async function createTournament() {
                   class="mode-option"
                   :class="{ active: advancePerGroup === opt }"
                   @click="advancePerGroup = opt"
-                >{{ opt }}</button>
+                >
+                  {{ opt }}
+                </button>
                 <div class="mode-pill" :style="{ width: `calc(${100 / advanceOptions.length}% - 2px)`, transform: `translateX(${advanceOptions.indexOf(advancePerGroup) * 100}%)` }" />
               </div>
             </div>
@@ -207,8 +225,12 @@ async function createTournament() {
 
       <!-- Step 4: Review & Create -->
       <div v-else key="step-review" class="wizard-step">
-        <h3 class="step-title">Review Tournament</h3>
-        <p class="step-subtitle">Everything look good?</p>
+        <h3 class="step-title">
+          Review Tournament
+        </h3>
+        <p class="step-subtitle">
+          Everything look good?
+        </p>
 
         <TournamentSummary
           :name="name"
@@ -222,7 +244,9 @@ async function createTournament() {
           :advance-per-group="format === 'group_knockout' ? advancePerGroup : undefined"
         />
 
-        <div v-if="error" class="text-red text-[0.85rem] font-semibold text-center">{{ error }}</div>
+        <div v-if="error" class="text-red text-[0.85rem] font-semibold text-center">
+          {{ error }}
+        </div>
       </div>
     </WizardShell>
   </div>

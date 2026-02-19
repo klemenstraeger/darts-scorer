@@ -4,10 +4,10 @@
  * state shapes, so we use strategy pattern instead of inheritance.
  */
 
-import type { ThrowResult, Multiplier } from '../game-models'
-import { throwPoints } from '../game-models'
-import type { TrainingConfig, TrainingModeState, TrainingThrowResult, TrainingStats, TrainingThrowRecord } from './training-models'
+import type { Multiplier, ThrowResult } from '../game-models'
+import type { TrainingConfig, TrainingModeState, TrainingStats, TrainingThrowRecord, TrainingThrowResult } from './training-models'
 import type { TrainingModeStrategy } from './training-strategy'
+import { throwPoints } from '../game-models'
 import { getStrategy } from './modes'
 
 export class TrainingEngine {
@@ -87,7 +87,8 @@ export class TrainingEngine {
   }
 
   getStats(): TrainingStats | null {
-    if (!this.state || !this.strategy) return null
+    if (!this.state || !this.strategy)
+      return null
     return this.strategy.computeStats(this.state)
   }
 

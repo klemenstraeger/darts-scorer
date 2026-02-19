@@ -32,7 +32,7 @@ watch(() => [props.name, props.avatarSeed, props.avatarStyle], () => {
       :height="size"
       loading="lazy"
       @error="failed = true"
-    />
+    >
     <span v-else class="avatar-fallback">{{ initial }}</span>
   </div>
 </template>

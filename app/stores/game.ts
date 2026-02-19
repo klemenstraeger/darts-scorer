@@ -29,12 +29,16 @@ export const useGameStore = defineStore('game', () => {
 
   function triggerBust() {
     bustFlash.value = true
-    setTimeout(() => { bustFlash.value = false }, 2000)
+    setTimeout(() => {
+      bustFlash.value = false
+    }, 2000)
   }
 
   function triggerLegWon() {
     legWonFlash.value = true
-    setTimeout(() => { legWonFlash.value = false }, 2000)
+    setTimeout(() => {
+      legWonFlash.value = false
+    }, 2000)
   }
 
   function triggerGameOver() {

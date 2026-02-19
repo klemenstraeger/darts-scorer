@@ -7,7 +7,8 @@ const props = defineProps<{
 
 const currentRoundScore = computed(() => {
   const ct = props.state.currentRoundThrows
-  if (ct === 0) return 0
+  if (ct === 0)
+    return 0
   const start = props.state.throws.length - ct
   let score = 0
   for (let i = Math.max(0, start); i < props.state.throws.length; i++) {
@@ -54,7 +55,7 @@ const currentRoundScore = computed(() => {
       </div>
     </div>
 
-    <div class="sh-hits" v-if="state.currentRoundThrows > 0">
+    <div v-if="state.currentRoundThrows > 0" class="sh-hits">
       <span class="sh-hit-badge" :class="{ active: state.currentRoundHits.single }">S</span>
       <span class="sh-hit-badge" :class="{ active: state.currentRoundHits.double }">D</span>
       <span class="sh-hit-badge" :class="{ active: state.currentRoundHits.treble }">T</span>

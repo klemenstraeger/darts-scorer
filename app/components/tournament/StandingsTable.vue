@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import type { TournamentStanding } from '~/types/tournament'
 
-const { getAvatarProps } = usePlayers()
-
 const props = defineProps<{
   standings: TournamentStanding[]
   advanceCount?: number
 }>()
+
+const { getAvatarProps } = usePlayers()
 
 type SortColumn = 'points' | 'played' | 'won' | 'lost' | 'legsWon' | 'legsLost' | 'legDifference'
 
@@ -16,7 +16,8 @@ const sortAsc = ref(false)
 function toggleSort(col: SortColumn) {
   if (sortColumn.value === col) {
     sortAsc.value = !sortAsc.value
-  } else {
+  }
+  else {
     sortColumn.value = col
     // Default to descending for most columns, ascending for losses
     sortAsc.value = col === 'lost' || col === 'legsLost'
@@ -24,7 +25,8 @@ function toggleSort(col: SortColumn) {
 }
 
 function sortIndicator(col: SortColumn): string {
-  if (sortColumn.value !== col) return ''
+  if (sortColumn.value !== col)
+    return ''
   return sortAsc.value ? ' \u25B2' : ' \u25BC'
 }
 
@@ -33,11 +35,13 @@ const sorted = computed(() => {
   const dir = sortAsc.value ? 1 : -1
   return [...props.standings].sort((a, b) => {
     const diff = (a[col] - b[col]) * dir
-    if (diff !== 0) return diff
+    if (diff !== 0)
+      return diff
     // Tiebreaker: points then leg difference
     if (col !== 'points') {
       const ptsDiff = b.points - a.points
-      if (ptsDiff !== 0) return ptsDiff
+      if (ptsDiff !== 0)
+        return ptsDiff
     }
     return b.legDifference - a.legDifference
   })
@@ -49,15 +53,33 @@ const sorted = computed(() => {
     <table class="standings-table">
       <thead>
         <tr>
-          <th class="col-pos">#</th>
-          <th class="col-name">Player</th>
-          <th class="col-num sortable" @click="toggleSort('played')">P{{ sortIndicator('played') }}</th>
-          <th class="col-num sortable" @click="toggleSort('won')">W{{ sortIndicator('won') }}</th>
-          <th class="col-num sortable" @click="toggleSort('lost')">L{{ sortIndicator('lost') }}</th>
-          <th class="col-num sortable" @click="toggleSort('legsWon')">F{{ sortIndicator('legsWon') }}</th>
-          <th class="col-num sortable" @click="toggleSort('legsLost')">A{{ sortIndicator('legsLost') }}</th>
-          <th class="col-num sortable" @click="toggleSort('legDifference')">+/-{{ sortIndicator('legDifference') }}</th>
-          <th class="col-num sortable" @click="toggleSort('points')">Pts{{ sortIndicator('points') }}</th>
+          <th class="col-pos">
+            #
+          </th>
+          <th class="col-name">
+            Player
+          </th>
+          <th class="col-num sortable" @click="toggleSort('played')">
+            P{{ sortIndicator('played') }}
+          </th>
+          <th class="col-num sortable" @click="toggleSort('won')">
+            W{{ sortIndicator('won') }}
+          </th>
+          <th class="col-num sortable" @click="toggleSort('lost')">
+            L{{ sortIndicator('lost') }}
+          </th>
+          <th class="col-num sortable" @click="toggleSort('legsWon')">
+            F{{ sortIndicator('legsWon') }}
+          </th>
+          <th class="col-num sortable" @click="toggleSort('legsLost')">
+            A{{ sortIndicator('legsLost') }}
+          </th>
+          <th class="col-num sortable" @click="toggleSort('legDifference')">
+            +/-{{ sortIndicator('legDifference') }}
+          </th>
+          <th class="col-num sortable" @click="toggleSort('points')">
+            Pts{{ sortIndicator('points') }}
+          </th>
         </tr>
       </thead>
       <tbody>
@@ -66,17 +88,33 @@ const sorted = computed(() => {
           :key="s.id"
           :class="{ advancing: advanceCount && i < advanceCount }"
         >
-          <td class="col-pos">{{ i + 1 }}</td>
-          <td class="col-name"><span class="flex items-center gap-xs"><PlayerAvatar v-bind="getAvatarProps(s.playerName)" :size="18" />{{ s.playerName }}</span></td>
-          <td class="col-num">{{ s.played }}</td>
-          <td class="col-num">{{ s.won }}</td>
-          <td class="col-num">{{ s.lost }}</td>
-          <td class="col-num">{{ s.legsWon }}</td>
-          <td class="col-num">{{ s.legsLost }}</td>
+          <td class="col-pos">
+            {{ i + 1 }}
+          </td>
+          <td class="col-name">
+            <span class="flex items-center gap-xs"><PlayerAvatar v-bind="getAvatarProps(s.playerName)" :size="18" />{{ s.playerName }}</span>
+          </td>
+          <td class="col-num">
+            {{ s.played }}
+          </td>
+          <td class="col-num">
+            {{ s.won }}
+          </td>
+          <td class="col-num">
+            {{ s.lost }}
+          </td>
+          <td class="col-num">
+            {{ s.legsWon }}
+          </td>
+          <td class="col-num">
+            {{ s.legsLost }}
+          </td>
           <td class="col-num" :class="{ positive: s.legDifference > 0, negative: s.legDifference < 0 }">
             {{ s.legDifference > 0 ? '+' : '' }}{{ s.legDifference }}
           </td>
-          <td class="col-num font-bold">{{ s.points }}</td>
+          <td class="col-num font-bold">
+            {{ s.points }}
+          </td>
         </tr>
       </tbody>
     </table>

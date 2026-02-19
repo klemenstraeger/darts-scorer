@@ -10,7 +10,7 @@ const emit = defineEmits<{
 type Modifier = 1 | 2 | 3
 const modifier = ref<Modifier>(1)
 
-const modifiers: { label: string; shortcut: string; value: Modifier; color: string }[] = [
+const modifiers: { label: string, shortcut: string, value: Modifier, color: string }[] = [
   { label: 'Single', shortcut: '', value: 1, color: 'neutral' },
   { label: 'Double', shortcut: 'D', value: 2, color: 'gold' },
   { label: 'Triple', shortcut: 'T', value: 3, color: 'blue' },
@@ -26,7 +26,8 @@ const numbers = [
 
 function emitScore(segment: number, mult?: number) {
   emit('score', segment, mult ?? modifier.value)
-  if (modifier.value !== 1) modifier.value = 1
+  if (modifier.value !== 1)
+    modifier.value = 1
 }
 
 function haptic() {
@@ -36,11 +37,13 @@ function haptic() {
 }
 
 function onKeydown(e: KeyboardEvent) {
-  if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+  if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)
+    return
   if (e.key === 'd' || e.key === 'D') {
     e.preventDefault()
     modifier.value = modifier.value === 2 ? 1 : 2
-  } else if (e.key === 't' || e.key === 'T') {
+  }
+  else if (e.key === 't' || e.key === 'T') {
     e.preventDefault()
     modifier.value = modifier.value === 3 ? 1 : 3
   }
@@ -67,7 +70,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           class="mod-pill"
           :style="{ transform: `translateX(${(modifier - 1) * 100}%)` }"
           :class="`pill-${modifier}`"
-        ></div>
+        />
       </div>
     </div>
 

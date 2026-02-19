@@ -1,5 +1,5 @@
-import { sql } from 'drizzle-orm'
 import type { SQL } from 'drizzle-orm'
+import { sql } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const { id: userId } = await requireAuth(event)
@@ -15,10 +15,10 @@ export default defineEventHandler(async (event) => {
   const to = query.to ? String(query.to) : null
   const mode = query.mode ? String(query.mode) : null
 
-  if (from && isNaN(Date.parse(from))) {
+  if (from && Number.isNaN(Date.parse(from))) {
     throw createError({ statusCode: 400, message: 'Invalid from date' })
   }
-  if (to && isNaN(Date.parse(to))) {
+  if (to && Number.isNaN(Date.parse(to))) {
     throw createError({ statusCode: 400, message: 'Invalid to date' })
   }
   if (mode && !['301', '501'].includes(mode)) {
@@ -27,10 +27,14 @@ export default defineEventHandler(async (event) => {
 
   // Build filter clauses
   const parts: SQL[] = []
-  if (playerName) parts.push(sql`AND gp.player_name = ${playerName}`)
-  if (from) parts.push(sql`AND g.created_at >= ${from}::timestamptz`)
-  if (to) parts.push(sql`AND g.created_at <= ${to}::timestamptz`)
-  if (mode) parts.push(sql`AND g.mode = ${mode}`)
+  if (playerName)
+    parts.push(sql`AND gp.player_name = ${playerName}`)
+  if (from)
+    parts.push(sql`AND g.created_at >= ${from}::timestamptz`)
+  if (to)
+    parts.push(sql`AND g.created_at <= ${to}::timestamptz`)
+  if (mode)
+    parts.push(sql`AND g.mode = ${mode}`)
   const filters = parts.length > 0 ? sql.join(parts, sql` `) : sql``
 
   const rows = await db.execute<{

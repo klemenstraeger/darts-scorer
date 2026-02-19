@@ -1,5 +1,5 @@
-import { eq, desc } from 'drizzle-orm'
-import { players, eloHistory } from '../../db/schema'
+import { desc, eq } from 'drizzle-orm'
+import { eloHistory, players } from '../../db/schema'
 
 export default defineEventHandler(async (event) => {
   const { id: userId } = await requireAuth(event)
@@ -39,7 +39,7 @@ export default defineEventHandler(async (event) => {
         avatarSeed: player.avatarSeed,
         trend: history.reverse(), // chronological order for sparkline
       }
-    })
+    }),
   )
 
   return rankings

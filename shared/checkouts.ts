@@ -185,9 +185,12 @@ export const CHECKOUTS: Record<number, string[]> = {
  * Returns the dart path array, or null if no checkout is possible.
  */
 export function getCheckout(score: number, dartsRemaining: number): string[] | null {
-  if (dartsRemaining <= 0 || score < 2) return null
+  if (dartsRemaining <= 0 || score < 2)
+    return null
   const path = CHECKOUTS[score]
-  if (!path) return null
-  if (path.length > dartsRemaining) return null
+  if (!path)
+    return null
+  if (path.length > dartsRemaining)
+    return null
   return path
 }

@@ -11,7 +11,7 @@
  */
 
 import type { ThrowResult } from '../../game-models'
-import type { TrainingConfig, ShanghaiState, TrainingThrowResult, TrainingStats } from '../training-models'
+import type { ShanghaiState, TrainingConfig, TrainingStats, TrainingThrowResult } from '../training-models'
 import type { TrainingModeStrategy } from '../training-strategy'
 
 export const shanghaiStrategy: TrainingModeStrategy<ShanghaiState> = {
@@ -44,10 +44,14 @@ export const shanghaiStrategy: TrainingModeStrategy<ShanghaiState> = {
       events.push('target_hit')
 
       // Track hit types for shanghai detection
-      if (dart.multiplier === 1) state.currentRoundHits.single = true
-      if (dart.multiplier === 2) state.currentRoundHits.double = true
-      if (dart.multiplier === 3) state.currentRoundHits.treble = true
-    } else {
+      if (dart.multiplier === 1)
+        state.currentRoundHits.single = true
+      if (dart.multiplier === 2)
+        state.currentRoundHits.double = true
+      if (dart.multiplier === 3)
+        state.currentRoundHits.treble = true
+    }
+    else {
       events.push('target_missed')
     }
 
@@ -76,7 +80,8 @@ export const shanghaiStrategy: TrainingModeStrategy<ShanghaiState> = {
         state.isComplete = true
         state.completedAt = new Date().toISOString()
         events.push('session_complete')
-      } else {
+      }
+      else {
         state.currentRound++
         state.currentRoundThrows = 0
         state.currentRoundHits = { single: false, double: false, treble: false }
@@ -125,9 +130,12 @@ function replayState(state: ShanghaiState): ShanghaiState {
 
     if (t.segment === round) {
       totalScore += t.segment * t.multiplier
-      if (t.multiplier === 1) hits.single = true
-      if (t.multiplier === 2) hits.double = true
-      if (t.multiplier === 3) hits.treble = true
+      if (t.multiplier === 1)
+        hits.single = true
+      if (t.multiplier === 2)
+        hits.double = true
+      if (t.multiplier === 3)
+        hits.treble = true
     }
 
     if (roundThrows >= 3) {

@@ -3,7 +3,7 @@ import { broadcastSessions, tournaments } from '../../db/schema'
 
 export default defineEventHandler(async (event) => {
   const { id: userId } = await requireAuth(event)
-  const body = await readBody<{ tournamentId: number; offer: unknown }>(event)
+  const body = await readBody<{ tournamentId: number, offer: unknown }>(event)
 
   if (!body.tournamentId || !body.offer) {
     throw createError({ statusCode: 400, message: 'tournamentId and offer required' })

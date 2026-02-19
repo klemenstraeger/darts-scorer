@@ -1,3 +1,7 @@
+<script setup lang="ts">
+withDefaults(defineProps<{ size?: number }>(), { size: 28 })
+</script>
+
 <template>
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -27,10 +31,6 @@
     </g>
   </svg>
 </template>
-
-<script setup lang="ts">
-withDefaults(defineProps<{ size?: number }>(), { size: 28 })
-</script>
 
 <style scoped>
 .darts-logo {

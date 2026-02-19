@@ -1,6 +1,6 @@
+import type { SQL } from 'drizzle-orm'
 import type { H3Event } from 'h3'
 import { sql } from 'drizzle-orm'
-import type { SQL } from 'drizzle-orm'
 
 export interface StatsFilters {
   playerName: string
@@ -26,10 +26,10 @@ export function parseStatsFilters(event: H3Event): StatsFilters {
   const mode = query.mode ? String(query.mode) : null
 
   // Validate date format (ISO date string)
-  if (from && isNaN(Date.parse(from))) {
+  if (from && Number.isNaN(Date.parse(from))) {
     throw createError({ statusCode: 400, message: 'Invalid from date' })
   }
-  if (to && isNaN(Date.parse(to))) {
+  if (to && Number.isNaN(Date.parse(to))) {
     throw createError({ statusCode: 400, message: 'Invalid to date' })
   }
 
@@ -49,10 +49,14 @@ export function buildFilterClauses(filters: StatsFilters): SQL {
   const { from, to, mode } = filters
   const parts: SQL[] = []
 
-  if (from) parts.push(sql`AND g.created_at >= ${from}::timestamptz`)
-  if (to) parts.push(sql`AND g.created_at <= ${to}::timestamptz`)
-  if (mode) parts.push(sql`AND g.mode = ${mode}`)
+  if (from)
+    parts.push(sql`AND g.created_at >= ${from}::timestamptz`)
+  if (to)
+    parts.push(sql`AND g.created_at <= ${to}::timestamptz`)
+  if (mode)
+    parts.push(sql`AND g.mode = ${mode}`)
 
-  if (parts.length === 0) return sql``
+  if (parts.length === 0)
+    return sql``
   return sql.join(parts, sql` `)
 }

@@ -36,8 +36,10 @@ const statusText = computed(() => {
 })
 
 const statusClass = computed(() => {
-  if (state.value === 'connected') return 'status-live'
-  if (state.value === 'error') return 'status-error'
+  if (state.value === 'connected')
+    return 'status-live'
+  if (state.value === 'error')
+    return 'status-error'
   return 'status-waiting'
 })
 
@@ -51,8 +53,12 @@ async function handleStop() {
   <div class="camera-page">
     <!-- Not logged in -->
     <div v-if="needsLogin" class="auth-prompt">
-      <p class="text-fg-muted text-sm">Login required to broadcast.</p>
-      <NuxtLink to="/login" class="btn btn-gold mt-md">Login</NuxtLink>
+      <p class="text-fg-muted text-sm">
+        Login required to broadcast.
+      </p>
+      <NuxtLink to="/login" class="btn btn-gold mt-md">
+        Login
+      </NuxtLink>
     </div>
 
     <!-- Camera view -->

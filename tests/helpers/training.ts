@@ -10,7 +10,7 @@ import { MISS } from './darts'
 export function createTrainingSession(
   mode: TrainingConfig['mode'],
   config?: Partial<TrainingConfig>,
-): { engine: TrainingEngine; state: TrainingModeState } {
+): { engine: TrainingEngine, state: TrainingModeState } {
   const engine = new TrainingEngine()
   const state = engine.newSession({ mode, ...config })
   return { engine, state }

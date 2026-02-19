@@ -1,8 +1,8 @@
-import { describe, it, expect } from 'vitest'
-import { hundredDartsStrategy } from '../../../shared/training/modes/hundred-darts'
 import type { HundredDartsState } from '../../../shared/training/training-models'
-import { createTrainingSession, trainingThrow, trainingMisses } from '../../helpers/training'
-import { S20, S19, S1, S5, T20, D20, MISS } from '../../helpers/darts'
+import { describe, expect, it } from 'vitest'
+import { hundredDartsStrategy } from '../../../shared/training/modes/hundred-darts'
+import { D20, MISS, S1, S5, S19, S20, T20 } from '../../helpers/darts'
+import { createTrainingSession, trainingMisses, trainingThrow } from '../../helpers/training'
 
 // ── Direct Strategy Tests ──
 
@@ -65,7 +65,7 @@ describe('hundred-darts hit counting', () => {
     expect(s.totalScore).toBe(19)
   })
 
-  it('MISS scores 0 and is a miss', () => {
+  it('mISS scores 0 and is a miss', () => {
     const { engine } = createTrainingSession('hundred-darts')
     const result = engine.throw(MISS)
     expect(result.events).toContain('target_missed')

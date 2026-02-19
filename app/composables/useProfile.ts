@@ -13,7 +13,8 @@ export function useProfile() {
     try {
       const { profile: p } = await $fetch<{ profile: Profile | null }>('/api/profile')
       profile.value = p
-    } catch {
+    }
+    catch {
       profile.value = null
     }
     loaded.value = true

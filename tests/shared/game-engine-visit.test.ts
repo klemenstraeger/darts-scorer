@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { GameEngine } from '../../shared/game-engine'
 
 function createEngine(mode = '501' as const, checkout = 'double_out' as const) {
@@ -7,7 +7,7 @@ function createEngine(mode = '501' as const, checkout = 'double_out' as const) {
   return engine
 }
 
-describe('GameEngine.applyVisitScore', () => {
+describe('gameEngine.applyVisitScore', () => {
   it('applies a valid visit score and ends the turn', () => {
     const engine = createEngine()
     engine.applyVisitScore(60)
@@ -66,7 +66,7 @@ describe('GameEngine.applyVisitScore', () => {
 
     // Now try to score 60 from 41 — bust
     engine.applyVisitScore(100) // Bob: 201
-    engine.applyVisitScore(60)  // Alice: bust (60 > 41)
+    engine.applyVisitScore(60) // Alice: bust (60 > 41)
 
     // Alice should have busted — her score stays at 41
     expect(engine.state.players[0]!.score).toBe(41)
@@ -82,7 +82,7 @@ describe('GameEngine.applyVisitScore', () => {
     engine.applyVisitScore(100) // Bob
     engine.applyVisitScore(180) // Alice: 141
     engine.applyVisitScore(100) // Bob
-    engine.applyVisitScore(80)  // Alice: 61
+    engine.applyVisitScore(80) // Alice: 61
 
     // Score 60 from 61 = remaining 1 = bust in double-out
     engine.applyVisitScore(100) // Bob
@@ -117,7 +117,7 @@ describe('GameEngine.applyVisitScore', () => {
     engine.applyVisitScore(100) // Bob
     engine.applyVisitScore(180) // Alice: 141
     engine.applyVisitScore(100) // Bob
-    engine.applyVisitScore(81)  // Alice: 60
+    engine.applyVisitScore(81) // Alice: 60
 
     // Checkout: any remaining works in single-out
     engine.applyVisitScore(100) // Bob
@@ -180,7 +180,7 @@ describe('GameEngine.applyVisitScore', () => {
   })
 })
 
-describe('GameEngine.undoThrow with visit-score turns', () => {
+describe('gameEngine.undoThrow with visit-score turns', () => {
   it('undoes an entire visit-score turn at once', () => {
     const engine = createEngine()
     engine.applyVisitScore(60) // Alice: 441, turn ends
@@ -221,7 +221,7 @@ describe('GameEngine.undoThrow with visit-score turns', () => {
   })
 })
 
-describe('Mixed-mode game', () => {
+describe('mixed-mode game', () => {
   it('supports alternating between per-dart and visit-score turns', () => {
     const engine = createEngine()
 
@@ -243,7 +243,7 @@ describe('Mixed-mode game', () => {
   })
 })
 
-describe('Multi-leg visit-score game', () => {
+describe('multi-leg visit-score game', () => {
   it('handles leg transitions correctly', () => {
     const engine = new GameEngine()
     engine.newGame('501', ['Alice', 'Bob'], 'single_out', 2, 1)

@@ -2,7 +2,7 @@ import type { GameState } from '../../../shared/game-models'
 
 export default defineEventHandler(async (event) => {
   const { id: userId } = await requireAuth(event)
-  const body = await readBody<{ state: GameState; tournamentMatchId?: number }>(event)
+  const body = await readBody<{ state: GameState, tournamentMatchId?: number }>(event)
 
   if (!body.state?.is_finished) {
     throw createError({ statusCode: 400, message: 'Game is not finished' })

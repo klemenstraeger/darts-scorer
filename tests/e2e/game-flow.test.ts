@@ -1,16 +1,20 @@
-import { describe, it, expect } from 'vitest'
-import { GameEngine } from '../../shared/game-engine'
-import { GameEvent, detectThrowEvent } from '../../shared/game-events'
-import type { GameState, ThrowResult } from '../../shared/game-models'
+import type { GameEngine } from '../../shared/game-engine'
+import type { ThrowResult } from '../../shared/game-models'
+import { describe, expect, it } from 'vitest'
+import { detectThrowEvent, GameEvent } from '../../shared/game-events'
 import {
-  create501Game,
   create301Game,
+  create501Game,
+  D12,
+  D20,
+  D25,
+  S1,
+  S19,
+  S20,
+  T19,
+  T20,
   throwDarts,
   throwMissTurn,
-  T20, T19, T17, T15,
-  D20, D25, D12, D16, D1, D10,
-  S20, S19, S1, S5, S10, S25,
-  MISS,
 } from '../helpers/darts'
 
 /** Throw and return the event */
@@ -60,7 +64,7 @@ describe('9-darter scenario', () => {
 
 // ── Multi-leg (best of 3) ──
 
-describe('Multi-leg game (best of 3)', () => {
+describe('multi-leg game (best of 3)', () => {
   it('plays through 2 legs with alternating starts', () => {
     const engine = create501Game(['Alice', 'Bob'], 2)
 
@@ -95,7 +99,7 @@ describe('Multi-leg game (best of 3)', () => {
 
 // ── Multi-set ──
 
-describe('Multi-set game (best of 3 sets x 1 leg)', () => {
+describe('multi-set game (best of 3 sets x 1 leg)', () => {
   it('progresses through sets to game over', () => {
     const engine = create501Game(['Alice', 'Bob'], 1, 2) // 1 leg/set, 2 sets to win
 
@@ -120,7 +124,7 @@ describe('Multi-set game (best of 3 sets x 1 leg)', () => {
 
 // ── Bust recovery ──
 
-describe('Bust recovery', () => {
+describe('bust recovery', () => {
   it('busts mid-turn, score restored, player switches', () => {
     const engine = create501Game()
 
@@ -155,7 +159,7 @@ describe('Bust recovery', () => {
 
 // ── Undo across turns ──
 
-describe('Undo across turns', () => {
+describe('undo across turns', () => {
   it('undoes from Bob back through Alice throws', () => {
     const engine = create501Game()
 
@@ -258,8 +262,8 @@ describe('4-player rotation', () => {
 
 // ── Edge: Double bull checkout ──
 
-describe('Double bull checkout', () => {
-  it('D25 at 50 finishes the game', () => {
+describe('double bull checkout', () => {
+  it('d25 at 50 finishes the game', () => {
     const engine = create501Game()
     engine.state.players[0]!.score = 50
     engine.state.score_before_turn = 50
@@ -272,8 +276,8 @@ describe('Double bull checkout', () => {
 
 // ── Edge: Bust on exactly score = 0 with triple ──
 
-describe('Bust on zero with wrong multiplier', () => {
-  it('T20 at 60 busts (not double)', () => {
+describe('bust on zero with wrong multiplier', () => {
+  it('t20 at 60 busts (not double)', () => {
     const engine = create501Game()
     engine.state.players[0]!.score = 60
     engine.state.score_before_turn = 60

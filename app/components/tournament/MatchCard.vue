@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import type { TournamentMatch } from '~/types/tournament'
 
-const { getAvatarProps } = usePlayers()
-
 const props = defineProps<{
   match: TournamentMatch
   showPlayButton?: boolean
@@ -12,14 +10,17 @@ const emit = defineEmits<{
   play: [matchId: number]
 }>()
 
+const { getAvatarProps } = usePlayers()
+
 const isPlayable = computed(() =>
   props.match.status === 'pending'
   && props.match.player1Name
   && props.match.player2Name,
 )
 
-const scoreDisplay = computed(() => {
-  if (props.match.status !== 'completed') return null
+const _scoreDisplay = computed(() => {
+  if (props.match.status !== 'completed')
+    return null
   return `${props.match.player1LegsWon} - ${props.match.player2LegsWon}`
 })
 </script>
@@ -28,10 +29,10 @@ const scoreDisplay = computed(() => {
   <div
     class="match-card"
     :class="{
-      pending: match.status === 'pending',
+      'pending': match.status === 'pending',
       'in-progress': match.status === 'in_progress',
-      completed: match.status === 'completed',
-      playable: isPlayable && showPlayButton,
+      'completed': match.status === 'completed',
+      'playable': isPlayable && showPlayButton,
     }"
   >
     <div class="match-players">

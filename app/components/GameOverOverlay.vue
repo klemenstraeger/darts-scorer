@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { GameState } from '~/types/game'
+import { count180s, getCheckoutDart, highestTurnScore, totalDartsThrown } from '#shared/game-models'
 import { threeDartAverage, throwLabel } from '~/types/game'
-import { highestTurnScore, totalDartsThrown, getCheckoutDart, count180s } from '#shared/game-models'
 
 const props = defineProps<{
   state: GameState
@@ -20,7 +20,8 @@ const isMatch = computed(() => props.state.legs_to_win > 1 || props.state.sets_t
 const hasSets = computed(() => props.state.sets_to_win > 1)
 
 const winnerName = computed(() => {
-  if (props.state.winner_index == null) return ''
+  if (props.state.winner_index == null)
+    return ''
   return props.state.players[props.state.winner_index]?.name ?? ''
 })
 </script>
@@ -29,14 +30,20 @@ const winnerName = computed(() => {
   <div class="gameover-overlay">
     <div class="gameover-content">
       <!-- Title -->
-      <div class="gameover-title">Game Over</div>
+      <div class="gameover-title">
+        Game Over
+      </div>
 
       <!-- Winner -->
       <div class="gameover-winner">
         <PlayerAvatar v-if="winnerName" v-bind="getAvatarProps(winnerName)" :size="56" />
         <div>
-          <div class="winner-name">{{ winnerName }}</div>
-          <div class="winner-badge">WINNER</div>
+          <div class="winner-name">
+            {{ winnerName }}
+          </div>
+          <div class="winner-badge">
+            WINNER
+          </div>
         </div>
       </div>
 
@@ -94,8 +101,12 @@ const winnerName = computed(() => {
           Back to Tournament
         </NuxtLink>
         <template v-else>
-          <button class="btn btn-gold" @click="$emit('dismiss')">Continue</button>
-          <NuxtLink to="/" class="btn btn-secondary">New Game</NuxtLink>
+          <button class="btn btn-gold" @click="$emit('dismiss')">
+            Continue
+          </button>
+          <NuxtLink to="/" class="btn btn-secondary">
+            New Game
+          </NuxtLink>
         </template>
       </div>
     </div>

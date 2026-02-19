@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import {
-  generateSegmentPaths,
-  R,
-  CX,
-  CY,
-  COLORS,
-  colorsFromTheme,
-} from '~/utils/dartboard-geometry'
 import type { ThrowResult } from '~/types/game'
 import type { DartboardTheme } from '~/utils/dartboard-themes'
+import {
+  COLORS,
+  colorsFromTheme,
+  CX,
+  CY,
+  generateSegmentPaths,
+  R,
+} from '~/utils/dartboard-geometry'
 
 const props = defineProps<{
   throws: ThrowResult[]
@@ -25,10 +25,12 @@ const segments = computed(() => generateSegmentPaths(boardColors.value))
 const hitSegments = computed(() => {
   const hits = new Set<string>()
   for (const t of props.throws) {
-    if (t.segment === 0) continue
+    if (t.segment === 0)
+      continue
     if (t.segment === 25) {
       hits.add(`bull-${t.multiplier}`)
-    } else {
+    }
+    else {
       const ringMap = { 1: 'single', 2: 'double', 3: 'treble' } as const
       const ring = ringMap[t.multiplier as 1 | 2 | 3]
       hits.add(`${t.segment}-${ring}`)

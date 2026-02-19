@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, afterEach } from 'vitest'
-import { parseCheckoutDart, BOT_PROFILES, generateBotThrow } from '../../shared/bot-engine'
 import type { ThrowResult } from '../../shared/game-models'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { BOT_PROFILES, generateBotThrow, parseCheckoutDart } from '../../shared/bot-engine'
 
 afterEach(() => {
   vi.restoreAllMocks()
@@ -10,9 +10,12 @@ afterEach(() => {
 const VALID_SEGMENTS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 25]
 
 function isValidThrow(t: ThrowResult): boolean {
-  if (!VALID_SEGMENTS.includes(t.segment)) return false
-  if (![1, 2, 3].includes(t.multiplier)) return false
-  if (t.segment === 0 && t.multiplier !== 1) return false
+  if (!VALID_SEGMENTS.includes(t.segment))
+    return false
+  if (![1, 2, 3].includes(t.multiplier))
+    return false
+  if (t.segment === 0 && t.multiplier !== 1)
+    return false
   return true
 }
 
@@ -46,7 +49,7 @@ describe('parseCheckoutDart', () => {
 
 // ── BOT_PROFILES ──
 
-describe('BOT_PROFILES', () => {
+describe('bOT_PROFILES', () => {
   const difficulties = ['easy', 'medium', 'hard', 'pro'] as const
 
   it('defines all 4 difficulty levels', () => {

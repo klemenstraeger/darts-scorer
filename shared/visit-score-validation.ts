@@ -13,8 +13,10 @@ export const QUICK_SCORES = [180, 140, 100, 85, 60, 45, 41, 26, 0] as const
 
 /** Check whether a score is achievable with 3 darts. */
 export function isAchievableScore(score: number): boolean {
-  if (!Number.isInteger(score)) return false
-  if (score < 0 || score > 180) return false
+  if (!Number.isInteger(score))
+    return false
+  if (score < 0 || score > 180)
+    return false
   return !IMPOSSIBLE_SCORES.has(score)
 }
 
@@ -31,21 +33,26 @@ export function validateVisitScore(
   currentScore: number,
   checkoutMode: CheckoutMode,
 ): VisitScoreResult {
-  if (!isAchievableScore(score)) return 'invalid_score'
+  if (!isAchievableScore(score))
+    return 'invalid_score'
 
   const remaining = currentScore - score
 
-  if (remaining < 0) return 'bust'
+  if (remaining < 0)
+    return 'bust'
 
   if (remaining === 0) {
-    if (checkoutMode === 'single_out') return 'checkout'
+    if (checkoutMode === 'single_out')
+      return 'checkout'
     // double_out: verify the score has a valid checkout path
-    if (CHECKOUTS[currentScore]) return 'checkout'
+    if (CHECKOUTS[currentScore])
+      return 'checkout'
     return 'invalid_checkout'
   }
 
   // double_out: remaining of 1 is impossible (can't finish with D0.5)
-  if (remaining === 1 && checkoutMode === 'double_out') return 'bust'
+  if (remaining === 1 && checkoutMode === 'double_out')
+    return 'bust'
 
   return 'valid'
 }

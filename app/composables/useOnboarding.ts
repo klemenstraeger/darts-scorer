@@ -1,4 +1,4 @@
-import type { DriveStep, Config } from 'driver.js'
+import type { Config, DriveStep } from 'driver.js'
 
 interface OnboardingState {
   dashboard: boolean
@@ -8,16 +8,20 @@ interface OnboardingState {
 const STORAGE_KEY = 'darts-scorer:onboarding'
 
 function loadState(): OnboardingState {
-  if (!import.meta.client) return { dashboard: false, game: false }
+  if (!import.meta.client)
+    return { dashboard: false, game: false }
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) return JSON.parse(raw)
-  } catch { /* ignore */ }
+    if (raw)
+      return JSON.parse(raw)
+  }
+  catch { /* ignore */ }
   return { dashboard: false, game: false }
 }
 
 function saveState(state: OnboardingState) {
-  if (!import.meta.client) return
+  if (!import.meta.client)
+    return
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
 }
 

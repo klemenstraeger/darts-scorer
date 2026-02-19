@@ -1,8 +1,8 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import {
+  generateGroupSchedule,
   generateKnockoutBracket,
   generateRoundRobinSchedule,
-  generateGroupSchedule,
 } from '../../server/utils/tournament-scheduler'
 
 // ── Knockout Bracket ──
@@ -124,8 +124,8 @@ describe('generateRoundRobinSchedule', () => {
       for (let j = i + 1; j < players.length; j++) {
         const found = matches.some(
           m =>
-            (m.player1Name === players[i] && m.player2Name === players[j]) ||
-            (m.player1Name === players[j] && m.player2Name === players[i]),
+            (m.player1Name === players[i] && m.player2Name === players[j])
+            || (m.player1Name === players[j] && m.player2Name === players[i]),
         )
         expect(found, `${players[i]} vs ${players[j]} should exist`).toBe(true)
       }
@@ -147,8 +147,8 @@ describe('generateRoundRobinSchedule', () => {
       for (let j = i + 1; j < players.length; j++) {
         const found = matches.some(
           m =>
-            (m.player1Name === players[i] && m.player2Name === players[j]) ||
-            (m.player1Name === players[j] && m.player2Name === players[i]),
+            (m.player1Name === players[i] && m.player2Name === players[j])
+            || (m.player1Name === players[j] && m.player2Name === players[i]),
         )
         expect(found, `${players[i]} vs ${players[j]} should exist`).toBe(true)
       }

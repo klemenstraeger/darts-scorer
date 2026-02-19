@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { FORMAT_LABELS, FORMAT_COLORS, type TournamentFormat } from '~/types/tournament'
+import type { TournamentFormat } from '~/types/tournament'
+import { FORMAT_COLORS, FORMAT_LABELS } from '~/types/tournament'
 
 const props = defineProps<{
   format: TournamentFormat

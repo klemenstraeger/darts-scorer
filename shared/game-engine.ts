@@ -8,12 +8,12 @@ import type {
   GameMode,
   GameState,
   Multiplier,
+  Player,
   PlayerDescriptor,
   ThrowResult,
   Turn,
-  Player,
 } from './game-models'
-import { throwPoints, turnIsComplete, turnTotalPoints, createDefaultGameState } from './game-models'
+import { createDefaultGameState, throwPoints, turnIsComplete, turnTotalPoints } from './game-models'
 import { isAchievableScore, validateVisitScore } from './visit-score-validation'
 
 export class GameEngine {
@@ -32,7 +32,7 @@ export class GameEngine {
   ): GameState {
     const descriptors: PlayerDescriptor[] = (playerDescriptors ?? [{ name: 'Player 1' }, { name: 'Player 2' }])
       .map(d => typeof d === 'string' ? { name: d } : d)
-    const starting = parseInt(mode, 10)
+    const starting = Number.parseInt(mode, 10)
     const numPlayers = descriptors.length
 
     this.state = {
@@ -54,8 +54,8 @@ export class GameEngine {
       winner_index: null,
       turn_history: [],
       score_before_turn: starting,
-      current_set_legs: new Array(numPlayers).fill(0),
-      sets_won: new Array(numPlayers).fill(0),
+      current_set_legs: Array.from({ length: numPlayers }).fill(0) as number[],
+      sets_won: Array.from({ length: numPlayers }).fill(0) as number[],
       leg_starting_player: 0,
     }
 
@@ -68,10 +68,12 @@ export class GameEngine {
   }
 
   throw(dart: ThrowResult): GameState {
-    if (this.state.is_finished) return this.state
+    if (this.state.is_finished)
+      return this.state
 
     const turn = this.state.current_turn
-    if (turnIsComplete(turn)) return this.state
+    if (turnIsComplete(turn))
+      return this.state
 
     const player = this.state.players[this.state.current_player_index]!
     const newScore = player.score - throwPoints(dart)
@@ -80,7 +82,8 @@ export class GameEngine {
     if (newScore < 0) {
       this._bust(turn, dart)
       return this.state
-    } else if (newScore === 0) {
+    }
+    else if (newScore === 0) {
       if (this.state.checkout === 'double_out' && dart.multiplier !== 2) {
         this._bust(turn, dart)
         return this.state
@@ -90,11 +93,13 @@ export class GameEngine {
       player.score = 0
       this._winLeg()
       return this.state
-    } else if (newScore === 1 && this.state.checkout === 'double_out') {
+    }
+    else if (newScore === 1 && this.state.checkout === 'double_out') {
       // Can't finish on 1 with double-out (need at least D1=2)
       this._bust(turn, dart)
       return this.state
-    } else {
+    }
+    else {
       // Normal throw
       turn.throws.push(dart)
       player.score = newScore
@@ -109,7 +114,8 @@ export class GameEngine {
   }
 
   undoThrow(): GameState {
-    if (this.state.is_finished) return this.state
+    if (this.state.is_finished)
+      return this.state
 
     const turn = this.state.current_turn
     const player = this.state.players[this.state.current_player_index]!
@@ -120,10 +126,12 @@ export class GameEngine {
       if (turn.busted) {
         turn.busted = false
         player.score = this.state.score_before_turn!
-      } else {
+      }
+      else {
         player.score += throwPoints(last)
       }
-    } else if (this.state.turn_history.length > 0) {
+    }
+    else if (this.state.turn_history.length > 0) {
       // Go back to previous player's turn
       const prevTurn = this.state.turn_history.pop()!
       const prevPlayer = this.state.players[prevTurn.player_index]!
@@ -141,13 +149,15 @@ export class GameEngine {
         prevTurn.visitScore = undefined
         prevTurn.busted = false
         prevPlayer.score = scoreAtTurnStart
-      } else {
+      }
+      else {
         // Per-dart turn: remove last throw
         prevTurn.throws.pop()
         if (prevTurn.busted) {
           prevTurn.busted = false
           prevPlayer.score = scoreAtTurnStart
-        } else {
+        }
+        else {
           // Recompute score: start + points from remaining throws
           const totalRemaining = prevTurn.throws.reduce((sum, t) => sum + throwPoints(t), 0)
           prevPlayer.score = scoreAtTurnStart - totalRemaining
@@ -169,13 +179,16 @@ export class GameEngine {
   }
 
   applyVisitScore(score: number): GameState {
-    if (this.state.is_finished) return this.state
+    if (this.state.is_finished)
+      return this.state
 
     const turn = this.state.current_turn
     // Reject if mid-turn (already has per-dart throws)
-    if (turn.throws.length > 0) return this.state
+    if (turn.throws.length > 0)
+      return this.state
 
-    if (!isAchievableScore(score)) return this.state
+    if (!isAchievableScore(score))
+      return this.state
 
     const player = this.state.players[this.state.current_player_index]!
     const result = validateVisitScore(score, player.score, this.state.checkout)
@@ -245,7 +258,8 @@ export class GameEngine {
 
     if (state.current_set_legs[idx]! >= state.legs_to_win) {
       this._winSet()
-    } else {
+    }
+    else {
       this._startLeg()
     }
   }
@@ -260,9 +274,10 @@ export class GameEngine {
 
     if (state.sets_won[idx]! >= state.sets_to_win) {
       this._finishGame()
-    } else {
+    }
+    else {
       // Reset leg counters for new set
-      state.current_set_legs = new Array(state.players.length).fill(0)
+      state.current_set_legs = Array.from({ length: state.players.length }).fill(0)
       for (const p of state.players) {
         p.legs_won = 0
       }
@@ -272,7 +287,7 @@ export class GameEngine {
 
   private _startLeg(): void {
     const state = this.state
-    const starting = parseInt(state.mode, 10)
+    const starting = Number.parseInt(state.mode, 10)
 
     for (const p of state.players) {
       p.score = starting
@@ -295,7 +310,7 @@ export class GameEngine {
   }
 
   private _recomputeScore(playerIndex: number): number {
-    const starting = parseInt(this.state.mode, 10)
+    const starting = Number.parseInt(this.state.mode, 10)
     const player = this.state.players[playerIndex]!
     const scored = player.turns.reduce(
       (sum, t) => sum + turnTotalPoints(t),

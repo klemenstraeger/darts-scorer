@@ -4,9 +4,9 @@
  */
 
 import type { ThrowResult } from '../../game-models'
-import { throwPoints } from '../../game-models'
-import type { TrainingConfig, HundredDartsState, TrainingThrowResult, TrainingStats } from '../training-models'
+import type { HundredDartsState, TrainingConfig, TrainingStats, TrainingThrowResult } from '../training-models'
 import type { TrainingModeStrategy } from '../training-strategy'
+import { throwPoints } from '../../game-models'
 
 export const hundredDartsStrategy: TrainingModeStrategy<HundredDartsState> = {
   createInitialState(config: TrainingConfig): HundredDartsState {
@@ -33,7 +33,8 @@ export const hundredDartsStrategy: TrainingModeStrategy<HundredDartsState> = {
     if (dart.segment === state.targetSegment) {
       state.hits++
       events.push('target_hit')
-    } else {
+    }
+    else {
       events.push('target_missed')
     }
 
@@ -52,7 +53,8 @@ export const hundredDartsStrategy: TrainingModeStrategy<HundredDartsState> = {
     state.hits = 0
     state.totalScore = 0
     for (const t of state.throws) {
-      if (t.segment === state.targetSegment) state.hits++
+      if (t.segment === state.targetSegment)
+        state.hits++
       state.totalScore += t.points
     }
     return state

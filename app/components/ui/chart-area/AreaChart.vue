@@ -1,13 +1,13 @@
 <script setup lang="ts" generic="T extends Record<string, any>">
-import type { BulletLegendItemInterface } from "@unovis/ts"
-import type { BaseChartProps } from "."
+import type { BulletLegendItemInterface } from '@unovis/ts'
+import type { BaseChartProps } from '.'
 import type { ChartConfig } from '@/components/ui/chart'
-import { Area, Axis, CurveType, Line } from "@unovis/ts"
+import { Area, Axis, CurveType, Line } from '@unovis/ts'
 
-import { VisArea, VisAxis, VisLine, VisXYContainer } from "@unovis/vue"
-import { useMounted } from "@vueuse/core"
-import { useId } from "reka-ui"
-import { computed, ref } from "vue"
+import { VisArea, VisAxis, VisLine, VisXYContainer } from '@unovis/vue'
+import { useMounted } from '@vueuse/core'
+import { useId } from 'reka-ui'
+import { computed, ref } from 'vue'
 import { ChartCrosshair, ChartTooltipContent, componentToString, defaultColors } from '@/components/ui/chart'
 
 const props = withDefaults(defineProps<BaseChartProps<T> & {
@@ -26,7 +26,7 @@ const props = withDefaults(defineProps<BaseChartProps<T> & {
   showGradient: true,
 })
 
-const emits = defineEmits<{
+const _emits = defineEmits<{
   legendItemClick: [d: BulletLegendItemInterface, i: number]
 }>()
 
@@ -47,7 +47,8 @@ const legendItems = ref<BulletLegendItemInterface[]>(props.categories.map((categ
 const isMounted = useMounted()
 
 const tooltipTemplate = computed(() => {
-  if (!props.chartConfig) return undefined
+  if (!props.chartConfig)
+    return undefined
   return componentToString(props.chartConfig, ChartTooltipContent)
 })
 </script>
@@ -94,7 +95,7 @@ const tooltipTemplate = computed(() => {
           :curve-type="curveType"
           :attributes="{
             [Line.selectors.line]: {
-              opacity: legendItems.find(item => item.name === category)?.inactive ? filterOpacity : 1,
+              'opacity': legendItems.find(item => item.name === category)?.inactive ? filterOpacity : 1,
               'stroke-width': i === 0 ? '2' : '1.5',
               'stroke-dasharray': i > 0 ? '6 4' : 'none',
             },
@@ -120,7 +121,7 @@ const tooltipTemplate = computed(() => {
         :grid-line="showGridLine"
         :attributes="{
           [Axis.selectors.grid]: {
-            stroke: 'var(--border-subtle)',
+            'stroke': 'var(--border-subtle)',
             'stroke-dasharray': '3 3',
           },
         }"

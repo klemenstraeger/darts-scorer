@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { generateSegmentPaths, R, CX, CY, COLORS } from '~/utils/dartboard-geometry'
+import { COLORS, CX, CY, generateSegmentPaths, R } from '~/utils/dartboard-geometry'
 
 const props = defineProps<{
   hits: Record<string, number>
@@ -23,7 +23,8 @@ function heatOpacity(segment: number, ring: string): number {
   if (!value && (ring === 'outerSingle' || ring === 'innerSingle')) {
     value = props.hits[segmentKey(segment, 'single')] ?? 0
   }
-  if (!value) return 0.05
+  if (!value)
+    return 0.05
   return Math.min(0.15 + (value / maxHit.value) * 0.75, 0.9)
 }
 </script>

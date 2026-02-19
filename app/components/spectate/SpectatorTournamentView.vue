@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TournamentMatch, TournamentStanding, TournamentFormat } from '~/types/tournament'
+import type { TournamentFormat, TournamentMatch, TournamentStanding } from '~/types/tournament'
 
 const props = defineProps<{
   format: TournamentFormat
@@ -44,7 +44,8 @@ const activeTab = ref<'groups' | 'knockout'>('groups')
 watch(() => hasKnockoutPhase.value, (has) => {
   if (has && props.format === 'group_knockout') {
     const allGroupsDone = groupMatches.value.every(m => m.status === 'completed')
-    if (allGroupsDone) activeTab.value = 'knockout'
+    if (allGroupsDone)
+      activeTab.value = 'knockout'
   }
 }, { immediate: true })
 
@@ -113,7 +114,7 @@ const relevantMatches = computed(() => {
           <div
             class="mode-pill"
             :style="{ transform: activeTab === 'knockout' ? 'translateX(100%)' : 'translateX(0)' }"
-          ></div>
+          />
         </div>
       </div>
 
@@ -122,8 +123,8 @@ const relevantMatches = computed(() => {
         <div class="section">
           <GroupTabs
             v-if="groupCount && groupCount > 1"
-            :group-count="groupCount"
             v-model="selectedGroup"
+            :group-count="groupCount"
           />
           <div class="glass-card p-md">
             <StandingsTable

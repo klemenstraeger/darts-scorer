@@ -15,15 +15,15 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{
   'update:currentStep': [step: number]
-  next: []
-  back: []
-  finish: []
+  'next': []
+  'back': []
+  'finish': []
 }>()
 
 const direction = ref<'forward' | 'backward'>('forward')
 
 const transitionName = computed(() =>
-  direction.value === 'forward' ? 'slide-left' : 'slide-right'
+  direction.value === 'forward' ? 'slide-left' : 'slide-right',
 )
 
 const isLastStep = computed(() => props.currentStep === props.totalSteps)
@@ -39,7 +39,8 @@ function next() {
 }
 
 function back() {
-  if (props.currentStep <= 1) return
+  if (props.currentStep <= 1)
+    return
   direction.value = 'backward'
   emit('update:currentStep', props.currentStep - 1)
   emit('back')

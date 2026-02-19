@@ -5,7 +5,8 @@ const user = useSupabaseUser()
 
 // Redirect if not logged in
 watchEffect(() => {
-  if (!user.value) navigateTo('/login')
+  if (!user.value)
+    navigateTo('/login')
 })
 
 // ── Wizard state ──────────────────────────────────────────────────────
@@ -14,7 +15,7 @@ const direction = ref<'forward' | 'backward'>('forward')
 const profileCreated = ref(false)
 
 const transitionName = computed(() =>
-  direction.value === 'forward' ? 'slide-left' : 'slide-right'
+  direction.value === 'forward' ? 'slide-left' : 'slide-right',
 )
 
 function nextStep() {
@@ -57,10 +58,12 @@ async function createProfile() {
     })
     profileCreated.value = true
     nextStep()
-  } catch (err: any) {
+  }
+  catch (err: any) {
     const msg = err.data?.message || err.message || 'Failed to create profile'
     error.value = msg
-  } finally {
+  }
+  finally {
     loading.value = false
   }
 }
@@ -79,9 +82,9 @@ const features = [
     <ThemeToggle class="fixed top-sm right-sm z-50" />
 
     <div
+      v-motion
       class="glass-card-heavy w-full max-w-[400px] overflow-hidden"
       style="padding: var(--spacing-3xl) var(--spacing-2xl)"
-      v-motion
       :initial="{ opacity: 0, y: 20 }"
       :enter="{ opacity: 1, y: 0, transition: { duration: 400 } }"
     >
@@ -108,7 +111,7 @@ const features = [
           </h1>
 
           <p class="text-fg-muted text-[0.9rem] text-center leading-relaxed">
-            Your personal darts companion.<br />
+            Your personal darts companion.<br>
             Score games, track stats, compete.
           </p>
 
@@ -119,12 +122,14 @@ const features = [
 
         <!-- Step 2: Display Name -->
         <div v-else-if="step === 2" key="name" class="flex flex-col items-center gap-xl">
-          <h1 class="text-2xl font-extrabold text-fg text-center">Choose Your Name</h1>
+          <h1 class="text-2xl font-extrabold text-fg text-center">
+            Choose Your Name
+          </h1>
           <p class="text-fg-muted text-[0.9rem] text-center -mt-md">
             This is how other players will see you.
           </p>
 
-          <form @submit.prevent="createProfile" class="w-full flex flex-col gap-lg">
+          <form class="w-full flex flex-col gap-lg" @submit.prevent="createProfile">
             <div class="relative">
               <input
                 ref="nameInput"
@@ -135,7 +140,7 @@ const features = [
                 required
                 minlength="2"
                 maxlength="20"
-              />
+              >
               <span
                 class="absolute right-md top-1/2 -translate-y-1/2 text-[0.7rem] text-fg-muted"
                 :class="{ 'text-gold': displayName.length > 18 }"
@@ -144,7 +149,9 @@ const features = [
               </span>
             </div>
 
-            <p v-if="error" class="text-red text-[0.85rem] text-center">{{ error }}</p>
+            <p v-if="error" class="text-red text-[0.85rem] text-center">
+              {{ error }}
+            </p>
 
             <button
               type="submit"
@@ -165,7 +172,9 @@ const features = [
 
         <!-- Step 3: Quick Tour -->
         <div v-else key="tour" class="flex flex-col items-center gap-xl">
-          <h1 class="text-2xl font-extrabold text-fg text-center">What You Can Do</h1>
+          <h1 class="text-2xl font-extrabold text-fg text-center">
+            What You Can Do
+          </h1>
 
           <div class="grid grid-cols-2 gap-md w-full">
             <div

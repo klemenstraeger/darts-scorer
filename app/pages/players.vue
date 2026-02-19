@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { AVATAR_STYLES, DEFAULT_AVATAR_STYLE, getAvatarUrl, generateRandomSeed } from '~/utils/avatar'
-import type { AvatarStyle } from '~/utils/avatar'
 import type { PlayerRecord } from '~/composables/usePlayers'
+import type { AvatarStyle } from '~/utils/avatar'
+import { AVATAR_STYLES, DEFAULT_AVATAR_STYLE, generateRandomSeed, getAvatarUrl } from '~/utils/avatar'
 
 const { players, fetchPlayers } = usePlayers()
 
@@ -21,7 +21,8 @@ function rerollSeed() {
 
 async function createPlayer() {
   const name = newName.value.trim()
-  if (!name || creating.value) return
+  if (!name || creating.value)
+    return
   creating.value = true
   try {
     await $fetch('/api/players', {
@@ -32,9 +33,11 @@ async function createPlayer() {
     newSeed.value = ''
     newStyle.value = DEFAULT_AVATAR_STYLE
     await fetchPlayers()
-  } catch (err: any) {
+  }
+  catch {
     // ignore duplicate
-  } finally {
+  }
+  finally {
     creating.value = false
   }
 }
@@ -62,7 +65,8 @@ function editReroll() {
 }
 
 async function saveEdit() {
-  if (!editingId.value || saving.value) return
+  if (!editingId.value || saving.value)
+    return
   saving.value = true
   try {
     await $fetch(`/api/players/${editingId.value}`, {
@@ -75,9 +79,11 @@ async function saveEdit() {
     })
     editingId.value = null
     await fetchPlayers()
-  } catch {
+  }
+  catch {
     // ignore
-  } finally {
+  }
+  finally {
     saving.value = false
   }
 }
@@ -87,15 +93,18 @@ const deleteTarget = ref<PlayerRecord | null>(null)
 const deleting = ref(false)
 
 async function confirmDelete() {
-  if (!deleteTarget.value || deleting.value) return
+  if (!deleteTarget.value || deleting.value)
+    return
   deleting.value = true
   try {
     await $fetch(`/api/players/${deleteTarget.value.id}`, { method: 'DELETE' })
     deleteTarget.value = null
     await fetchPlayers()
-  } catch {
+  }
+  catch {
     // ignore
-  } finally {
+  }
+  finally {
     deleting.value = false
   }
 }
@@ -109,31 +118,37 @@ onMounted(() => {
   <div class="px-lg py-xl max-w-[700px] mx-auto w-full">
     <!-- Hero -->
     <div
-      class="page-hero"
       v-motion
+      class="page-hero"
       :initial="{ opacity: 0, y: -10 }"
       :enter="{ opacity: 1, y: 0, transition: { duration: 300 } }"
     >
       <div>
-        <h2 class="text-[2rem] font-extrabold text-fg mb-xs">Players</h2>
-        <p class="text-[0.9rem] text-fg-secondary">Manage your players and their avatars.</p>
+        <h2 class="text-[2rem] font-extrabold text-fg mb-xs">
+          Players
+        </h2>
+        <p class="text-[0.9rem] text-fg-secondary">
+          Manage your players and their avatars.
+        </p>
       </div>
-      <div class="hero-glow"></div>
+      <div class="hero-glow" />
     </div>
 
     <!-- Create player -->
     <section
-      class="glass-card p-xl mb-xl"
       v-motion
+      class="glass-card p-xl mb-xl"
       :initial="{ opacity: 0, y: 10 }"
       :enter="{ opacity: 1, y: 0, transition: { duration: 300, delay: 100 } }"
     >
-      <h3 class="section-title mb-lg">New Player</h3>
+      <h3 class="section-title mb-lg">
+        New Player
+      </h3>
       <div class="flex gap-lg items-start max-sm:flex-col">
         <!-- Avatar preview -->
         <div class="flex flex-col items-center gap-sm shrink-0">
           <div class="avatar-preview">
-            <img :src="previewUrl" alt="Avatar preview" width="96" height="96" />
+            <img :src="previewUrl" alt="Avatar preview" width="96" height="96">
           </div>
           <button class="btn btn-secondary text-[0.75rem] px-md py-xs" @click="rerollSeed">
             Re-roll
@@ -149,7 +164,7 @@ onMounted(() => {
             placeholder="Player name"
             maxlength="20"
             @keyup.enter="createPlayer"
-          />
+          >
 
           <!-- Style picker -->
           <div class="flex flex-wrap gap-sm">
@@ -158,8 +173,8 @@ onMounted(() => {
               :key="style"
               class="style-thumb"
               :class="{ active: newStyle === style }"
-              @click="newStyle = style"
               :title="style"
+              @click="newStyle = style"
             >
               <img
                 :src="getAvatarUrl(newName || 'Preview', newSeed || undefined, style, 40)"
@@ -167,7 +182,7 @@ onMounted(() => {
                 width="32"
                 height="32"
                 loading="lazy"
-              />
+              >
             </button>
           </div>
 
@@ -203,8 +218,12 @@ onMounted(() => {
               :size="48"
             />
             <div class="flex-1 min-w-0">
-              <div class="text-[0.95rem] font-bold text-fg truncate">{{ player.name }}</div>
-              <div class="text-[0.7rem] text-fg-muted capitalize">{{ player.avatarStyle || 'bottts' }}</div>
+              <div class="text-[0.95rem] font-bold text-fg truncate">
+                {{ player.name }}
+              </div>
+              <div class="text-[0.7rem] text-fg-muted capitalize">
+                {{ player.avatarStyle || 'bottts' }}
+              </div>
             </div>
             <div class="flex gap-xs shrink-0">
               <NuxtLink
@@ -241,7 +260,7 @@ onMounted(() => {
                     alt="Edit preview"
                     width="64"
                     height="64"
-                  />
+                  >
                 </div>
                 <button class="btn btn-secondary text-[0.7rem] px-sm py-xs" @click="editReroll">
                   Re-roll
@@ -255,15 +274,15 @@ onMounted(() => {
                   placeholder="Player name"
                   maxlength="20"
                   @keyup.enter="saveEdit"
-                />
+                >
                 <div class="flex flex-wrap gap-xs">
                   <button
                     v-for="style in AVATAR_STYLES"
                     :key="style"
                     class="style-thumb small"
                     :class="{ active: editStyle === style }"
-                    @click="editStyle = style"
                     :title="style"
+                    @click="editStyle = style"
                   >
                     <img
                       :src="getAvatarUrl(editName || player.name, editSeed || undefined, style, 32)"
@@ -271,13 +290,15 @@ onMounted(() => {
                       width="24"
                       height="24"
                       loading="lazy"
-                    />
+                    >
                   </button>
                 </div>
               </div>
             </div>
             <div class="flex gap-sm justify-end">
-              <button class="btn btn-secondary" @click="cancelEdit">Cancel</button>
+              <button class="btn btn-secondary" @click="cancelEdit">
+                Cancel
+              </button>
               <button class="btn btn-gold" :disabled="!editName.trim() || saving" @click="saveEdit">
                 {{ saving ? 'Saving...' : 'Save' }}
               </button>
@@ -291,7 +312,9 @@ onMounted(() => {
     <Transition name="fade">
       <div v-if="deleteTarget" class="modal-overlay" @click.self="deleteTarget = null">
         <div class="modal-card">
-          <h3 class="text-[1rem] font-bold text-fg mb-sm">Delete Player</h3>
+          <h3 class="text-[1rem] font-bold text-fg mb-sm">
+            Delete Player
+          </h3>
           <div class="flex items-center gap-md mb-md">
             <PlayerAvatar
               :name="deleteTarget.name"
@@ -305,7 +328,9 @@ onMounted(() => {
             This will remove the player from your list. Game history data will be kept.
           </p>
           <div class="flex gap-sm justify-end">
-            <button class="btn btn-secondary" @click="deleteTarget = null">Cancel</button>
+            <button class="btn btn-secondary" @click="deleteTarget = null">
+              Cancel
+            </button>
             <button class="btn btn-danger" :disabled="deleting" @click="confirmDelete">
               {{ deleting ? 'Deleting...' : 'Delete' }}
             </button>

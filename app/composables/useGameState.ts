@@ -1,7 +1,8 @@
-import { GameEngine } from '#shared/game-engine'
-import { GameEvent, detectThrowEvent } from '#shared/game-events'
-import { throwPoints, turnTotalPoints, type CheckoutMode, type GameMode, type Multiplier, type PlayerDescriptor } from '#shared/game-models'
+import type { CheckoutMode, GameMode, Multiplier, PlayerDescriptor } from '#shared/game-models'
 import { getCheckout } from '#shared/checkouts'
+import { GameEngine } from '#shared/game-engine'
+import { detectThrowEvent, GameEvent } from '#shared/game-events'
+import { turnTotalPoints } from '#shared/game-models'
 
 const STORAGE_KEY = 'darts-scorer:active-game'
 const DB_SYNC_INTERVAL = 2000 // Throttled sync: at most every 2 seconds
@@ -28,10 +29,11 @@ let preFinishSnapshot: string | null = null
 const recentAchievements = ref<UnlockedAchievement[]>([])
 let dbSyncTimer: ReturnType<typeof setTimeout> | null = null
 let dbSyncDirty = false
-let lastCheckoutAnnouncement: { playerIndex: number; score: number } | null = null
+let lastCheckoutAnnouncement: { playerIndex: number, score: number } | null = null
 
 function persistToStorage(tournamentMatchId: number | null = null, tournamentId: number | null = null) {
-  if (!engine || !import.meta.client) return
+  if (!engine || !import.meta.client)
+    return
   const data: PersistedGame = {
     state: JSON.parse(JSON.stringify(engine.state)),
     tournamentMatchId,
@@ -41,17 +43,21 @@ function persistToStorage(tournamentMatchId: number | null = null, tournamentId:
 }
 
 function clearStorage() {
-  if (!import.meta.client) return
+  if (!import.meta.client)
+    return
   localStorage.removeItem(STORAGE_KEY)
 }
 
 function readStorage(): PersistedGame | null {
-  if (!import.meta.client) return null
+  if (!import.meta.client)
+    return null
   const raw = localStorage.getItem(STORAGE_KEY)
-  if (!raw) return null
+  if (!raw)
+    return null
   try {
     return JSON.parse(raw)
-  } catch {
+  }
+  catch {
     return null
   }
 }
@@ -59,16 +65,19 @@ function readStorage(): PersistedGame | null {
 /** Throttled sync: fires at most every DB_SYNC_INTERVAL ms. */
 function scheduleDatabaseSync() {
   dbSyncDirty = true
-  if (dbSyncTimer) return // already scheduled — will pick up dirty flag
+  if (dbSyncTimer)
+    return // already scheduled — will pick up dirty flag
   dbSyncTimer = setTimeout(flushDatabaseSync, DB_SYNC_INTERVAL)
 }
 
 function flushDatabaseSync() {
   dbSyncTimer = null
-  if (!dbSyncDirty) return
+  if (!dbSyncDirty)
+    return
   dbSyncDirty = false
   const persisted = readStorage()
-  if (!persisted) return
+  if (!persisted)
+    return
   $fetch('/api/game/sync', {
     method: 'POST',
     body: {
@@ -111,11 +120,12 @@ export function useGameState() {
   const announcer = useAnnouncer()
 
   function syncToStore() {
-    if (!engine) return
+    if (!engine)
+      return
     store.updateState(JSON.parse(JSON.stringify(engine.state)))
   }
 
-  function getTournamentContext(): { matchId: number | null; tournamentId: number | null } {
+  function getTournamentContext(): { matchId: number | null, tournamentId: number | null } {
     // Read from composable refs (set by setContext) — not localStorage,
     // because newGame() persists before setContext() is called.
     return {
@@ -171,7 +181,8 @@ export function useGameState() {
 
   /** Shared finalization: sounds, announcements, save to DB, clear storage. */
   function finalizeGameOver() {
-    if (!engine) return
+    if (!engine)
+      return
     play('game-won')
     vibrate([50, 30, 50, 30, 200])
     store.triggerGameOver()
@@ -183,7 +194,7 @@ export function useGameState() {
 
     // Save finished game to server
     const ctx = getTournamentContext()
-    $fetch<{ gameId: number; newAchievements: UnlockedAchievement[] }>('/api/game/save', {
+    $fetch<{ gameId: number, newAchievements: UnlockedAchievement[] }>('/api/game/save', {
       method: 'POST',
       body: {
         state: JSON.parse(JSON.stringify(engine.state)),
@@ -207,7 +218,8 @@ export function useGameState() {
   }
 
   function cancelGameOver() {
-    if (!preFinishSnapshot) return
+    if (!preFinishSnapshot)
+      return
     const restored = JSON.parse(preFinishSnapshot) as ReturnType<GameEngine['newGame']>
     engine = new GameEngine(restored)
     pendingGameOver.value = false
@@ -220,7 +232,8 @@ export function useGameState() {
 
   /** Shared post-action logic: event detection, sounds, announcements, persistence. */
   function handlePostAction(prevTurnCount: number, prevLegs: number[], prevSets: number[]) {
-    if (!engine) return
+    if (!engine)
+      return
 
     const event = detectThrowEvent(prevTurnCount, prevLegs, prevSets, engine.state)
 
@@ -248,7 +261,8 @@ export function useGameState() {
         const finishingPlayer = engine.state.players[engine.state.winner_index ?? 0]
         if (finishingPlayer?.isBot) {
           finalizeGameOver()
-        } else {
+        }
+        else {
           // Human checkout: show confirmation dialog
           pendingGameOver.value = true
           // Persist so pending state survives page refresh
@@ -267,7 +281,8 @@ export function useGameState() {
           if (turnPts === 180) {
             play('180')
             vibrate([30, 20, 30, 20, 100])
-          } else if (turnPts >= 100) {
+          }
+          else if (turnPts >= 100) {
             play('ton-plus')
             vibrate([30, 20, 60])
           }
@@ -307,7 +322,8 @@ export function useGameState() {
   }
 
   function manualScore(segment: number, multiplier: number) {
-    if (!engine) return
+    if (!engine)
+      return
 
     // Snapshot pre-throw state for event detection
     const prevTurnCount = engine.state.turn_history.length
@@ -323,7 +339,8 @@ export function useGameState() {
   }
 
   function visitScore(score: number) {
-    if (!engine) return
+    if (!engine)
+      return
 
     const prevTurnCount = engine.state.turn_history.length
     const prevLegs = engine.state.players.map(p => p.legs_won)
@@ -337,7 +354,8 @@ export function useGameState() {
   }
 
   function undoThrow() {
-    if (!engine) return
+    if (!engine)
+      return
     engine.undoThrow()
     syncToStore()
     const ctx = getTournamentContext()
@@ -378,7 +396,8 @@ export function useGameState() {
         await $fetch(`/api/tournament/${ctx.tournamentId}/match/${ctx.matchId}/stop`, {
           method: 'POST',
         })
-      } catch (err) {
+      }
+      catch (err) {
         console.warn('Failed to stop tournament match:', err)
       }
       clearTournamentContext()

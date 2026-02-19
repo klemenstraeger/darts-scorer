@@ -10,10 +10,14 @@ const label = computed(() => throwLabel(props.throw))
 const points = computed(() => throwPoints(props.throw))
 
 const colorClass = computed(() => {
-  if (props.throw.segment === 0) return 'miss'
-  if (props.throw.segment === 25) return 'bull'
-  if (props.throw.multiplier === 3) return 'treble'
-  if (props.throw.multiplier === 2) return 'double'
+  if (props.throw.segment === 0)
+    return 'miss'
+  if (props.throw.segment === 25)
+    return 'bull'
+  if (props.throw.multiplier === 3)
+    return 'treble'
+  if (props.throw.multiplier === 2)
+    return 'double'
   return 'single'
 })
 </script>

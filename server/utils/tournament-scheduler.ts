@@ -18,12 +18,13 @@ export interface MatchTemplate {
  */
 export function generateKnockoutBracket(players: string[]): MatchTemplate[] {
   const n = players.length
-  if (n < 2) throw new Error('Need at least 2 players')
+  if (n < 2)
+    throw new Error('Need at least 2 players')
 
   // Next power of 2
   const bracketSize = nextPowerOf2(n)
   const totalRounds = Math.log2(bracketSize)
-  const byeCount = bracketSize - n
+  const _byeCount = bracketSize - n
 
   // Seed positions: standard bracket seeding
   const seeds = generateBracketSeeds(bracketSize)
@@ -52,7 +53,7 @@ export function generateKnockoutBracket(players: string[]): MatchTemplate[] {
     }
     if (!p1 && p2) {
       continue
-      }
+    }
     if (!p1 && !p2) {
       continue
     }
@@ -70,7 +71,7 @@ export function generateKnockoutBracket(players: string[]): MatchTemplate[] {
   // Fill subsequent rounds with empty match slots
   // Also place bye winners into round 2
   for (let round = 2; round <= totalRounds; round++) {
-    const matchCount = bracketSize / Math.pow(2, round)
+    const matchCount = bracketSize / 2 ** round
     for (let pos = 0; pos < matchCount; pos++) {
       // Check if any bye winners should be placed here
       let p1: string | null = null
@@ -110,8 +111,10 @@ function getByeWinner(
   const p2 = seedToPlayer.get(seed2) ?? null
 
   // Bye: one player present, other absent
-  if (p1 && !p2) return p1
-  if (!p1 && p2) return p2
+  if (p1 && !p2)
+    return p1
+  if (!p1 && p2)
+    return p2
   return null
 }
 
@@ -125,12 +128,14 @@ export function generateRoundRobinSchedule(
   groupIndex: number | null = null,
 ): MatchTemplate[] {
   const n = players.length
-  if (n < 2) throw new Error('Need at least 2 players')
+  if (n < 2)
+    throw new Error('Need at least 2 players')
 
   // If odd number, add a "BYE" placeholder
   const list = [...players]
   const hasGhost = n % 2 !== 0
-  if (hasGhost) list.push('__BYE__')
+  if (hasGhost)
+    list.push('__BYE__')
 
   const size = list.length
   const rounds = size - 1
@@ -150,7 +155,8 @@ export function generateRoundRobinSchedule(
       const p2 = current[size - 1 - i]!
 
       // Skip matches involving the ghost player
-      if (p1 === '__BYE__' || p2 === '__BYE__') continue
+      if (p1 === '__BYE__' || p2 === '__BYE__')
+        continue
 
       matches.push({
         round: round + 1,
@@ -176,13 +182,15 @@ export function generateRoundRobinSchedule(
 export function generateGroupSchedule(
   players: string[],
   groupCount: number,
-): { assignments: { playerName: string; groupIndex: number }[]; matches: MatchTemplate[] } {
-  if (groupCount < 2) throw new Error('Need at least 2 groups')
-  if (players.length < groupCount * 2) throw new Error('Need at least 2 players per group')
+): { assignments: { playerName: string, groupIndex: number }[], matches: MatchTemplate[] } {
+  if (groupCount < 2)
+    throw new Error('Need at least 2 groups')
+  if (players.length < groupCount * 2)
+    throw new Error('Need at least 2 players per group')
 
   // Snake draft: 1→A, 2→B, 3→C, 4→C, 5→B, 6→A, 7→A, 8→B...
   const groups: string[][] = Array.from({ length: groupCount }, () => [])
-  const assignments: { playerName: string; groupIndex: number }[] = []
+  const assignments: { playerName: string, groupIndex: number }[] = []
 
   for (let i = 0; i < players.length; i++) {
     const round = Math.floor(i / groupCount)
@@ -217,7 +225,8 @@ function nextPowerOf2(n: number): number {
  * E.g. for 8: [1,8,4,5,2,7,3,6] so seed 1 plays 8, 4 plays 5, etc.
  */
 function generateBracketSeeds(size: number): number[] {
-  if (size === 1) return [1]
+  if (size === 1)
+    return [1]
 
   const half = generateBracketSeeds(size / 2)
   const result: number[] = []
