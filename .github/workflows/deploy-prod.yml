@@ -31,18 +31,9 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
-  deploy:
-    name: Deploy to Dokploy (Prod)
-    needs: migrate
-    runs-on: ubuntu-latest
-    environment: prod
-    steps:
-      - name: Trigger Dokploy webhook
-        run: curl -sSf -X POST "${{ secrets.DOKPLOY_WEBHOOK_URL }}"
-
   release:
     name: Create GitHub Release
-    needs: deploy
+    needs: migrate
     runs-on: ubuntu-latest
     permissions:
       contents: write

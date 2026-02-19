@@ -30,12 +30,3 @@ jobs:
         run: pnpm db:migrate
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-
-  deploy:
-    name: Deploy to Dokploy (Dev)
-    needs: migrate
-    runs-on: ubuntu-latest
-    environment: dev
-    steps:
-      - name: Trigger Dokploy webhook
-        run: curl -sSf -X POST "${{ secrets.DOKPLOY_WEBHOOK_URL }}"
