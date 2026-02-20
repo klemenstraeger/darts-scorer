@@ -94,12 +94,7 @@ function focusNextInput(index: number) {
   <div class="flex flex-col items-center gap-xl px-lg py-xl max-w-[600px] mx-auto w-full max-sm:px-md">
     <!-- Back link -->
     <div class="w-full flex items-center justify-between">
-      <NuxtLink to="/" class="back-link">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="15 18 9 12 15 6" />
-        </svg>
-        Back
-      </NuxtLink>
+      <BackLink to="/" label="Back" />
       <NuxtLink v-if="!isAuthenticated" to="/login" class="text-[0.8rem] font-semibold text-fg-muted hover:text-gold transition-colors">
         Sign In
       </NuxtLink>
@@ -127,7 +122,7 @@ function focusNextInput(index: number) {
         <span class="text-[0.75rem] font-bold text-fg-muted w-[20px] text-center shrink-0">{{ i + 1 }}</span>
         <input
           v-model="playerNames[i]"
-          class="player-name-input"
+          class="player-name-input flex-1 px-md py-sm bg-surface-1 border-2 border-black rounded-md text-fg font-semibold text-base outline-none transition-all duration-fast focus:border-[var(--yellow)] focus:shadow-sm placeholder:text-fg-muted placeholder:font-normal"
           type="text"
           :placeholder="`Player ${i + 1}`"
           maxlength="20"
@@ -135,7 +130,7 @@ function focusNextInput(index: number) {
         >
         <button
           v-if="playerNames.length > 1 || botPlayers.size > 0"
-          class="remove-btn"
+          class="flex items-center justify-center w-8 h-8 bg-transparent border-2 border-black rounded-sm text-fg-muted text-[1.2rem] cursor-pointer transition-all duration-fast shrink-0 hover:text-[var(--red)] hover:border-[var(--red)] hover:bg-[var(--red-tint)]"
           title="Remove player"
           @click="removePlayer(i)"
         >
@@ -146,7 +141,7 @@ function focusNextInput(index: number) {
       <!-- Add player button -->
       <button
         v-if="playerNames.length + botPlayers.size < 4"
-        class="add-player-btn"
+        class="flex items-center justify-center gap-xs px-md py-sm bg-transparent border-2 border-dashed border-black rounded-md text-fg-muted text-[0.85rem] font-semibold cursor-pointer transition-all duration-fast hover:border-[var(--yellow)] hover:text-[var(--yellow)]"
         @click="addPlayer"
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -164,7 +159,7 @@ function focusNextInput(index: number) {
         <button
           v-for="diff in (['easy', 'medium', 'hard', 'pro'] as const)"
           :key="diff"
-          class="bot-diff-btn"
+          class="inline-flex items-center px-md py-xs bg-surface-1 border-2 border-black rounded-md text-fg-secondary text-[0.85rem] font-semibold cursor-pointer shadow-sm transition-all duration-fast hover:bg-[var(--yellow-light)] hover:text-[var(--yellow)] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-md active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
           @click="addBot(diff)"
         >
           <svg class="inline-block w-[14px] h-[14px] mr-[4px] opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2" /><circle cx="8.5" cy="16" r="1.5" /><circle cx="15.5" cy="16" r="1.5" /><path d="M12 2v5M7 7h10" /></svg>
@@ -178,16 +173,19 @@ function focusNextInput(index: number) {
       <span
         v-for="[name] in botPlayers"
         :key="name"
-        class="bot-chip"
+        class="inline-flex items-center px-sm py-xs bg-[var(--yellow-light)] border-2 border-black rounded-md text-[var(--yellow)] text-[0.8rem] font-semibold"
       >
         <svg class="inline-block w-[14px] h-[14px] mr-[3px] opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2" /><circle cx="8.5" cy="16" r="1.5" /><circle cx="15.5" cy="16" r="1.5" /><path d="M12 2v5M7 7h10" /></svg>
         {{ name }}
-        <button class="bot-chip-remove" @click="removeBot(name)">&times;</button>
+        <button class="ml-xs bg-transparent border-none text-fg-muted text-base cursor-pointer leading-none p-0 px-[2px] hover:text-[var(--red)]" @click="removeBot(name)">&times;</button>
       </span>
     </div>
 
     <!-- Settings toggle -->
-    <button class="settings-toggle" @click="showSettings = !showSettings">
+    <button
+      class="flex items-center gap-sm px-md py-sm bg-surface-1 border-2 border-black rounded-md text-fg-muted text-[0.85rem] font-semibold cursor-pointer transition-all duration-fast hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-sm hover:text-fg-secondary"
+      @click="showSettings = !showSettings"
+    >
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="12" r="3" />
         <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
@@ -215,18 +213,18 @@ function focusNextInput(index: number) {
 
     <!-- Start button -->
     <button
-      class="start-btn"
+      class="flex flex-col items-center gap-[2px] w-full px-xl py-md bg-[var(--yellow)] text-black border-[3px] border-black rounded-lg font-extrabold text-[1.05rem] cursor-pointer shadow-lg transition-all duration-fast hover:not-disabled:-translate-x-0.5 hover:not-disabled:-translate-y-0.5 hover:not-disabled:shadow-xl active:not-disabled:translate-x-0.5 active:not-disabled:translate-y-0.5 active:not-disabled:shadow-none disabled:opacity-40 disabled:cursor-not-allowed"
       :disabled="!canStart"
       @click="startGame"
     >
       Start Game
-      <span v-if="!showSettings" class="start-hint">{{ gameMode }} &middot; {{ checkout === 'double_out' ? 'Double Out' : 'Single Out' }} &middot; {{ legsToWin }} {{ legsToWin === 1 ? 'Leg' : 'Legs' }}</span>
+      <span v-if="!showSettings" class="text-[0.7rem] font-medium opacity-80">{{ gameMode }} &middot; {{ checkout === 'double_out' ? 'Double Out' : 'Single Out' }} &middot; {{ legsToWin }} {{ legsToWin === 1 ? 'Leg' : 'Legs' }}</span>
     </button>
 
     <!-- Abandon confirm modal -->
     <Teleport to="body">
-      <div v-if="showAbandonConfirm" class="modal-overlay" @click.self="showAbandonConfirm = false">
-        <div class="glass-card-heavy w-full max-w-[380px] p-2xl flex flex-col gap-lg">
+      <div v-if="showAbandonConfirm" class="fixed inset-0 z-100 flex items-center justify-center bg-black/50 p-lg" @click.self="showAbandonConfirm = false">
+        <div class="bg-surface-1 border-[3px] border-black rounded-lg shadow-lg w-full max-w-[380px] p-2xl flex flex-col gap-lg">
           <h3 class="text-[1.1rem] font-bold text-fg">
             Abandon Current Game?
           </h3>
@@ -234,247 +232,15 @@ function focusNextInput(index: number) {
             Starting a new game will end your current game in progress.
           </p>
           <div class="flex gap-md justify-end">
-            <button class="btn btn-secondary" @click="showAbandonConfirm = false">
+            <Button variant="secondary" @click="showAbandonConfirm = false">
               Cancel
-            </button>
-            <button class="btn btn-danger" @click="doStartGame">
+            </Button>
+            <Button variant="destructive" @click="doStartGame">
               Start New Game
-            </button>
+            </Button>
           </div>
         </div>
       </div>
     </Teleport>
   </div>
 </template>
-
-<style scoped>
-/* ── Back link ─────────────────────────────────────────────── */
-.back-link {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  color: var(--text-muted);
-  text-decoration: none;
-  font-size: 0.85rem;
-  font-weight: 600;
-  transition: color var(--duration-fast);
-}
-
-.back-link:hover {
-  color: var(--text-primary);
-}
-
-/* ── Player name inputs ──────────────────────────────────────── */
-.player-name-input {
-  flex: 1;
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  color: var(--text-primary);
-  font-family: var(--font-sans);
-  font-size: 1rem;
-  font-weight: 600;
-  outline: none;
-  transition: border-color var(--duration-fast);
-}
-
-.player-name-input::placeholder {
-  color: var(--text-muted);
-  font-weight: 400;
-}
-
-.player-name-input:focus {
-  border-color: var(--gold);
-}
-
-.remove-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  background: transparent;
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  color: var(--text-muted);
-  font-size: 1.2rem;
-  cursor: pointer;
-  transition: all var(--duration-fast);
-  shrink: 0;
-}
-
-.remove-btn:hover {
-  color: var(--red);
-  border-color: var(--red);
-  background: rgba(239, 68, 68, 0.1);
-}
-
-.add-player-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: transparent;
-  border: 1px dashed var(--border-subtle);
-  border-radius: var(--radius-md);
-  color: var(--text-muted);
-  font-family: var(--font-sans);
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--duration-fast);
-}
-
-.add-player-btn:hover {
-  border-color: var(--gold);
-  color: var(--gold);
-}
-
-/* ── Settings toggle ──────────────────────────────────────── */
-.settings-toggle {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: transparent;
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  color: var(--text-muted);
-  font-family: var(--font-sans);
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--duration-fast);
-}
-
-.settings-toggle:hover {
-  border-color: var(--border-default);
-  color: var(--text-secondary);
-}
-
-/* ── Settings transition ──────────────────────────────────── */
-.settings-enter-active {
-  transition: all var(--duration-normal) var(--ease-out);
-}
-
-.settings-leave-active {
-  transition: all var(--duration-fast) var(--ease-out);
-}
-
-.settings-enter-from,
-.settings-leave-to {
-  opacity: 0;
-  transform: translateY(-8px);
-}
-
-/* ── Start button ──────────────────────────────────────────── */
-.start-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  width: 100%;
-  padding: var(--spacing-md) var(--spacing-xl);
-  background: var(--gold-gradient);
-  color: var(--text-inverse);
-  border: none;
-  border-radius: var(--radius-lg);
-  font-family: var(--font-sans);
-  font-size: 1.05rem;
-  font-weight: 800;
-  cursor: pointer;
-  transition:
-    transform var(--duration-fast) var(--ease-out),
-    box-shadow var(--duration-normal) var(--ease-out),
-    opacity var(--duration-fast);
-  box-shadow: var(--shadow-glow-gold);
-}
-
-.start-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-glow-gold), 0 8px 30px rgba(255, 215, 0, 0.2);
-}
-
-.start-btn:active:not(:disabled) {
-  transform: scale(0.97);
-}
-
-.start-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.start-hint {
-  font-size: 0.7rem;
-  font-weight: 500;
-  opacity: 0.8;
-}
-
-/* ── Bot difficulty buttons ─────────────────────────────────── */
-.bot-diff-btn {
-  display: inline-flex;
-  align-items: center;
-  padding: var(--spacing-xs) var(--spacing-md);
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  color: var(--text-secondary);
-  font-family: var(--font-sans);
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: border-color var(--duration-fast), background var(--duration-fast);
-}
-
-.bot-diff-btn:hover {
-  border-color: var(--border-gold);
-  background: rgba(255, 215, 0, 0.06);
-  color: var(--gold);
-}
-
-.bot-diff-btn:active {
-  transform: scale(0.96);
-}
-
-/* ── Bot chips ──────────────────────────────────────────────── */
-.bot-chip {
-  display: inline-flex;
-  align-items: center;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  background: rgba(255, 215, 0, 0.08);
-  border: 1px solid rgba(255, 215, 0, 0.2);
-  border-radius: var(--radius-md);
-  color: var(--gold);
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.bot-chip-remove {
-  margin-left: var(--spacing-xs);
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  font-size: 1rem;
-  cursor: pointer;
-  line-height: 1;
-  padding: 0 2px;
-}
-
-.bot-chip-remove:hover {
-  color: var(--red);
-}
-
-/* ── Modal overlay ───────────────────────────────────────────── */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-  padding: var(--spacing-lg);
-}
-</style>

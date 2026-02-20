@@ -7,47 +7,31 @@ const props = defineProps<{
 }>()
 
 const label = computed(() => FORMAT_LABELS[props.format])
-const colorClass = computed(() => `badge-${FORMAT_COLORS[props.format]}`)
+const colorClass = computed(() => `format-badge-${FORMAT_COLORS[props.format]}`)
 </script>
 
 <template>
-  <span class="format-badge" :class="colorClass">{{ label }}</span>
+  <span class="inline-flex items-center py-[2px] px-sm rounded-sm text-[0.7rem] font-bold uppercase tracking-[0.5px] whitespace-nowrap border-2 border-black" :class="colorClass">{{ label }}</span>
 </template>
 
-<style scoped>
-.format-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px var(--spacing-sm);
-  border-radius: var(--radius-full);
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  white-space: nowrap;
+<style>
+.format-badge-red {
+  background: var(--red-light);
+  color: black;
 }
 
-.badge-red {
-  background: var(--red-tint);
-  color: var(--red);
-  border: 1px solid rgba(239, 68, 68, 0.2);
+.format-badge-blue {
+  background: var(--blue-light);
+  color: black;
 }
 
-.badge-blue {
-  background: var(--blue-tint);
-  color: var(--blue);
-  border: 1px solid rgba(59, 130, 246, 0.2);
+.format-badge-green {
+  background: var(--green-light);
+  color: black;
 }
 
-.badge-green {
-  background: var(--green-tint);
-  color: var(--green);
-  border: 1px solid rgba(34, 197, 94, 0.2);
-}
-
-.badge-purple {
-  background: rgba(168, 85, 247, 0.08);
-  color: var(--purple);
-  border: 1px solid rgba(168, 85, 247, 0.2);
+.format-badge-purple {
+  background: var(--purple-light);
+  color: black;
 }
 </style>

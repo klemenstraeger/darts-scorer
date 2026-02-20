@@ -42,23 +42,27 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="spectator-header">
-    <div class="header-left">
-      <h1 class="header-title">
+  <div class="flex items-center justify-between px-lg py-sm bg-surface-1 border-b-2 border-black shrink-0">
+    <div class="flex items-center gap-md min-w-0">
+      <h1 class="text-[1.2rem] font-extrabold text-fg whitespace-nowrap overflow-hidden text-ellipsis">
         {{ name }}
       </h1>
       <FormatBadge :format="format" />
-      <span class="header-settings">{{ settingsStr }}</span>
+      <span class="text-[0.75rem] text-fg-muted font-semibold whitespace-nowrap">{{ settingsStr }}</span>
     </div>
-    <div class="header-right">
-      <span v-if="winnerName" class="winner-badge">
+    <div class="flex items-center gap-md shrink-0">
+      <span v-if="winnerName" class="text-[0.85rem] font-bold text-yellow">
         {{ winnerName }} wins!
       </span>
-      <span v-if="isLive" class="live-badge">
-        <span class="live-dot" />
+      <span v-if="isLive" class="inline-flex items-center gap-[6px] px-sm py-[3px] bg-red border-2 border-black rounded-full text-[0.7rem] font-extrabold text-white uppercase tracking-[1px]">
+        <span class="w-[6px] h-[6px] rounded-full bg-white" style="animation: pulse-opacity 1.5s ease-in-out infinite;" />
         LIVE
       </span>
-      <button class="fullscreen-btn" :title="isFullscreen ? 'Exit fullscreen' : 'Fullscreen'" @click="toggleFullscreen">
+      <button
+        class="flex items-center justify-center w-[32px] h-[32px] rounded-sm bg-surface-1 border-2 border-black text-fg cursor-pointer transition-all hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-md active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+        :title="isFullscreen ? 'Exit fullscreen' : 'Fullscreen'"
+        @click="toggleFullscreen"
+      >
         <svg v-if="!isFullscreen" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
         </svg>
@@ -69,103 +73,3 @@ onMounted(() => {
     </div>
   </div>
 </template>
-
-<style scoped>
-.spectator-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--spacing-sm) var(--spacing-lg);
-  background: var(--surface-glass);
-  backdrop-filter: blur(var(--blur-glass));
-  -webkit-backdrop-filter: blur(var(--blur-glass));
-  border-bottom: 1px solid var(--border-subtle);
-  flex-shrink: 0;
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  min-width: 0;
-}
-
-.header-title {
-  font-size: 1.2rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.header-settings {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  flex-shrink: 0;
-}
-
-.winner-badge {
-  font-size: 0.85rem;
-  font-weight: 700;
-  background: var(--gold-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.live-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 3px var(--spacing-sm);
-  background: var(--red-tint);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  border-radius: var(--radius-full, 999px);
-  font-size: 0.7rem;
-  font-weight: 800;
-  color: var(--red);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.live-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--red);
-  animation: pulse-dot 1.5s ease-in-out infinite;
-}
-
-@keyframes pulse-dot {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.4; transform: scale(0.8); }
-}
-
-.fullscreen-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-sm);
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: color var(--duration-fast), border-color var(--duration-fast);
-}
-
-.fullscreen-btn:hover {
-  color: var(--text-primary);
-  border-color: var(--border-default);
-}
-</style>

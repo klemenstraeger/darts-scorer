@@ -221,11 +221,14 @@ async function deleteTournament() {
       </div>
 
       <!-- Error -->
-      <div v-else-if="error && !tournament" class="glass-card w-full p-2xl text-center">
+      <div v-else-if="error && !tournament" class="bg-surface-1 border-2 border-black rounded-lg shadow-md w-full p-2xl text-center">
         <p class="text-red text-[0.9rem] font-semibold">
           {{ error }}
         </p>
-        <NuxtLink to="/tournaments" class="btn btn-secondary mt-md">
+        <NuxtLink
+          to="/tournaments"
+          class="mt-md inline-flex items-center justify-center px-xl py-sm bg-[var(--surface-2)] text-fg border-2 border-black rounded-md font-bold text-sm shadow-md hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-lg active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all duration-fast"
+        >
           Back to Tournaments
         </NuxtLink>
       </div>
@@ -241,7 +244,7 @@ async function deleteTournament() {
               </h1>
               <div class="flex items-center gap-sm flex-wrap">
                 <FormatBadge :format="tournament.format" />
-                <span v-if="tournament.teamMode" class="text-[0.65rem] font-bold text-gold uppercase tracking-wide px-sm py-[1px] rounded-full border border-gold/30 bg-gold/10">Doubles</span>
+                <span v-if="tournament.teamMode" class="text-[0.65rem] font-bold text-yellow uppercase tracking-wide px-sm py-[1px] rounded-sm border-2 border-black bg-yellow-light">Doubles</span>
                 <span class="text-[0.75rem] text-fg-muted">{{ settingsSummary }}</span>
                 <span class="text-[0.75rem] text-fg-muted">{{ tournament.playerCount }} {{ tournament.teamMode ? 'teams' : 'players' }}</span>
               </div>
@@ -249,29 +252,24 @@ async function deleteTournament() {
             <div class="flex items-center gap-sm shrink-0 flex-wrap">
               <span
                 v-if="tournament.status === 'completed' && tournament.winnerName"
-                class="text-[0.85rem] font-bold text-gold"
+                class="text-[0.85rem] font-bold text-yellow"
               >
                 Winner: {{ tournament.winnerName }}
               </span>
-              <button
-                class="btn btn-secondary text-[0.75rem]"
-                @click="copySpectateUrl"
-              >
+              <Button variant="secondary" size="sm" @click="copySpectateUrl">
                 {{ spectateUrlCopied ? 'Copied!' : 'Spectate URL' }}
-              </button>
-              <button
-                class="btn btn-secondary text-[0.75rem]"
-                @click="copyCameraUrl"
-              >
+              </Button>
+              <Button variant="secondary" size="sm" @click="copyCameraUrl">
                 {{ cameraUrlCopied ? 'Copied!' : 'Camera URL' }}
-              </button>
-              <button
+              </Button>
+              <Button
                 v-if="tournament.status !== 'in_progress'"
-                class="btn btn-danger text-[0.75rem]"
+                variant="destructive"
+                size="sm"
                 @click="deleteTournament"
               >
                 Delete
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -295,34 +293,22 @@ async function deleteTournament() {
         <template v-if="isLeague">
           <!-- League tab navigation -->
           <div class="w-full">
-            <div class="league-tabs">
+            <div class="flex bg-[var(--surface-2)] rounded-md border-2 border-black overflow-hidden">
               <button
-                class="league-tab"
-                :class="{ active: leagueTab === 'standings' }"
-                @click="leagueTab = 'standings'"
+                v-for="tab in (['standings', 'fixtures', 'matches'] as const)"
+                :key="tab"
+                class="flex-1 px-md py-sm text-center text-[0.8rem] font-bold cursor-pointer transition-colors duration-150 relative"
+                :class="leagueTab === tab ? 'text-black bg-[var(--yellow)]' : 'text-fg-muted hover:text-fg hover:bg-[var(--surface-3)]'"
+                @click="leagueTab = tab"
               >
-                Standings
-              </button>
-              <button
-                class="league-tab"
-                :class="{ active: leagueTab === 'fixtures' }"
-                @click="leagueTab = 'fixtures'"
-              >
-                Fixtures
-              </button>
-              <button
-                class="league-tab"
-                :class="{ active: leagueTab === 'matches' }"
-                @click="leagueTab = 'matches'"
-              >
-                All Matches
+                {{ tab === 'standings' ? 'Standings' : tab === 'fixtures' ? 'Fixtures' : 'All Matches' }}
               </button>
             </div>
           </div>
 
           <!-- Standings tab -->
           <div v-if="leagueTab === 'standings'" class="w-full flex flex-col gap-lg">
-            <div class="glass-card p-md">
+            <div class="bg-surface-1 border-2 border-black rounded-lg shadow-md p-md">
               <StandingsTable :standings="leagueStandings" />
             </div>
           </div>
@@ -331,12 +317,9 @@ async function deleteTournament() {
           <div v-if="leagueTab === 'fixtures'" class="w-full flex flex-col gap-lg">
             <div class="flex items-center justify-between">
               <span class="text-[0.75rem] font-semibold text-fg-muted uppercase tracking-widest">Fixture Calendar</span>
-              <button
-                class="btn btn-secondary text-[0.75rem]"
-                @click="showScheduleModal = true"
-              >
+              <Button variant="secondary" size="sm" @click="showScheduleModal = true">
                 {{ hasScheduledFixtures ? 'Reschedule' : 'Schedule Fixtures' }}
-              </button>
+              </Button>
             </div>
             <FixtureCalendar
               :matches="leagueMatches"
@@ -364,26 +347,14 @@ async function deleteTournament() {
         <template v-if="hasGroups">
           <!-- Tab switch for group_knockout when knockout is available -->
           <div v-if="isGroupKnockout && hasKnockoutPhase" class="w-full">
-            <div class="mode-toggle">
-              <button
-                class="mode-option"
-                :class="{ active: activeTab === 'groups' }"
-                @click="activeTab = 'groups'"
-              >
-                Groups
-              </button>
-              <button
-                class="mode-option"
-                :class="{ active: activeTab === 'knockout' }"
-                @click="activeTab = 'knockout'"
-              >
-                Knockout
-              </button>
-              <div
-                class="mode-pill"
-                :style="{ transform: activeTab === 'knockout' ? 'translateX(100%)' : 'translateX(0)' }"
-              />
-            </div>
+            <ModeToggle
+              :model-value="activeTab"
+              :options="[
+                { value: 'groups', label: 'Groups' },
+                { value: 'knockout', label: 'Knockout' },
+              ]"
+              @update:model-value="activeTab = $event as 'groups' | 'knockout'"
+            />
           </div>
 
           <!-- Groups view -->
@@ -395,7 +366,7 @@ async function deleteTournament() {
                 :group-count="tournament.groupCount"
               />
 
-              <div class="glass-card p-md">
+              <div class="bg-surface-1 border-2 border-black rounded-lg shadow-md p-md">
                 <StandingsTable
                   :standings="currentGroupStandings"
                   :advance-count="isGroupKnockout ? tournament.advancePerGroup ?? undefined : undefined"
@@ -433,7 +404,7 @@ async function deleteTournament() {
           <!-- Group phase complete notice -->
           <div
             v-if="groupPhaseDone && isGroupKnockout && !hasKnockoutPhase"
-            class="glass-card w-full p-lg text-center"
+            class="bg-surface-1 border-2 border-black rounded-lg shadow-md w-full p-lg text-center"
           >
             <p class="text-fg-muted text-[0.85rem]">
               Group phase complete. Knockout bracket generating...
@@ -444,8 +415,8 @@ async function deleteTournament() {
 
       <!-- Abandon game confirm modal -->
       <Teleport to="body">
-        <div v-if="confirmMatchId" class="modal-overlay" @click.self="confirmMatchId = null">
-          <div class="glass-card-heavy w-full max-w-[380px] p-2xl flex flex-col gap-lg">
+        <div v-if="confirmMatchId" class="fixed inset-0 z-100 flex items-center justify-center bg-black/60 p-lg" @click.self="confirmMatchId = null">
+          <div class="bg-surface-1 border-[3px] border-black rounded-lg shadow-lg w-full max-w-[380px] p-2xl flex flex-col gap-lg">
             <h3 class="text-[1.1rem] font-bold text-fg">
               Abandon Current Game?
             </h3>
@@ -453,12 +424,12 @@ async function deleteTournament() {
               Starting this tournament match will end your current game in progress.
             </p>
             <div class="flex gap-md justify-end">
-              <button class="btn btn-secondary" @click="confirmMatchId = null">
+              <Button variant="secondary" @click="confirmMatchId = null">
                 Cancel
-              </button>
-              <button class="btn btn-gold" @click="doPlayMatch(confirmMatchId!)">
+              </Button>
+              <Button @click="doPlayMatch(confirmMatchId!)">
                 Start Match
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -466,8 +437,8 @@ async function deleteTournament() {
 
       <!-- Schedule fixtures modal -->
       <Teleport to="body">
-        <div v-if="showScheduleModal" class="modal-overlay" @click.self="showScheduleModal = false">
-          <div class="glass-card-heavy w-full max-w-[420px] p-2xl flex flex-col gap-lg">
+        <div v-if="showScheduleModal" class="fixed inset-0 z-100 flex items-center justify-center bg-black/60 p-lg" @click.self="showScheduleModal = false">
+          <div class="bg-surface-1 border-[3px] border-black rounded-lg shadow-lg w-full max-w-[420px] p-2xl flex flex-col gap-lg">
             <h3 class="text-[1.1rem] font-bold text-fg">
               Schedule Fixtures
             </h3>
@@ -476,18 +447,18 @@ async function deleteTournament() {
             </p>
 
             <div class="flex flex-col gap-md">
-              <div class="schedule-field">
-                <label class="schedule-label">Start Date</label>
+              <div class="flex flex-col gap-xs">
+                <label class="text-[0.75rem] font-bold text-fg-muted uppercase tracking-wider">Start Date</label>
                 <input
                   v-model="scheduleStartDate"
                   type="date"
-                  class="schedule-input"
+                  class="px-md py-sm bg-surface-1 border-2 border-black rounded-md text-fg text-[0.85rem] outline-none transition-colors duration-fast focus:border-[var(--yellow)]"
                 >
               </div>
 
-              <div class="schedule-field">
-                <label class="schedule-label">Days Between Match Days</label>
-                <select v-model.number="scheduleIntervalDays" class="schedule-input">
+              <div class="flex flex-col gap-xs">
+                <label class="text-[0.75rem] font-bold text-fg-muted uppercase tracking-wider">Days Between Match Days</label>
+                <select v-model.number="scheduleIntervalDays" class="px-md py-sm bg-surface-1 border-2 border-black rounded-md text-fg text-[0.85rem] outline-none transition-colors duration-fast focus:border-[var(--yellow)]">
                   <option :value="1">
                     Every day
                   </option>
@@ -506,9 +477,9 @@ async function deleteTournament() {
                 </select>
               </div>
 
-              <div class="schedule-field">
-                <label class="schedule-label">Matches Per Day</label>
-                <select v-model.number="scheduleMatchesPerDay" class="schedule-input">
+              <div class="flex flex-col gap-xs">
+                <label class="text-[0.75rem] font-bold text-fg-muted uppercase tracking-wider">Matches Per Day</label>
+                <select v-model.number="scheduleMatchesPerDay" class="px-md py-sm bg-surface-1 border-2 border-black rounded-md text-fg text-[0.85rem] outline-none transition-colors duration-fast focus:border-[var(--yellow)]">
                   <option :value="1">
                     1
                   </option>
@@ -536,16 +507,15 @@ async function deleteTournament() {
             </div>
 
             <div class="flex gap-md justify-end">
-              <button class="btn btn-secondary" @click="showScheduleModal = false">
+              <Button variant="secondary" @click="showScheduleModal = false">
                 Cancel
-              </button>
-              <button
-                class="btn btn-gold"
+              </Button>
+              <Button
                 :disabled="scheduling || !scheduleStartDate"
                 @click="applySchedule"
               >
                 {{ scheduling ? 'Scheduling...' : 'Apply Schedule' }}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -553,132 +523,3 @@ async function deleteTournament() {
     </div>
   </AuthGate>
 </template>
-
-<style scoped>
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-  padding: var(--spacing-lg);
-}
-
-/* ── League tabs ── */
-.league-tabs {
-  display: flex;
-  gap: 0;
-  background: var(--surface-2);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-subtle);
-  overflow: hidden;
-}
-
-.league-tab {
-  flex: 1;
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  font-family: var(--font-sans);
-  font-size: 0.8rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: color var(--duration-normal), background var(--duration-normal);
-  text-align: center;
-  position: relative;
-}
-
-.league-tab:not(:last-child)::after {
-  content: '';
-  position: absolute;
-  right: 0;
-  top: 25%;
-  height: 50%;
-  width: 1px;
-  background: var(--border-subtle);
-}
-
-.league-tab.active {
-  color: var(--text-inverse);
-  background: var(--gold-gradient);
-}
-
-.league-tab:hover:not(.active) {
-  color: var(--text-primary);
-}
-
-/* ── Schedule modal fields ── */
-.schedule-field {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-}
-
-.schedule-label {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-
-.schedule-input {
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  color: var(--text-primary);
-  font-family: var(--font-sans);
-  font-size: 0.85rem;
-  outline: none;
-  transition: border-color var(--duration-fast);
-}
-
-.schedule-input:focus {
-  border-color: var(--gold);
-}
-
-/* ── Mode toggle (reused pattern) ── */
-.mode-toggle {
-  position: relative;
-  display: flex;
-  background: var(--surface-2);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  border: 1px solid var(--border-subtle);
-}
-
-.mode-option {
-  position: relative;
-  z-index: 1;
-  flex: 1;
-  padding: var(--spacing-sm) var(--spacing-lg);
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  font-family: var(--font-sans);
-  font-size: 0.85rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: color var(--duration-normal) var(--ease-out);
-  text-align: center;
-}
-
-.mode-option.active {
-  color: var(--text-inverse);
-}
-
-.mode-pill {
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: calc(50% - 2px);
-  height: calc(100% - 4px);
-  background: var(--gold-gradient);
-  border-radius: calc(var(--radius-md) - 2px);
-  transition: transform var(--duration-normal) var(--ease-spring);
-}
-</style>

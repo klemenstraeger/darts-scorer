@@ -1,14 +1,5 @@
 <template>
-  <div class="spectate-root">
+  <div class="h-screen w-screen overflow-hidden bg-surface-0">
     <slot />
   </div>
 </template>
-
-<style scoped>
-.spectate-root {
-  height: 100vh;
-  width: 100vw;
-  overflow: hidden;
-  background: var(--surface-0);
-}
-</style>

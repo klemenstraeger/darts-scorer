@@ -47,50 +47,54 @@ function roundLabel(round: number): string {
 </script>
 
 <template>
-  <div class="bracket-scroll">
-    <div class="bracket" :style="{ '--rounds': totalRounds }">
+  <div class="overflow-x-auto pb-md">
+    <div class="flex gap-xl min-w-max p-md" :style="{ '--rounds': totalRounds }">
       <div
         v-for="r in rounds"
         :key="r.round"
-        class="bracket-round"
+        class="flex flex-col gap-md min-w-[180px]"
       >
-        <div class="round-header">
+        <div class="text-[0.7rem] font-bold text-fg-muted uppercase tracking-[1px] text-center pb-xs border-b-2 border-black">
           {{ roundLabel(r.round) }}
         </div>
-        <div class="round-matches">
+        <div class="flex flex-col justify-around flex-1 gap-lg">
           <div
             v-for="match in r.matches"
             :key="match.id"
-            class="bracket-match"
+            class="ko-bracket-match"
           >
             <div
-              class="bracket-slot"
+              class="ko-bracket-slot"
               :class="{
-                'winner': match.winnerName === match.player1Name,
-                'in-progress': match.status === 'in_progress',
+                'ko-bracket-winner': match.winnerName === match.player1Name,
+                'ko-bracket-inprogress': match.status === 'in_progress',
               }"
             >
-              <span class="slot-name"><PlayerAvatar v-if="match.player1Name" v-bind="getAvatarProps(match.player1Name)" :size="16" />{{ match.player1Name || 'TBD' }}</span>
-              <span v-if="match.status === 'completed'" class="slot-score">{{ match.player1LegsWon }}</span>
+              <span class="flex items-center gap-1 text-[0.75rem] font-semibold text-fg-secondary whitespace-nowrap overflow-hidden text-ellipsis max-w-[140px]" :class="{ 'text-fg font-bold': match.winnerName === match.player1Name }">
+                <PlayerAvatar v-if="match.player1Name" v-bind="getAvatarProps(match.player1Name)" :size="16" />{{ match.player1Name || 'TBD' }}
+              </span>
+              <span v-if="match.status === 'completed'" class="text-[0.75rem] font-extrabold text-fg tabular-nums">{{ match.player1LegsWon }}</span>
             </div>
             <div
-              class="bracket-slot"
+              class="ko-bracket-slot"
               :class="{
-                'winner': match.winnerName === match.player2Name,
-                'in-progress': match.status === 'in_progress',
+                'ko-bracket-winner': match.winnerName === match.player2Name,
+                'ko-bracket-inprogress': match.status === 'in_progress',
               }"
             >
-              <span class="slot-name"><PlayerAvatar v-if="match.player2Name" v-bind="getAvatarProps(match.player2Name)" :size="16" />{{ match.player2Name || 'TBD' }}</span>
-              <span v-if="match.status === 'completed'" class="slot-score">{{ match.player2LegsWon }}</span>
+              <span class="flex items-center gap-1 text-[0.75rem] font-semibold text-fg-secondary whitespace-nowrap overflow-hidden text-ellipsis max-w-[140px]" :class="{ 'text-fg font-bold': match.winnerName === match.player2Name }">
+                <PlayerAvatar v-if="match.player2Name" v-bind="getAvatarProps(match.player2Name)" :size="16" />{{ match.player2Name || 'TBD' }}
+              </span>
+              <span v-if="match.status === 'completed'" class="text-[0.75rem] font-extrabold text-fg tabular-nums">{{ match.player2LegsWon }}</span>
             </div>
             <button
               v-if="match.status === 'pending' && match.player1Name && match.player2Name && showPlayButton"
-              class="bracket-play-btn"
+              class="ko-bracket-play-btn"
               @click="emit('play', match.id)"
             >
               Play
             </button>
-            <span v-if="match.status === 'in_progress'" class="bracket-live">LIVE</span>
+            <span v-if="match.status === 'in_progress'" class="ko-bracket-live" style="animation: pulse-opacity 1.5s ease-in-out infinite;">LIVE</span>
           </div>
         </div>
       </div>
@@ -98,113 +102,49 @@ function roundLabel(round: number): string {
   </div>
 </template>
 
-<style scoped>
-.bracket-scroll {
-  overflow-x: auto;
-  padding-bottom: var(--spacing-md);
-}
+<style>
+/* KnockoutBracket — non-scoped for adjacent sibling + absolute positioning with complex transforms.
+   All classes prefixed with ko-bracket- to namespace. */
 
-.bracket {
-  display: flex;
-  gap: var(--spacing-xl);
-  min-width: max-content;
-  padding: var(--spacing-md);
-}
-
-.bracket-round {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-  min-width: 180px;
-}
-
-.round-header {
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  text-align: center;
-  padding-bottom: var(--spacing-xs);
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-.round-matches {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-around;
-  flex: 1;
-  gap: var(--spacing-lg);
-}
-
-.bracket-match {
+.ko-bracket-match {
   position: relative;
   display: flex;
   flex-direction: column;
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
+  background: var(--surface-1);
+  border: 2px solid black;
   border-radius: var(--radius-sm);
+  box-shadow: 2px 2px 0 black;
 }
 
-.bracket-slot {
+.ko-bracket-slot {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: var(--spacing-xs) var(--spacing-sm);
   min-height: 28px;
-  transition: background var(--duration-fast);
 }
 
-.bracket-slot + .bracket-slot {
-  border-top: 1px solid var(--border-subtle);
+.ko-bracket-slot + .ko-bracket-slot {
+  border-top: 2px solid black;
 }
 
-.bracket-slot.winner {
-  background: var(--gold-tint);
+.ko-bracket-winner {
+  background: var(--yellow-light);
 }
 
-.bracket-slot.in-progress {
-  border-left: 2px solid var(--gold);
+.ko-bracket-inprogress {
+  border-left: 3px solid var(--yellow);
 }
 
-.slot-name {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 140px;
-}
-
-.bracket-slot.winner .slot-name {
-  color: var(--gold);
-  font-weight: 700;
-}
-
-.slot-score {
-  font-size: 0.75rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  font-variant-numeric: tabular-nums;
-}
-
-.bracket-slot.winner .slot-score {
-  color: var(--gold);
-}
-
-.bracket-play-btn {
+.ko-bracket-play-btn {
   position: absolute;
   top: 50%;
   right: -4px;
   transform: translateY(-50%) translateX(100%);
   padding: 2px var(--spacing-sm);
-  background: var(--gold-gradient);
-  color: var(--text-inverse);
-  border: none;
+  background: var(--yellow);
+  color: black;
+  border: 2px solid black;
   border-radius: var(--radius-sm);
   font-family: var(--font-sans);
   font-size: 0.65rem;
@@ -212,9 +152,15 @@ function roundLabel(round: number): string {
   cursor: pointer;
   white-space: nowrap;
   z-index: 1;
+  box-shadow: 2px 2px 0 black;
 }
 
-.bracket-live {
+.ko-bracket-play-btn:hover {
+  transform: translateY(-50%) translateX(100%) translate(-2px, -2px);
+  box-shadow: 4px 4px 0 black;
+}
+
+.ko-bracket-live {
   position: absolute;
   top: 50%;
   right: -4px;
@@ -222,12 +168,6 @@ function roundLabel(round: number): string {
   padding: 2px var(--spacing-sm);
   font-size: 0.6rem;
   font-weight: 800;
-  color: var(--gold);
-  animation: pulse-live 1.5s ease-in-out infinite;
-}
-
-@keyframes pulse-live {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+  color: var(--yellow);
 }
 </style>

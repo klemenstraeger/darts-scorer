@@ -12,60 +12,16 @@ const percentage = computed(() =>
 </script>
 
 <template>
-  <div class="training-progress">
-    <div class="progress-header">
-      <span v-if="label" class="progress-label">{{ label }}</span>
-      <span class="progress-count">{{ current }}/{{ total }}</span>
+  <div class="w-full flex flex-col gap-[4px]">
+    <div class="flex justify-between items-center">
+      <span v-if="label" class="text-[0.75rem] font-bold text-fg-muted uppercase tracking-[0.5px]">{{ label }}</span>
+      <span class="text-[0.8rem] font-bold text-fg-secondary tabular-nums">{{ current }}/{{ total }}</span>
     </div>
-    <div class="progress-track">
+    <div class="w-full h-[8px] bg-surface-2 border-2 border-black overflow-hidden">
       <div
-        class="progress-fill"
-        :style="{ width: `${percentage}%`, background: color ?? 'var(--gold)' }"
+        class="h-full transition-[width] duration-300 ease-out"
+        :style="{ width: `${percentage}%`, background: color ?? 'var(--yellow)' }"
       />
     </div>
   </div>
 </template>
-
-<style scoped>
-.training-progress {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.progress-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.progress-label {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.progress-count {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--text-secondary);
-  font-variant-numeric: tabular-nums;
-}
-
-.progress-track {
-  width: 100%;
-  height: 6px;
-  background: var(--surface-2);
-  border-radius: var(--radius-full);
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  border-radius: var(--radius-full);
-  transition: width 0.3s var(--ease-out);
-}
-</style>

@@ -55,29 +55,29 @@ function emitUpdate() {
 </script>
 
 <template>
-  <div class="filter-bar">
-    <div class="filter-group">
-      <span class="filter-label">Period</span>
-      <div class="filter-pills">
+  <div class="flex flex-wrap gap-lg items-center">
+    <div class="flex items-center gap-sm">
+      <span class="text-[0.7rem] text-fg-muted uppercase tracking-[1px] font-semibold">Period</span>
+      <div class="flex gap-xs">
         <button
           v-for="preset in datePresets"
           :key="preset.key"
-          class="filter-pill"
-          :class="{ active: activeDate === preset.key }"
+          class="px-3 py-1 bg-surface-1 border-2 border-black rounded-full text-fg-secondary text-[0.78rem] font-medium cursor-pointer transition-all duration-100 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
+          :class="{ 'bg-blue border-black text-white font-semibold': activeDate === preset.key }"
           @click="selectDate(preset.key)"
         >
           {{ preset.label }}
         </button>
       </div>
     </div>
-    <div class="filter-group">
-      <span class="filter-label">Mode</span>
-      <div class="filter-pills">
+    <div class="flex items-center gap-sm">
+      <span class="text-[0.7rem] text-fg-muted uppercase tracking-[1px] font-semibold">Mode</span>
+      <div class="flex gap-xs">
         <button
           v-for="opt in modeOptions"
           :key="opt.key"
-          class="filter-pill"
-          :class="{ active: activeMode === opt.key }"
+          class="px-3 py-1 bg-surface-1 border-2 border-black rounded-full text-fg-secondary text-[0.78rem] font-medium cursor-pointer transition-all duration-100 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
+          :class="{ 'bg-blue border-black text-white font-semibold': activeMode === opt.key }"
           @click="selectMode(opt.key)"
         >
           {{ opt.label }}
@@ -86,58 +86,3 @@ function emitUpdate() {
     </div>
   </div>
 </template>
-
-<style scoped>
-.filter-bar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-lg);
-  align-items: center;
-}
-
-.filter-group {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-}
-
-.filter-label {
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  font-weight: 600;
-}
-
-.filter-pills {
-  display: flex;
-  gap: var(--spacing-xs);
-}
-
-.filter-pill {
-  padding: 4px 12px;
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-full);
-  color: var(--text-secondary);
-  font-family: var(--font-sans);
-  font-size: 0.78rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition:
-    background var(--duration-fast),
-    border-color var(--duration-fast),
-    color var(--duration-fast);
-}
-
-.filter-pill:hover {
-  background: var(--surface-3);
-}
-
-.filter-pill.active {
-  background: var(--blue-tint);
-  border-color: rgba(59, 130, 246, 0.3);
-  color: var(--blue);
-  font-weight: 600;
-}
-</style>

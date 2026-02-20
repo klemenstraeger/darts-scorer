@@ -37,12 +37,10 @@ function tooltipTemplate(d: any) {
   const pct = total.value > 0 ? ((value / total.value) * 100).toFixed(1) : '0'
   return `
     <div style="
-      background: var(--surface-glass);
-      backdrop-filter: blur(var(--blur-glass));
-      -webkit-backdrop-filter: blur(var(--blur-glass));
-      border: 1px solid var(--surface-glass-border);
-      border-radius: var(--radius-md);
-      box-shadow: var(--shadow-lg);
+      background: white;
+      border: 2px solid black;
+      border-radius: 8px;
+      box-shadow: 4px 4px 0px black;
       padding: 8px 12px;
       font-size: 0.75rem;
       font-family: var(--font-sans);
@@ -55,7 +53,7 @@ function tooltipTemplate(d: any) {
 </script>
 
 <template>
-  <div class="donut-chart-wrapper">
+  <div class="donut-chart flex flex-col items-center gap-md">
     <div :style="{ width: `${size}px`, height: `${size}px`, margin: '0 auto' }">
       <VisSingleContainer :data="data" :style="{ width: '100%', height: '100%' }">
         <VisDonut
@@ -71,60 +69,22 @@ function tooltipTemplate(d: any) {
       </VisSingleContainer>
     </div>
 
-    <div class="donut-legend">
+    <div class="flex flex-wrap justify-center gap-y-sm gap-x-md">
       <div
         v-for="item in legendItems"
         :key="item.label"
-        class="legend-item"
+        class="flex items-center gap-1.5 text-[0.7rem]"
       >
-        <span class="legend-dot" :style="{ background: item.color }" />
-        <span class="legend-label">{{ item.label }}</span>
-        <span class="legend-pct">{{ item.pct }}%</span>
+        <span class="w-2 h-2 rounded-sm shrink-0" :style="{ background: item.color }" />
+        <span class="text-fg-muted">{{ item.label }}</span>
+        <span class="font-semibold text-fg tabular-nums">{{ item.pct }}%</span>
       </div>
     </div>
   </div>
 </template>
 
-<style scoped>
-.donut-chart-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-md);
-}
-
-.donut-legend {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--spacing-sm) var(--spacing-md);
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.7rem;
-}
-
-.legend-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 2px;
-  flex-shrink: 0;
-}
-
-.legend-label {
-  color: var(--text-muted);
-}
-
-.legend-pct {
-  font-weight: 600;
-  color: var(--text-primary);
-  font-variant-numeric: tabular-nums;
-}
-
-.donut-chart-wrapper :deep(.unovis-single-container) {
+<style>
+.donut-chart .unovis-single-container {
   --vis-tooltip-padding: 0px;
   --vis-tooltip-background-color: transparent;
   --vis-tooltip-border-color: transparent;

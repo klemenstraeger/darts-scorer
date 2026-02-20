@@ -58,7 +58,7 @@ const modeIcons: Record<string, string> = {
 </script>
 
 <template>
-  <div class="training-picker">
+  <div class="flex flex-col w-full">
     <div v-if="showHeader" class="text-center mb-xl">
       <h1 class="text-[2rem] font-black text-fg max-sm:text-[1.6rem]">
         Solo Training
@@ -71,62 +71,65 @@ const modeIcons: Record<string, string> = {
     <!-- Resume session banner -->
     <div
       v-if="hasActiveSession"
-      class="glass-card w-full px-xl py-lg flex items-center justify-between border border-border-gold mb-xl"
+      class="w-full px-xl py-lg flex items-center justify-between bg-surface-1 border-2 border-black shadow-md mb-xl"
     >
       <div class="flex items-center gap-md">
-        <span class="pulse-dot" />
+        <span class="block w-2.5 h-2.5 rounded-full bg-green" style="animation: pulse-scale 2s ease-in-out infinite;" />
         <div class="flex flex-col gap-[2px]">
           <span class="text-[0.9rem] font-bold text-fg">Training in progress</span>
           <span class="text-[0.75rem] text-fg-muted">Pick up where you left off</span>
         </div>
       </div>
-      <button class="btn btn-gold" @click="resumeSession">
+      <Button variant="default" @click="resumeSession">
         Resume
-      </button>
+      </Button>
     </div>
 
     <!-- Mode selection grid or config panel -->
     <Transition name="fade" mode="out-in">
       <!-- Mode grid -->
-      <div v-if="!selectedMode" key="grid" class="mode-grid">
+      <div v-if="!selectedMode" key="grid" class="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-md max-[480px]:grid-cols-1">
         <button
           v-for="mode in TRAINING_MODES"
           :key="mode.mode"
-          class="mode-card"
+          class="flex flex-col items-center gap-sm p-lg bg-surface-1 border-2 border-black rounded-lg cursor-pointer transition-all duration-200 text-center shadow-md hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-lg active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
           @click="selectMode(mode.mode)"
         >
-          <span class="mode-icon" :style="{ color: mode.color }">
+          <span class="text-[2rem]" :style="{ color: mode.color }">
             {{ modeIcons[mode.icon] ?? '🎯' }}
           </span>
-          <span class="mode-name">{{ mode.name }}</span>
-          <span class="mode-desc">{{ mode.description }}</span>
+          <span class="text-[0.95rem] font-bold text-fg">{{ mode.name }}</span>
+          <span class="text-[0.75rem] text-fg-muted leading-[1.4]">{{ mode.description }}</span>
         </button>
       </div>
 
       <!-- Config panel -->
-      <div v-else key="config" class="config-panel">
-        <button class="back-btn" @click="selectedMode = null">
+      <div v-else key="config" class="flex flex-col gap-lg">
+        <button
+          class="inline-flex items-center gap-xs bg-transparent border-none text-fg-muted font-sans text-[0.85rem] font-semibold cursor-pointer py-xs px-0 transition-colors duration-150 hover:text-fg"
+          @click="selectedMode = null"
+        >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="15 18 9 12 15 6" />
           </svg>
           Back
         </button>
 
-        <div class="config-header">
-          <span class="config-icon" :style="{ color: TRAINING_MODES.find(m => m.mode === selectedMode)?.color }">
+        <div class="flex items-center gap-md">
+          <span class="text-[2rem]" :style="{ color: TRAINING_MODES.find(m => m.mode === selectedMode)?.color }">
             {{ modeIcons[TRAINING_MODES.find(m => m.mode === selectedMode)?.icon ?? ''] ?? '🎯' }}
           </span>
-          <h2 class="config-title">
+          <h2 class="text-[1.5rem] font-extrabold text-fg">
             {{ TRAINING_MODES.find(m => m.mode === selectedMode)?.name }}
           </h2>
         </div>
 
-        <div class="config-options glass-card p-lg">
+        <div class="flex flex-col gap-md p-lg bg-surface-1 border-2 border-black rounded-md shadow-md">
           <!-- Scoring Practice options -->
           <template v-if="selectedMode === 'scoring-practice'">
-            <div class="config-row">
-              <label class="config-label">Rounds</label>
-              <select v-model.number="rounds" class="config-select">
+            <div class="flex items-center justify-between gap-md">
+              <label class="text-[0.85rem] font-semibold text-fg-secondary">Rounds</label>
+              <select v-model.number="rounds" class="tp-config-select">
                 <option :value="5">
                   5
                 </option>
@@ -141,9 +144,9 @@ const modeIcons: Record<string, string> = {
                 </option>
               </select>
             </div>
-            <div class="config-row">
-              <label class="config-label">Target (3-dart avg)</label>
-              <select v-model.number="targetScore" class="config-select">
+            <div class="flex items-center justify-between gap-md">
+              <label class="text-[0.85rem] font-semibold text-fg-secondary">Target (3-dart avg)</label>
+              <select v-model.number="targetScore" class="tp-config-select">
                 <option :value="40">
                   40+ (Beginner)
                 </option>
@@ -162,9 +165,9 @@ const modeIcons: Record<string, string> = {
 
           <!-- Around the Clock options -->
           <template v-else-if="selectedMode === 'around-the-clock'">
-            <div class="config-row">
-              <label class="config-label">Variant</label>
-              <select v-model="variant" class="config-select">
+            <div class="flex items-center justify-between gap-md">
+              <label class="text-[0.85rem] font-semibold text-fg-secondary">Variant</label>
+              <select v-model="variant" class="tp-config-select">
                 <option value="singles">
                   Singles (any hit)
                 </option>
@@ -180,16 +183,16 @@ const modeIcons: Record<string, string> = {
 
           <!-- Bob's 27 — no config needed -->
           <template v-else-if="selectedMode === 'bobs-27'">
-            <p class="config-info">
+            <p class="text-[0.85rem] text-fg-muted leading-[1.5]">
               Start at 27 points. Hit doubles to add, miss all 3 to subtract. Score below 0 = failed.
             </p>
           </template>
 
           <!-- 100 Darts at Target options -->
           <template v-else-if="selectedMode === 'hundred-darts'">
-            <div class="config-row">
-              <label class="config-label">Target Segment</label>
-              <select v-model.number="targetSegment" class="config-select">
+            <div class="flex items-center justify-between gap-md">
+              <label class="text-[0.85rem] font-semibold text-fg-secondary">Target Segment</label>
+              <select v-model.number="targetSegment" class="tp-config-select">
                 <option v-for="n in 20" :key="n" :value="n">
                   {{ n }}
                 </option>
@@ -202,16 +205,16 @@ const modeIcons: Record<string, string> = {
 
           <!-- Cricket — no config needed -->
           <template v-else-if="selectedMode === 'cricket'">
-            <p class="config-info">
+            <p class="text-[0.85rem] text-fg-muted leading-[1.5]">
               Close all cricket numbers (15-20 + Bull). 3 marks each: Single=1, Double=2, Treble=3.
             </p>
           </template>
 
           <!-- Checkout Practice options -->
           <template v-else-if="selectedMode === 'checkout-practice'">
-            <div class="config-row">
-              <label class="config-label">Number of targets</label>
-              <select v-model.number="rounds" class="config-select">
+            <div class="flex items-center justify-between gap-md">
+              <label class="text-[0.85rem] font-semibold text-fg-secondary">Number of targets</label>
+              <select v-model.number="rounds" class="tp-config-select">
                 <option :value="5">
                   5
                 </option>
@@ -230,21 +233,21 @@ const modeIcons: Record<string, string> = {
 
           <!-- Shanghai — no config needed -->
           <template v-else-if="selectedMode === 'shanghai'">
-            <p class="config-info">
+            <p class="text-[0.85rem] text-fg-muted leading-[1.5]">
               20 rounds targeting 1-20. Score on target number only. Hit S+D+T in one round for Shanghai bonus!
             </p>
           </template>
         </div>
 
-        <button class="start-btn" @click="startSession">
+        <Button variant="default" size="lg" class="w-full text-[1.05rem]" @click="startSession">
           Start Training
-        </button>
+        </Button>
       </div>
     </Transition>
 
     <!-- Stats link -->
     <div class="text-center mt-xl">
-      <NuxtLink to="/training/stats" class="stats-link">
+      <NuxtLink to="/training/stats" class="inline-flex items-center gap-xs text-fg-muted no-underline text-[0.85rem] font-semibold transition-colors duration-150 hover:text-yellow">
         View Training Stats
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="9 18 15 12 9 6" />
@@ -254,205 +257,16 @@ const modeIcons: Record<string, string> = {
   </div>
 </template>
 
-<style scoped>
-.mode-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: var(--spacing-md);
-}
-
-@media (max-width: 480px) {
-  .mode-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.mode-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-lg);
-  background: var(--surface-glass);
-  backdrop-filter: blur(var(--blur-glass));
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  cursor: pointer;
-  transition: all var(--duration-normal) var(--ease-out);
-  text-align: center;
-}
-
-.mode-card:hover {
-  border-color: var(--border-gold);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-}
-
-.mode-card:active {
-  transform: scale(0.98);
-}
-
-.mode-icon {
-  font-size: 2rem;
-}
-
-.mode-name {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.mode-desc {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  line-height: 1.4;
-}
-
-/* Config panel */
-.config-panel {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-lg);
-}
-
-.back-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  font-family: var(--font-sans);
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  padding: var(--spacing-xs) 0;
-  transition: color var(--duration-fast);
-}
-
-.back-btn:hover {
-  color: var(--text-primary);
-}
-
-.config-header {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-}
-
-.config-icon {
-  font-size: 2rem;
-}
-
-.config-title {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: var(--text-primary);
-}
-
-.config-options {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-}
-
-.config-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-md);
-}
-
-.config-label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-}
-
-.config-select {
+<style>
+/* Select inputs need custom styling that can't be pure Tailwind (font-family, appearance) */
+.tp-config-select {
   padding: var(--spacing-xs) var(--spacing-sm);
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
+  background: var(--surface-1);
+  border: 2px solid black;
   border-radius: var(--radius-sm);
-  color: var(--text-primary);
+  color: var(--fg);
   font-family: var(--font-sans);
   font-size: 0.85rem;
   min-width: 160px;
-}
-
-.config-info {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  line-height: 1.5;
-}
-
-.start-btn {
-  width: 100%;
-  padding: var(--spacing-md);
-  background: var(--gold-gradient);
-  color: var(--text-inverse);
-  border: none;
-  border-radius: var(--radius-lg);
-  font-family: var(--font-sans);
-  font-size: 1.05rem;
-  font-weight: 800;
-  cursor: pointer;
-  box-shadow: var(--shadow-glow-gold);
-  transition: transform var(--duration-fast), box-shadow var(--duration-normal);
-}
-
-.start-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-glow-gold), 0 8px 30px rgba(255, 215, 0, 0.2);
-}
-
-.start-btn:active {
-  transform: scale(0.97);
-}
-
-.stats-link {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  color: var(--text-muted);
-  text-decoration: none;
-  font-size: 0.85rem;
-  font-weight: 600;
-  transition: color var(--duration-fast);
-}
-
-.stats-link:hover {
-  color: var(--gold);
-}
-
-/* Resume pulse */
-.pulse-dot {
-  display: block;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--green);
-  animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(0.8); }
-}
-
-/* Fade transition */
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s, transform 0.2s;
-}
-
-.fade-enter-from {
-  opacity: 0;
-  transform: translateY(8px);
-}
-
-.fade-leave-to {
-  opacity: 0;
-  transform: translateY(-8px);
 }
 </style>

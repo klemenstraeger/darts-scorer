@@ -130,7 +130,7 @@ function handleClick(event: MouseEvent) {
       :fill="seg.color"
       :stroke="boardColors.wire"
       stroke-width="0.5"
-      class="segment"
+      class="dartboard__segment hover:brightness-120 transition-[filter] duration-100"
     />
 
     <circle
@@ -140,7 +140,7 @@ function handleClick(event: MouseEvent) {
       :fill="boardColors.bullGreen"
       :stroke="boardColors.wire"
       stroke-width="0.5"
-      class="segment"
+      class="dartboard__segment hover:brightness-120 transition-[filter] duration-100"
     />
 
     <circle
@@ -150,7 +150,7 @@ function handleClick(event: MouseEvent) {
       :fill="boardColors.bullRed"
       :stroke="boardColors.wire"
       stroke-width="0.5"
-      class="segment"
+      class="dartboard__segment hover:brightness-120 transition-[filter] duration-100"
     />
 
     <text
@@ -164,7 +164,7 @@ function handleClick(event: MouseEvent) {
       font-size="12"
       font-weight="bold"
       font-family="Arial, sans-serif"
-      class="number-label"
+      class="pointer-events-none"
     >
       {{ num.segment }}
     </text>
@@ -174,15 +174,15 @@ function handleClick(event: MouseEvent) {
       <g
         v-for="marker in dartMarkers"
         :key="`marker-${marker.index}`"
-        class="dart-marker"
+        class="pointer-events-none"
       >
-        <!-- Outer glow ring -->
+        <!-- Outer ring -->
         <circle
           :cx="marker.position.x"
           :cy="marker.position.y"
           r="7"
           fill="none"
-          stroke="rgba(255, 215, 0, 0.5)"
+          stroke="#000"
           stroke-width="1.5"
         />
         <!-- Inner filled circle -->
@@ -190,9 +190,9 @@ function handleClick(event: MouseEvent) {
           :cx="marker.position.x"
           :cy="marker.position.y"
           r="4"
-          fill="rgba(255, 215, 0, 0.9)"
+          fill="var(--yellow, #FFD700)"
           stroke="#000"
-          stroke-width="0.5"
+          stroke-width="1"
         />
         <!-- Dart number label -->
         <text
@@ -204,7 +204,7 @@ function handleClick(event: MouseEvent) {
           font-size="5"
           font-weight="bold"
           font-family="Arial, sans-serif"
-          class="number-label"
+          class="pointer-events-none"
         >
           {{ marker.index + 1 }}
         </text>
@@ -212,19 +212,3 @@ function handleClick(event: MouseEvent) {
     </g>
   </svg>
 </template>
-
-<style scoped>
-.segment:hover {
-  filter: brightness(1.2);
-  transition: filter 0.1s;
-}
-
-.number-label {
-  pointer-events: none;
-}
-
-.dart-marker {
-  pointer-events: none;
-  filter: drop-shadow(0 0 3px rgba(255, 215, 0, 0.6));
-}
-</style>

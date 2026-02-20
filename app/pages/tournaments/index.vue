@@ -31,7 +31,10 @@ const completed = computed(() => tournaments.value.filter(t => t.status === 'com
         <h2 class="text-[1.8rem] font-black text-fg max-sm:text-[1.4rem]">
           Tournaments
         </h2>
-        <NuxtLink to="/tournaments/new" class="btn btn-gold">
+        <NuxtLink
+          to="/tournaments/new"
+          class="inline-flex items-center justify-center px-xl py-sm bg-[var(--yellow)] text-black border-2 border-black rounded-md font-bold text-sm shadow-md hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-lg active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all duration-fast"
+        >
           + Create
         </NuxtLink>
       </div>
@@ -41,11 +44,14 @@ const completed = computed(() => tournaments.value.filter(t => t.status === 'com
       </div>
 
       <template v-else>
-        <div v-if="tournaments.length === 0" class="glass-card w-full p-2xl text-center">
+        <div v-if="tournaments.length === 0" class="bg-surface-1 border-2 border-black rounded-lg shadow-md w-full p-2xl text-center">
           <p class="text-fg-muted text-[0.9rem] mb-md">
             No tournaments yet
           </p>
-          <NuxtLink to="/tournaments/new" class="btn btn-gold">
+          <NuxtLink
+            to="/tournaments/new"
+            class="inline-flex items-center justify-center px-xl py-sm bg-[var(--yellow)] text-black border-2 border-black rounded-md font-bold text-sm shadow-md hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-lg active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all duration-fast"
+          >
             Create Your First Tournament
           </NuxtLink>
         </div>
@@ -62,7 +68,7 @@ const completed = computed(() => tournaments.value.filter(t => t.status === 'com
 
         <!-- Upcoming tournaments -->
         <div v-if="upcoming.length > 0" class="w-full flex flex-col gap-md">
-          <span class="text-[0.75rem] font-semibold text-gold uppercase tracking-widest">Upcoming</span>
+          <span class="text-[0.75rem] font-semibold text-yellow uppercase tracking-widest">Upcoming</span>
           <TournamentCard
             v-for="t in upcoming"
             :key="t.id"

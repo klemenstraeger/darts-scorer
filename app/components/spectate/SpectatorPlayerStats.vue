@@ -80,52 +80,52 @@ const playerMatchInfo = computed(() => {
 </script>
 
 <template>
-  <div class="player-stats-panel">
-    <span class="section-label">Player Stats</span>
+  <div class="flex flex-col gap-sm">
+    <span class="text-[0.65rem] font-bold text-fg-muted uppercase tracking-[1px]">Player Stats</span>
 
-    <div class="player-cards">
+    <div class="flex flex-col gap-sm">
       <div
         v-for="participant in participants"
         :key="participant.id"
-        class="player-card"
+        class="flex flex-col gap-xs px-md py-sm bg-surface-1 border-2 border-black rounded-md shadow-md"
       >
         <!-- Row 1: Avatar + Name -->
-        <div class="card-header">
+        <div class="flex items-center gap-sm">
           <PlayerAvatar v-bind="getAvatarProps(participant.playerName)" :size="28" />
-          <span class="card-name">{{ participant.playerName }}</span>
+          <span class="text-[0.85rem] font-bold text-fg whitespace-nowrap overflow-hidden text-ellipsis">{{ participant.playerName }}</span>
         </div>
 
         <!-- Row 2: Auto-rotating stats -->
-        <div class="stats-rotator">
+        <div class="min-h-[24px] relative">
           <Transition name="stat-fade" mode="out-in">
             <!-- Group A: Match stats -->
-            <div v-if="statGroup === 0" key="group-a" class="stat-row">
-              <span class="stat-chip">
+            <div v-if="statGroup === 0" key="group-a" class="flex gap-xs flex-wrap">
+              <span class="text-[0.7rem] font-semibold text-fg-secondary bg-surface-2 px-[6px] py-[2px] rounded-sm tabular-nums whitespace-nowrap">
                 {{ playerMatchInfo[participant.playerName]?.gamesPlayed ?? 0 }} games
               </span>
-              <span class="stat-chip accent">
+              <span class="text-[0.7rem] font-semibold text-green bg-surface-2 px-[6px] py-[2px] rounded-sm tabular-nums whitespace-nowrap">
                 {{ playerMatchInfo[participant.playerName]?.wins ?? 0 }} wins
               </span>
-              <span class="stat-chip">
+              <span class="text-[0.7rem] font-semibold text-fg-secondary bg-surface-2 px-[6px] py-[2px] rounded-sm tabular-nums whitespace-nowrap">
                 {{ playerMatchInfo[participant.playerName]?.winRate ?? 0 }}%
               </span>
-              <span class="stat-chip">
+              <span class="text-[0.7rem] font-semibold text-fg-secondary bg-surface-2 px-[6px] py-[2px] rounded-sm tabular-nums whitespace-nowrap">
                 {{ (playerStats[participant.playerName]?.three_dart_average ?? 0).toFixed(1) }} avg
               </span>
             </div>
 
             <!-- Group B: Scoring milestones -->
-            <div v-else key="group-b" class="stat-row">
-              <span class="stat-chip gold">
+            <div v-else key="group-b" class="flex gap-xs flex-wrap">
+              <span class="text-[0.7rem] font-semibold text-black bg-yellow px-[6px] py-[2px] rounded-sm border border-black tabular-nums whitespace-nowrap">
                 {{ playerStats[participant.playerName]?.count_180 ?? 0 }}&times;180
               </span>
-              <span class="stat-chip">
+              <span class="text-[0.7rem] font-semibold text-fg-secondary bg-surface-2 px-[6px] py-[2px] rounded-sm tabular-nums whitespace-nowrap">
                 {{ playerStats[participant.playerName]?.count_140_plus ?? 0 }}&times;140+
               </span>
-              <span class="stat-chip">
+              <span class="text-[0.7rem] font-semibold text-fg-secondary bg-surface-2 px-[6px] py-[2px] rounded-sm tabular-nums whitespace-nowrap">
                 {{ playerStats[participant.playerName]?.count_100_plus ?? 0 }}&times;100+
               </span>
-              <span class="stat-chip">
+              <span class="text-[0.7rem] font-semibold text-fg-secondary bg-surface-2 px-[6px] py-[2px] rounded-sm tabular-nums whitespace-nowrap">
                 Best: {{ playerStats[participant.playerName]?.highest_turn ?? '–' }}
               </span>
             </div>
@@ -133,143 +133,21 @@ const playerMatchInfo = computed(() => {
         </div>
 
         <!-- Row 3: Recent matches -->
-        <div class="recent-matches">
+        <div class="flex gap-xs flex-wrap">
           <template v-if="(playerMatchInfo[participant.playerName]?.recentMatches.length ?? 0) > 0">
             <span
               v-for="(rm, i) in playerMatchInfo[participant.playerName]!.recentMatches"
               :key="i"
-              class="recent-match"
-              :class="{ won: rm.won, lost: !rm.won }"
+              class="text-[0.65rem] font-medium text-fg-muted whitespace-nowrap"
             >
               vs {{ rm.opponent }}
-              <strong>{{ rm.won ? 'W' : 'L' }}</strong>
+              <strong :class="rm.won ? 'text-green' : 'text-red'">{{ rm.won ? 'W' : 'L' }}</strong>
               {{ rm.legsWon }}-{{ rm.legsLost }}
             </span>
           </template>
-          <span v-else class="no-matches">No matches yet</span>
+          <span v-else class="text-[0.65rem] text-fg-muted italic">No matches yet</span>
         </div>
       </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-.player-stats-panel {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-}
-
-.section-label {
-  font-size: 0.65rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.player-cards {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-}
-
-.player-card {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--surface-glass);
-  backdrop-filter: blur(var(--blur-glass));
-  -webkit-backdrop-filter: blur(var(--blur-glass));
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-}
-
-/* ── Card header ── */
-.card-header {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-}
-
-.card-name {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* ── Stats rotator ── */
-.stats-rotator {
-  min-height: 24px;
-  position: relative;
-}
-
-.stat-row {
-  display: flex;
-  gap: var(--spacing-xs);
-  flex-wrap: wrap;
-}
-
-.stat-chip {
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  background: var(--surface-2);
-  padding: 2px 6px;
-  border-radius: var(--radius-sm);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-
-.stat-chip.accent {
-  color: var(--green);
-}
-
-.stat-chip.gold {
-  background: var(--gold-gradient);
-  color: var(--text-inverse);
-}
-
-/* ── Recent matches ── */
-.recent-matches {
-  display: flex;
-  gap: var(--spacing-xs);
-  flex-wrap: wrap;
-}
-
-.recent-match {
-  font-size: 0.65rem;
-  font-weight: 500;
-  color: var(--text-muted);
-  white-space: nowrap;
-}
-
-.recent-match.won strong {
-  color: var(--green);
-}
-
-.recent-match.lost strong {
-  color: var(--red);
-}
-
-.no-matches {
-  font-size: 0.65rem;
-  color: var(--text-muted);
-  font-style: italic;
-}
-
-/* ── Crossfade transition ── */
-.stat-fade-enter-active,
-.stat-fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.stat-fade-enter-from,
-.stat-fade-leave-to {
-  opacity: 0;
-}
-</style>

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from 'vue'
-import { Primitive } from 'reka-ui'
 import { computed } from 'vue'
 import { THEMES, useChart } from '.'
 
@@ -15,12 +14,15 @@ const colorConfig = computed(() => {
     ([, config]) => config.theme || config.color,
   )
 })
+
+const styleTag = 'style' as const
 </script>
 
 <template>
-  <Primitive
+  <component
+    :is="styleTag"
+    v-bind="$attrs"
     v-if="colorConfig.length"
-    as="style"
   >
     {{ Object.entries(THEMES)
       .map(
@@ -38,5 +40,5 @@ ${colorConfig
 `,
       )
       .join("\n") }}
-  </Primitive>
+  </component>
 </template>

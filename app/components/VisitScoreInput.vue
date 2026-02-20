@@ -87,13 +87,19 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 </script>
 
 <template>
-  <div class="visit-input" :class="{ disabled }">
-    <!-- Quick scores -->
-    <div class="quick-grid">
+  <div class="visit-root" :class="{ 'visit-disabled': disabled }">
+    <!-- Score display -->
+    <div class="visit-display" :class="{ 'visit-display-invalid': displayValue !== null && !isValid }">
+      <span v-if="display === ''" class="visit-display-placeholder">Enter score</span>
+      <span v-else class="visit-display-value" :class="{ invalid: displayValue !== null && !isValid }">{{ display }}</span>
+    </div>
+
+    <!-- Quick scores (compact row) -->
+    <div class="visit-quick-row">
       <button
         v-for="qs in QUICK_SCORES"
         :key="qs"
-        class="quick-btn"
+        class="visit-quick-btn"
         :disabled="disabled"
         @click="submitQuickScore(qs)"
       >
@@ -101,220 +107,216 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
       </button>
     </div>
 
-    <!-- Score display -->
-    <div class="score-display" :class="{ invalid: displayValue !== null && !isValid }">
-      <span v-if="display === ''" class="placeholder">Enter score</span>
-      <span v-else class="score-value">{{ display }}</span>
-    </div>
-
-    <!-- Calculator numpad -->
-    <div class="numpad-grid">
-      <button v-for="n in [1, 2, 3, 4, 5, 6, 7, 8, 9]" :key="n" class="num-btn" :disabled="disabled" @click="appendDigit(n)">
+    <!-- Numpad -->
+    <div class="visit-numpad">
+      <button v-for="n in [1, 2, 3, 4, 5, 6, 7, 8, 9]" :key="n" class="visit-num-btn" :disabled="disabled" @click="appendDigit(n)">
         {{ n }}
       </button>
-      <button class="num-btn backspace" :disabled="disabled" @click="backspace">
+      <button class="visit-num-btn visit-fn-btn" :disabled="disabled" @click="backspace">
         &#x232B;
       </button>
-      <button class="num-btn" :disabled="disabled" @click="appendDigit(0)">
+      <button class="visit-num-btn" :disabled="disabled" @click="appendDigit(0)">
         0
       </button>
-      <button class="num-btn ok" :disabled="disabled || !canSubmit" @click="submit">
+      <button class="visit-num-btn visit-ok-btn" :disabled="disabled || !canSubmit" @click="submit">
         OK
       </button>
     </div>
   </div>
 </template>
 
-<style scoped>
-.visit-input {
+<style>
+.visit-root {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   width: 100%;
   height: 100%;
   min-height: 0;
 }
 
 @media (min-width: 768px) {
-  .visit-input {
-    gap: var(--spacing-sm);
-  }
+  .visit-root { gap: 8px; }
 }
 
-.visit-input.disabled {
-  opacity: 0.4;
+.visit-root.visit-disabled {
+  opacity: 0.35;
   pointer-events: none;
 }
 
-/* ── Quick scores ─────────────────────────────────────────────── */
-.quick-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: var(--spacing-xs);
-  flex-shrink: 0;
-}
-
-.quick-btn {
+/* ── Score display ──────────────────────────────────────────────────── */
+.visit-display {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px 0;
-  background: var(--surface-glass);
-  backdrop-filter: blur(var(--blur-glass));
-  -webkit-backdrop-filter: blur(var(--blur-glass));
-  border: 1px solid var(--surface-glass-border);
-  border-radius: var(--radius-md);
-  color: var(--gold);
-  font-family: var(--font-sans);
-  font-size: 0.85rem;
-  font-weight: 800;
-  cursor: pointer;
-  transition:
-    transform 50ms var(--ease-out),
-    background var(--duration-fast),
-    border-color var(--duration-fast),
-    box-shadow var(--duration-fast);
-}
-
-@media (min-width: 768px) {
-  .quick-btn {
-    padding: var(--spacing-sm) 0;
-    font-size: 0.95rem;
-  }
-}
-
-.quick-btn:hover:not(:disabled) {
-  border-color: var(--border-gold);
-  box-shadow: 0 0 12px var(--gold-glow);
-  transform: translateY(-1px);
-}
-
-.quick-btn:active:not(:disabled) {
-  transform: scale(0.95);
-}
-
-.quick-btn:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-
-/* ── Score display ────────────────────────────────────────────── */
-.score-display {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--surface-2);
-  border: 2px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  min-height: 48px;
+  padding: 10px var(--spacing-md);
+  background: var(--surface-1);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  min-height: 52px;
   flex-shrink: 0;
   transition: border-color var(--duration-fast);
 }
 
 @media (min-width: 768px) {
-  .score-display {
-    min-height: 56px;
-  }
+  .visit-display { min-height: 60px; padding: 12px var(--spacing-lg); }
 }
 
-.score-display.invalid {
+.visit-display.visit-display-invalid {
   border-color: var(--red);
-  box-shadow: 0 0 12px var(--red-glow);
+  background: var(--red-light);
 }
 
-.placeholder {
-  font-size: 1.1rem;
+.visit-display-placeholder {
+  font-size: 1rem;
   font-weight: 600;
   color: var(--text-muted);
-  opacity: 0.5;
+  opacity: 0.45;
 }
 
-.score-value {
-  font-size: 2rem;
+.visit-display-value {
+  font-size: 2.2rem;
   font-weight: 900;
   color: var(--text-primary);
   font-variant-numeric: tabular-nums;
+  letter-spacing: 2px;
 }
 
-.score-display.invalid .score-value {
+.visit-display-value.invalid {
   color: var(--red);
 }
 
-/* ── Calculator numpad ────────────────────────────────────────── */
-.numpad-grid {
+/* ── Quick scores ───────────────────────────────────────────────────── */
+.visit-quick-row {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.visit-quick-row::-webkit-scrollbar {
+  display: none;
+}
+
+.visit-quick-btn {
+  flex: 1 0 auto;
+  min-width: 0;
+  padding: 6px 0;
+  background: var(--surface-2);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--yellow);
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 60ms var(--ease-out),
+              box-shadow 60ms var(--ease-out),
+              background var(--duration-fast);
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+@media (min-width: 768px) {
+  .visit-quick-btn { padding: 8px 0; font-size: 0.8rem; }
+}
+
+.visit-quick-btn:active:not(:disabled) {
+  transform: translate(1px, 1px);
+}
+
+.visit-quick-btn:hover:not(:disabled) {
+  background: var(--yellow-light);
+}
+
+.visit-quick-btn:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+/* ── Numpad ─────────────────────────────────────────────────────────── */
+.visit-numpad {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: var(--spacing-xs);
+  gap: 4px;
   flex: 1;
   min-height: 0;
 }
 
-.num-btn {
+@media (min-width: 768px) {
+  .visit-numpad { gap: 6px; }
+}
+
+.visit-num-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--surface-glass);
-  backdrop-filter: blur(var(--blur-glass));
-  -webkit-backdrop-filter: blur(var(--blur-glass));
-  border: 1px solid var(--surface-glass-border);
-  border-radius: var(--radius-lg);
+  background: var(--surface-1);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
   color: var(--text-primary);
   font-family: var(--font-sans);
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   font-weight: 800;
   cursor: pointer;
-  transition:
-    transform 50ms var(--ease-out),
-    background var(--duration-fast),
-    border-color var(--duration-fast),
-    box-shadow var(--duration-fast);
+  box-shadow: var(--shadow-sm);
+  transition: transform 60ms var(--ease-out),
+              box-shadow 60ms var(--ease-out),
+              background var(--duration-fast);
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
 @media (min-width: 768px) {
-  .num-btn {
-    min-height: 56px;
-    font-size: 1.5rem;
-  }
+  .visit-num-btn { font-size: 1.4rem; min-height: 56px; }
 }
 
-.num-btn:hover:not(:disabled) {
-  background: var(--surface-glass-hover);
-  border-color: var(--border-default);
-  transform: translateY(-1px);
-  box-shadow: 0 0 16px rgba(255, 255, 255, 0.06);
+.visit-num-btn:hover:not(:disabled) {
+  background: var(--surface-2);
 }
 
-.num-btn:active:not(:disabled) {
-  transform: scale(0.95);
+.visit-num-btn:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: none;
 }
 
-.num-btn:disabled {
-  opacity: 0.3;
+.visit-num-btn:disabled {
+  opacity: 0.25;
   cursor: not-allowed;
 }
 
-.num-btn.backspace {
-  font-size: 1.5rem;
-  color: var(--text-secondary);
+/* Backspace */
+.visit-fn-btn {
+  font-size: 1.4rem;
+  color: var(--text-muted);
+  background: var(--surface-2);
+  box-shadow: none;
+  border-color: var(--surface-3);
 }
 
-.num-btn.ok {
-  background: var(--gold-gradient);
-  color: var(--text-inverse);
-  border-color: transparent;
-  font-size: 1.1rem;
-  letter-spacing: 1px;
+.visit-fn-btn:hover:not(:disabled) {
+  background: var(--surface-3);
+  color: var(--text-primary);
 }
 
-.num-btn.ok:hover:not(:disabled) {
-  box-shadow: 0 0 20px var(--gold-glow);
-  border-color: transparent;
-  transform: translateY(-1px);
+/* OK button */
+.visit-ok-btn {
+  background: var(--yellow);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+  font-size: 1rem;
+  letter-spacing: 1.5px;
 }
 
-.num-btn.ok:disabled {
-  opacity: 0.3;
+.visit-ok-btn:hover:not(:disabled) {
+  background: var(--yellow);
+  filter: brightness(1.05);
+}
+
+.visit-ok-btn:disabled {
+  opacity: 0.25;
   background: var(--surface-3);
   color: var(--text-muted);
 }

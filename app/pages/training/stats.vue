@@ -63,23 +63,19 @@ function sessionStatEntries(stats: Record<string, unknown> | null): { label: str
 
 <template>
   <AuthGate feature="Training Stats" description="Sign in to track your training session history, scores, and improvement over time.">
-    <div class="training-stats px-lg py-xl max-w-[800px] mx-auto w-full max-sm:px-md">
+    <div class="px-lg py-xl max-w-[800px] mx-auto w-full max-sm:px-md">
       <div class="flex items-center gap-md mb-xl">
-        <NuxtLink to="/training" class="back-link">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
-        </NuxtLink>
+        <BackLink to="/training" />
         <h1 class="text-[1.8rem] font-black text-fg max-sm:text-[1.4rem]">
           Training Stats
         </h1>
       </div>
 
       <!-- Mode filter tabs -->
-      <div class="mode-tabs">
+      <div class="flex gap-xs overflow-x-auto pb-sm mb-lg scrollbar-none">
         <button
-          class="mode-tab"
-          :class="{ active: activeMode === null }"
+          class="shrink-0 px-md py-xs bg-surface-1 border-2 border-black text-fg-muted text-[0.8rem] font-semibold cursor-pointer transition-all duration-fast whitespace-nowrap shadow-sm hover:bg-[var(--surface-2)] hover:text-fg hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-md"
+          :class="activeMode === null ? 'bg-[var(--yellow-light)] !text-[var(--yellow)]' : ''"
           @click="selectMode(null)"
         >
           All
@@ -87,8 +83,8 @@ function sessionStatEntries(stats: Record<string, unknown> | null): { label: str
         <button
           v-for="mode in TRAINING_MODES"
           :key="mode.mode"
-          class="mode-tab"
-          :class="{ active: activeMode === mode.mode }"
+          class="shrink-0 px-md py-xs bg-surface-1 border-2 border-black text-fg-muted text-[0.8rem] font-semibold cursor-pointer transition-all duration-fast whitespace-nowrap shadow-sm hover:bg-[var(--surface-2)] hover:text-fg hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-md"
+          :class="activeMode === mode.mode ? 'bg-[var(--yellow-light)]' : ''"
           :style="activeMode === mode.mode ? { color: mode.color, borderColor: mode.color } : {}"
           @click="selectMode(mode.mode)"
         >
@@ -97,72 +93,81 @@ function sessionStatEntries(stats: Record<string, unknown> | null): { label: str
       </div>
 
       <!-- Aggregate stats overview -->
-      <div v-if="statsData?.stats" class="stats-overview">
+      <div v-if="statsData?.stats" class="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-md">
         <div
           v-for="(stat, mode) in statsData.stats"
           :key="mode"
-          class="stat-card glass-card"
+          class="p-md flex flex-col gap-sm bg-surface-1 border-2 border-black rounded-md shadow-md"
           :class="{ hidden: activeMode && activeMode !== mode }"
         >
-          <span class="stat-card-mode" :style="{ color: modeColor(mode as string) }">
+          <span class="text-[0.8rem] font-bold uppercase tracking-wider" :style="{ color: modeColor(mode as string) }">
             {{ modeName(mode as string) }}
           </span>
-          <div class="stat-card-values">
-            <div class="stat-item">
-              <span class="stat-number">{{ stat.totalSessions }}</span>
-              <span class="stat-label">Sessions</span>
+          <div class="flex gap-lg">
+            <div class="flex flex-col">
+              <span class="text-[1.3rem] font-extrabold text-fg tabular-nums">{{ stat.totalSessions }}</span>
+              <span class="text-[0.65rem] font-bold text-fg-muted uppercase">Sessions</span>
             </div>
-            <div class="stat-item">
-              <span class="stat-number">{{ stat.avgDarts }}</span>
-              <span class="stat-label">Avg Darts</span>
+            <div class="flex flex-col">
+              <span class="text-[1.3rem] font-extrabold text-fg tabular-nums">{{ stat.avgDarts }}</span>
+              <span class="text-[0.65rem] font-bold text-fg-muted uppercase">Avg Darts</span>
             </div>
-            <div v-if="stat.lastPlayed" class="stat-item">
-              <span class="stat-number text-[0.9rem]">{{ formatDate(stat.lastPlayed) }}</span>
-              <span class="stat-label">Last Played</span>
+            <div v-if="stat.lastPlayed" class="flex flex-col">
+              <span class="text-[0.9rem] font-extrabold text-fg tabular-nums">{{ formatDate(stat.lastPlayed) }}</span>
+              <span class="text-[0.65rem] font-bold text-fg-muted uppercase">Last Played</span>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Session history list -->
-      <div class="sessions-list mt-xl">
+      <div class="mt-xl">
         <h2 class="text-[1.1rem] font-bold text-fg mb-md">
           Recent Sessions
         </h2>
 
-        <div v-if="!sessionsData?.sessions?.length" class="empty-state">
+        <div v-if="!sessionsData?.sessions?.length" class="flex flex-col items-center p-2xl">
           <p class="text-fg-muted text-center">
             No training sessions yet. Start practicing!
           </p>
-          <NuxtLink to="/training" class="btn btn-gold mt-md">
+          <NuxtLink
+            to="/training"
+            class="mt-md inline-flex items-center justify-center px-xl py-sm bg-[var(--yellow)] text-black border-2 border-black rounded-md font-bold text-sm shadow-md hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-lg active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all duration-fast"
+          >
             Start Training
           </NuxtLink>
         </div>
 
-        <div v-else class="sessions-grid">
+        <div v-else class="flex flex-col gap-sm">
           <div
             v-for="session in sessionsData.sessions"
             :key="session.id"
-            class="session-card glass-card"
+            class="p-md flex flex-col gap-xs bg-surface-1 border-2 border-black rounded-md shadow-md"
           >
-            <div class="session-header">
-              <span class="session-mode" :style="{ color: modeColor(session.mode) }">
+            <div class="flex justify-between items-center">
+              <span class="text-[0.85rem] font-bold" :style="{ color: modeColor(session.mode) }">
                 {{ modeName(session.mode) }}
               </span>
-              <span class="session-date">{{ formatDate(session.createdAt) }}</span>
+              <span class="text-[0.75rem] text-fg-muted">{{ formatDate(session.createdAt) }}</span>
             </div>
-            <div class="session-stats">
-              <span class="session-darts">{{ session.totalDarts }} darts</span>
-              <span v-if="session.completed" class="session-badge completed">Completed</span>
-              <span v-else class="session-badge abandoned">Abandoned</span>
+            <div class="flex items-center gap-sm">
+              <span class="text-[0.8rem] font-semibold text-fg-secondary tabular-nums">{{ session.totalDarts }} darts</span>
+              <span
+                v-if="session.completed"
+                class="text-[0.65rem] font-bold uppercase tracking-wider px-xs py-[2px] border border-black bg-[var(--green-light,#dcfce7)] text-[var(--green)]"
+              >Completed</span>
+              <span
+                v-else
+                class="text-[0.65rem] font-bold uppercase tracking-wider px-xs py-[2px] border border-black bg-[var(--surface-2)] text-fg-muted"
+              >Abandoned</span>
             </div>
-            <div v-if="session.stats" class="session-details">
+            <div v-if="session.stats" class="flex flex-wrap gap-sm">
               <span
                 v-for="entry in sessionStatEntries(session.stats as Record<string, unknown>)"
                 :key="entry.label"
-                class="session-detail"
+                class="text-[0.75rem] text-fg-muted"
               >
-                {{ entry.label }}: <strong>{{ entry.value }}</strong>
+                {{ entry.label }}: <strong class="text-fg-secondary">{{ entry.value }}</strong>
               </span>
             </div>
           </div>
@@ -171,191 +176,3 @@ function sessionStatEntries(stats: Record<string, unknown> | null): { label: str
     </div>
   </AuthGate>
 </template>
-
-<style scoped>
-.back-link {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-sm);
-  color: var(--text-muted);
-  transition: all var(--duration-fast);
-}
-
-.back-link:hover {
-  color: var(--text-primary);
-  background: var(--surface-2);
-}
-
-.mode-tabs {
-  display: flex;
-  gap: var(--spacing-xs);
-  overflow-x: auto;
-  padding-bottom: var(--spacing-sm);
-  margin-bottom: var(--spacing-lg);
-  scrollbar-width: none;
-}
-
-.mode-tabs::-webkit-scrollbar {
-  display: none;
-}
-
-.mode-tab {
-  flex-shrink: 0;
-  padding: var(--spacing-xs) var(--spacing-md);
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  color: var(--text-muted);
-  font-family: var(--font-sans);
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--duration-fast);
-  white-space: nowrap;
-}
-
-.mode-tab:hover {
-  background: var(--surface-3);
-  color: var(--text-primary);
-}
-
-.mode-tab.active {
-  background: rgba(255, 215, 0, 0.08);
-  border-color: var(--border-gold);
-  color: var(--gold);
-}
-
-.stats-overview {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: var(--spacing-md);
-}
-
-.stat-card {
-  padding: var(--spacing-md);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-}
-
-.stat-card.hidden {
-  display: none;
-}
-
-.stat-card-mode {
-  font-size: 0.8rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.stat-card-values {
-  display: flex;
-  gap: var(--spacing-lg);
-}
-
-.stat-item {
-  display: flex;
-  flex-direction: column;
-}
-
-.stat-number {
-  font-size: 1.3rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  font-variant-numeric: tabular-nums;
-}
-
-.stat-label {
-  font-size: 0.65rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  text-transform: uppercase;
-}
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: var(--spacing-2xl);
-}
-
-.sessions-grid {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-}
-
-.session-card {
-  padding: var(--spacing-md);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-}
-
-.session-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.session-mode {
-  font-size: 0.85rem;
-  font-weight: 700;
-}
-
-.session-date {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-
-.session-stats {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-}
-
-.session-darts {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  font-variant-numeric: tabular-nums;
-}
-
-.session-badge {
-  font-size: 0.65rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding: 2px var(--spacing-xs);
-  border-radius: var(--radius-sm);
-}
-
-.session-badge.completed {
-  background: rgba(34, 197, 94, 0.12);
-  color: var(--green);
-}
-
-.session-badge.abandoned {
-  background: rgba(255, 215, 0, 0.08);
-  color: var(--text-muted);
-}
-
-.session-details {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-sm);
-}
-
-.session-detail {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-
-.session-detail strong {
-  color: var(--text-secondary);
-}
-</style>

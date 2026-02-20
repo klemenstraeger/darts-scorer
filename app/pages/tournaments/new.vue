@@ -27,7 +27,6 @@ const formats: { value: TournamentFormat, label: string }[] = [
   { value: 'group_only', label: 'Groups' },
   { value: 'group_knockout', label: 'Groups + KO' },
 ]
-const formatIndex = computed(() => formats.findIndex(f => f.value === format.value))
 
 const groupOptions = [2, 3, 4]
 const advanceOptions = [1, 2, 3]
@@ -118,20 +117,20 @@ async function createTournament() {
         @finish="createTournament"
       >
         <!-- Step 1: Tournament Info -->
-        <div v-if="step === 1" key="step-info" class="wizard-step">
-          <h3 class="step-title">
+        <div v-if="step === 1" key="step-info" class="flex flex-col items-center gap-xl w-full">
+          <h3 class="text-[1.3rem] font-extrabold text-fg text-center">
             Tournament Info
           </h3>
-          <p class="step-subtitle">
+          <p class="text-[0.85rem] text-fg-muted text-center -mt-md">
             Give your tournament a name and pick a format.
           </p>
 
           <!-- Name -->
-          <div class="glass-card w-full p-lg flex flex-col gap-md">
-            <span class="settings-label">Tournament Name</span>
+          <div class="bg-surface-1 border-2 border-black rounded-lg shadow-md w-full p-lg flex flex-col gap-md">
+            <span class="text-[0.75rem] font-semibold text-fg-muted uppercase tracking-widest">Tournament Name</span>
             <input
               v-model="name"
-              class="name-input"
+              class="w-full px-md py-sm bg-surface-1 border-2 border-black rounded-md text-fg font-semibold text-base outline-none transition-colors duration-fast focus:border-[var(--yellow)] placeholder:text-fg-muted placeholder:font-normal"
               type="text"
               placeholder="Friday Night Darts"
               maxlength="50"
@@ -139,60 +138,35 @@ async function createTournament() {
           </div>
 
           <!-- Format -->
-          <div class="glass-card w-full p-lg flex flex-col items-center gap-md">
-            <span class="settings-label">Format</span>
-            <div class="mode-toggle multi format-toggle">
-              <button
-                v-for="f in formats"
-                :key="f.value"
-                class="mode-option"
-                :class="{ active: format === f.value }"
-                @click="format = f.value"
-              >
-                {{ f.label }}
-              </button>
-              <div
-                class="mode-pill"
-                :style="{
-                  width: `calc(${100 / formats.length}% - 2px)`,
-                  transform: `translateX(${formatIndex * 100}%)`,
-                }"
-              />
-            </div>
+          <div class="bg-surface-1 border-2 border-black rounded-lg shadow-md w-full p-lg flex flex-col items-center gap-md">
+            <span class="text-[0.75rem] font-semibold text-fg-muted uppercase tracking-widest">Format</span>
+            <ModeToggle
+              :model-value="format"
+              :options="formats"
+              @update:model-value="format = $event as TournamentFormat"
+            />
           </div>
 
           <!-- Participant Type -->
-          <div class="glass-card w-full p-lg flex flex-col items-center gap-md">
-            <span class="settings-label">Participants</span>
-            <div class="mode-toggle">
-              <button
-                class="mode-option"
-                :class="{ active: participantType === 'individual' }"
-                @click="participantType = 'individual'; selectedPlayers = []"
-              >
-                Individual
-              </button>
-              <button
-                class="mode-option"
-                :class="{ active: participantType === 'team' }"
-                @click="participantType = 'team'; selectedPlayers = []"
-              >
-                Teams (Doubles)
-              </button>
-              <div
-                class="mode-pill"
-                :style="{ transform: `translateX(${participantType === 'team' ? 100 : 0}%)` }"
-              />
-            </div>
+          <div class="bg-surface-1 border-2 border-black rounded-lg shadow-md w-full p-lg flex flex-col items-center gap-md">
+            <span class="text-[0.75rem] font-semibold text-fg-muted uppercase tracking-widest">Participants</span>
+            <ModeToggle
+              :model-value="participantType"
+              :options="[
+                { value: 'individual', label: 'Individual' },
+                { value: 'team', label: 'Teams (Doubles)' },
+              ]"
+              @update:model-value="participantType = $event as 'individual' | 'team'; selectedPlayers = []"
+            />
           </div>
         </div>
 
         <!-- Step 2: Select Players / Teams -->
-        <div v-else-if="step === 2" key="step-players" class="wizard-step">
-          <h3 class="step-title">
+        <div v-else-if="step === 2" key="step-players" class="flex flex-col items-center gap-xl w-full">
+          <h3 class="text-[1.3rem] font-extrabold text-fg text-center">
             {{ isTeamMode ? 'Select Teams' : 'Select Players' }}
           </h3>
-          <p class="step-subtitle">
+          <p class="text-[0.85rem] text-fg-muted text-center -mt-md">
             Pick at least {{ minPlayers }} {{ isTeamMode ? 'teams' : 'players' }} for this format.
           </p>
 
@@ -211,11 +185,11 @@ async function createTournament() {
         </div>
 
         <!-- Step 3: Match Settings -->
-        <div v-else-if="step === 3" key="step-settings" class="wizard-step">
-          <h3 class="step-title">
+        <div v-else-if="step === 3" key="step-settings" class="flex flex-col items-center gap-xl w-full">
+          <h3 class="text-[1.3rem] font-extrabold text-fg text-center">
             Match Settings
           </h3>
-          <p class="step-subtitle">
+          <p class="text-[0.85rem] text-fg-muted text-center -mt-md">
             How should each match be played?
           </p>
 
@@ -227,47 +201,33 @@ async function createTournament() {
           >
             <!-- Group-specific settings slotted into the panel -->
             <template v-if="isGroupFormat">
-              <div class="glass-card w-full p-lg flex flex-col items-center gap-md">
-                <span class="settings-label">Number of Groups</span>
-                <div class="mode-toggle multi">
-                  <button
-                    v-for="opt in groupOptions"
-                    :key="opt"
-                    class="mode-option"
-                    :class="{ active: groupCount === opt }"
-                    @click="groupCount = opt"
-                  >
-                    {{ opt }}
-                  </button>
-                  <div class="mode-pill" :style="{ width: `calc(${100 / groupOptions.length}% - 2px)`, transform: `translateX(${groupOptions.indexOf(groupCount) * 100}%)` }" />
-                </div>
+              <div class="bg-surface-1 border-2 border-black rounded-lg shadow-md w-full p-lg flex flex-col items-center gap-md">
+                <span class="text-[0.75rem] font-semibold text-fg-muted uppercase tracking-widest">Number of Groups</span>
+                <ModeToggle
+                  :model-value="groupCount"
+                  :options="groupOptions.map(o => ({ value: o, label: String(o) }))"
+                  @update:model-value="groupCount = Number($event)"
+                />
               </div>
 
-              <div v-if="format === 'group_knockout'" class="glass-card w-full p-lg flex flex-col items-center gap-md">
-                <span class="settings-label">Advance per Group</span>
-                <div class="mode-toggle multi">
-                  <button
-                    v-for="opt in advanceOptions"
-                    :key="opt"
-                    class="mode-option"
-                    :class="{ active: advancePerGroup === opt }"
-                    @click="advancePerGroup = opt"
-                  >
-                    {{ opt }}
-                  </button>
-                  <div class="mode-pill" :style="{ width: `calc(${100 / advanceOptions.length}% - 2px)`, transform: `translateX(${advanceOptions.indexOf(advancePerGroup) * 100}%)` }" />
-                </div>
+              <div v-if="format === 'group_knockout'" class="bg-surface-1 border-2 border-black rounded-lg shadow-md w-full p-lg flex flex-col items-center gap-md">
+                <span class="text-[0.75rem] font-semibold text-fg-muted uppercase tracking-widest">Advance per Group</span>
+                <ModeToggle
+                  :model-value="advancePerGroup"
+                  :options="advanceOptions.map(o => ({ value: o, label: String(o) }))"
+                  @update:model-value="advancePerGroup = Number($event)"
+                />
               </div>
             </template>
           </GameSettingsPanel>
         </div>
 
         <!-- Step 4: Review & Create -->
-        <div v-else key="step-review" class="wizard-step">
-          <h3 class="step-title">
+        <div v-else key="step-review" class="flex flex-col items-center gap-xl w-full">
+          <h3 class="text-[1.3rem] font-extrabold text-fg text-center">
             Review Tournament
           </h3>
-          <p class="step-subtitle">
+          <p class="text-[0.85rem] text-fg-muted text-center -mt-md">
             Everything look good?
           </p>
 
@@ -292,119 +252,3 @@ async function createTournament() {
     </div>
   </AuthGate>
 </template>
-
-<style scoped>
-/* ── Wizard step layout ──────────────────────────────────────── */
-.wizard-step {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-xl);
-  width: 100%;
-}
-
-.step-title {
-  font-size: 1.3rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  text-align: center;
-}
-
-.step-subtitle {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  text-align: center;
-  margin-top: calc(-1 * var(--spacing-md));
-}
-
-.settings-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
-/* ── Name input ──────────────────────────────────────────────── */
-.name-input {
-  width: 100%;
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  color: var(--text-primary);
-  font-family: var(--font-sans);
-  font-size: 1rem;
-  font-weight: 600;
-  outline: none;
-  transition: border-color var(--duration-fast);
-}
-
-.name-input:focus {
-  border-color: var(--border-gold);
-}
-
-.name-input::placeholder {
-  color: var(--text-muted);
-  font-weight: 400;
-}
-
-/* ── Mode toggle (for format + group settings) ───────────────── */
-.mode-toggle {
-  position: relative;
-  display: flex;
-  background: var(--surface-2);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  border: 1px solid var(--border-subtle);
-}
-
-.mode-option {
-  position: relative;
-  z-index: 1;
-  padding: var(--spacing-sm) var(--spacing-2xl);
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  font-family: var(--font-sans);
-  font-size: 1.1rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: color var(--duration-normal) var(--ease-out);
-}
-
-.mode-option.active {
-  color: var(--text-inverse);
-}
-
-.mode-pill {
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: calc(50% - 2px);
-  height: calc(100% - 4px);
-  background: var(--gold-gradient);
-  border-radius: calc(var(--radius-md) - 2px);
-  transition: transform var(--duration-normal) var(--ease-spring);
-}
-
-.mode-toggle.multi .mode-option {
-  padding: var(--spacing-sm) var(--spacing-lg);
-}
-
-.format-toggle .mode-option {
-  padding: var(--spacing-sm) var(--spacing-md);
-  font-size: 0.85rem;
-}
-
-@media (max-width: 600px) {
-  .mode-option {
-    padding: var(--spacing-sm) var(--spacing-xl);
-    font-size: 1rem;
-  }
-  .format-toggle .mode-option {
-    padding: var(--spacing-sm) var(--spacing-sm);
-    font-size: 0.75rem;
-  }
-}
-</style>

@@ -111,12 +111,7 @@ function confirmAbandon() {
     <div class="flex flex-col items-center gap-xl px-lg py-xl max-w-[600px] mx-auto w-full max-sm:px-md">
       <!-- Back link -->
       <div class="w-full">
-        <NuxtLink to="/dashboard" class="back-link">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
-          Back to Home
-        </NuxtLink>
+        <BackLink to="/dashboard" label="Back to Home" />
       </div>
 
       <!-- Title -->
@@ -138,11 +133,11 @@ function confirmAbandon() {
         @finish="startGame"
       >
         <!-- Step 1: Select Players -->
-        <div v-if="step === 1" key="step-players" class="wizard-step">
-          <h3 class="step-title">
+        <div v-if="step === 1" key="step-players" class="flex flex-col items-center gap-xl w-full">
+          <h3 class="text-[1.3rem] font-extrabold text-fg text-center">
             Select Players
           </h3>
-          <p class="step-subtitle">
+          <p class="text-[0.85rem] text-fg-muted text-center -mt-md">
             Tap to select. Order = throw order.
           </p>
 
@@ -159,7 +154,7 @@ function confirmAbandon() {
               <button
                 v-for="diff in (['easy', 'medium', 'hard', 'pro'] as const)"
                 :key="diff"
-                class="bot-diff-btn"
+                class="inline-flex items-center py-xs px-md bg-surface-1 border-2 border-black rounded-lg text-fg-secondary text-[0.85rem] font-semibold cursor-pointer shadow-sm transition-all duration-100 hover:bg-yellow-light hover:text-yellow hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-md active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
                 @click="addBot(diff)"
               >
                 <svg class="inline-block w-[14px] h-[14px] mr-[4px] opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2" /><circle cx="8.5" cy="16" r="1.5" /><circle cx="15.5" cy="16" r="1.5" /><path d="M12 2v5M7 7h10" /></svg>
@@ -173,31 +168,31 @@ function confirmAbandon() {
             <span
               v-for="[name] in botPlayers"
               :key="name"
-              class="bot-chip"
+              class="inline-flex items-center py-xs px-sm bg-yellow-light border-2 border-black rounded-lg text-yellow text-[0.8rem] font-semibold"
             >
               <svg class="inline-block w-[14px] h-[14px] mr-[3px] opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2" /><circle cx="8.5" cy="16" r="1.5" /><circle cx="15.5" cy="16" r="1.5" /><path d="M12 2v5M7 7h10" /></svg>
               {{ name }}
-              <button class="bot-chip-remove" @click="removeBot(name)">&times;</button>
+              <button class="ml-xs bg-transparent border-0 text-fg-muted text-base cursor-pointer leading-none px-[2px] hover:text-red" @click="removeBot(name)">&times;</button>
             </span>
           </div>
 
           <!-- Quick Start -->
           <button
             v-if="canAdvanceStep1"
-            class="quick-start-btn"
+            class="flex flex-col items-center gap-[2px] w-full py-md px-xl bg-yellow text-fg-inverse border-[3px] border-black rounded-lg text-[1.05rem] font-extrabold cursor-pointer shadow-lg transition-all duration-100 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-xl active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
             @click="quickStart"
           >
             Quick Start
-            <span class="quick-hint">501 &middot; Double Out &middot; 1 Leg</span>
+            <span class="text-[0.7rem] font-medium opacity-80">501 &middot; Double Out &middot; 1 Leg</span>
           </button>
         </div>
 
         <!-- Step 2: Game Settings -->
-        <div v-else-if="step === 2" key="step-settings" class="wizard-step">
-          <h3 class="step-title">
+        <div v-else-if="step === 2" key="step-settings" class="flex flex-col items-center gap-xl w-full">
+          <h3 class="text-[1.3rem] font-extrabold text-fg text-center">
             Game Settings
           </h3>
-          <p class="step-subtitle">
+          <p class="text-[0.85rem] text-fg-muted text-center -mt-md">
             Customize or just tap Next for defaults.
           </p>
 
@@ -210,11 +205,11 @@ function confirmAbandon() {
         </div>
 
         <!-- Step 3: Review & Start -->
-        <div v-else key="step-review" class="wizard-step">
-          <h3 class="step-title">
+        <div v-else key="step-review" class="flex flex-col items-center gap-xl w-full">
+          <h3 class="text-[1.3rem] font-extrabold text-fg text-center">
             Ready to Play
           </h3>
-          <p class="step-subtitle">
+          <p class="text-[0.85rem] text-fg-muted text-center -mt-md">
             Review your game setup.
           </p>
 
@@ -230,8 +225,8 @@ function confirmAbandon() {
 
       <!-- Abandon confirm modal -->
       <Teleport to="body">
-        <div v-if="showAbandonConfirm" class="modal-overlay" @click.self="showAbandonConfirm = false">
-          <div class="glass-card-heavy w-full max-w-[380px] p-2xl flex flex-col gap-lg">
+        <div v-if="showAbandonConfirm" class="fixed inset-0 z-100 flex items-center justify-center bg-black/50 p-lg" @click.self="showAbandonConfirm = false">
+          <div class="bg-surface-1 border-[3px] border-black rounded-lg shadow-lg w-full max-w-[380px] p-2xl flex flex-col gap-lg">
             <h3 class="text-[1.1rem] font-bold text-fg">
               Abandon Current Game?
             </h3>
@@ -239,12 +234,12 @@ function confirmAbandon() {
               Starting a new game will end your current game in progress.
             </p>
             <div class="flex gap-md justify-end">
-              <button class="btn btn-secondary" @click="showAbandonConfirm = false">
+              <Button variant="secondary" @click="showAbandonConfirm = false">
                 Cancel
-              </button>
-              <button class="btn btn-danger" @click="confirmAbandon">
+              </Button>
+              <Button variant="destructive" @click="confirmAbandon">
                 Start New Game
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -252,147 +247,3 @@ function confirmAbandon() {
     </div>
   </AuthGate>
 </template>
-
-<style scoped>
-/* ── Back link ─────────────────────────────────────────────── */
-.back-link {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  color: var(--text-muted);
-  text-decoration: none;
-  font-size: 0.85rem;
-  font-weight: 600;
-  transition: color var(--duration-fast);
-}
-
-.back-link:hover {
-  color: var(--text-primary);
-}
-
-/* ── Wizard step layout ──────────────────────────────────────── */
-.wizard-step {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-xl);
-  width: 100%;
-}
-
-.step-title {
-  font-size: 1.3rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  text-align: center;
-}
-
-.step-subtitle {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  text-align: center;
-  margin-top: calc(-1 * var(--spacing-md));
-}
-
-/* ── Quick Start button ──────────────────────────────────────── */
-.quick-start-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  width: 100%;
-  padding: var(--spacing-md) var(--spacing-xl);
-  background: var(--gold-gradient);
-  color: var(--text-inverse);
-  border: none;
-  border-radius: var(--radius-lg);
-  font-family: var(--font-sans);
-  font-size: 1.05rem;
-  font-weight: 800;
-  cursor: pointer;
-  transition:
-    transform var(--duration-fast) var(--ease-out),
-    box-shadow var(--duration-normal) var(--ease-out);
-  box-shadow: var(--shadow-glow-gold);
-}
-
-.quick-start-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-glow-gold), 0 8px 30px rgba(255, 215, 0, 0.2);
-}
-
-.quick-start-btn:active {
-  transform: scale(0.97);
-}
-
-.quick-hint {
-  font-size: 0.7rem;
-  font-weight: 500;
-  opacity: 0.8;
-}
-
-/* ── Bot difficulty buttons ─────────────────────────────────── */
-.bot-diff-btn {
-  display: inline-flex;
-  align-items: center;
-  padding: var(--spacing-xs) var(--spacing-md);
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  color: var(--text-secondary);
-  font-family: var(--font-sans);
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: border-color var(--duration-fast), background var(--duration-fast);
-}
-
-.bot-diff-btn:hover {
-  border-color: var(--border-gold);
-  background: rgba(255, 215, 0, 0.06);
-  color: var(--gold);
-}
-
-.bot-diff-btn:active {
-  transform: scale(0.96);
-}
-
-/* ── Bot chips ──────────────────────────────────────────────── */
-.bot-chip {
-  display: inline-flex;
-  align-items: center;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  background: rgba(255, 215, 0, 0.08);
-  border: 1px solid rgba(255, 215, 0, 0.2);
-  border-radius: var(--radius-md);
-  color: var(--gold);
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.bot-chip-remove {
-  margin-left: var(--spacing-xs);
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  font-size: 1rem;
-  cursor: pointer;
-  line-height: 1;
-  padding: 0 2px;
-}
-
-.bot-chip-remove:hover {
-  color: var(--red);
-}
-
-/* ── Modal overlay ───────────────────────────────────────────── */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-  padding: var(--spacing-lg);
-}
-</style>

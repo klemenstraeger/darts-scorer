@@ -27,27 +27,27 @@ onMounted(() => {
 
 <template>
   <Transition name="toast-slide">
-    <div v-if="visible && achievements.length > 0" class="achievement-toast-container">
+    <div v-if="visible && achievements.length > 0" class="fixed top-lg right-lg z-200 flex flex-col gap-sm max-w-[360px] w-[calc(100vw-32px)]">
       <div
         v-for="(achievement, i) in achievements"
         :key="`${achievement.type}-${achievement.playerName}`"
-        class="achievement-toast"
-        :style="{ animationDelay: `${i * 150}ms` }"
+        class="flex items-center gap-md px-lg py-md bg-surface-1 border-2 border-black rounded-lg shadow-md"
+        :style="{ animationDelay: `${i * 150}ms`, animation: 'toast-appear 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both' }"
       >
-        <div class="achievement-icon">
+        <div class="text-[2rem] leading-none shrink-0">
           {{ achievement.icon }}
         </div>
-        <div class="achievement-info">
-          <div class="achievement-label">
+        <div class="flex-1 min-w-0">
+          <div class="text-[0.65rem] font-bold uppercase tracking-[1.5px] text-yellow mb-[2px]">
             Achievement Unlocked!
           </div>
-          <div class="achievement-name">
+          <div class="text-[1rem] font-extrabold text-fg leading-[1.2]">
             {{ achievement.name }}
           </div>
-          <div class="achievement-desc">
+          <div class="text-[0.75rem] text-fg-secondary mt-[2px]">
             {{ achievement.description }}
           </div>
-          <div class="achievement-player">
+          <div class="text-[0.7rem] text-fg-muted mt-[4px] font-medium">
             {{ achievement.playerName }}
           </div>
         </div>
@@ -55,94 +55,3 @@ onMounted(() => {
     </div>
   </Transition>
 </template>
-
-<style scoped>
-.achievement-toast-container {
-  position: fixed;
-  top: var(--spacing-lg, 16px);
-  right: var(--spacing-lg, 16px);
-  z-index: 200;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm, 8px);
-  max-width: 360px;
-  width: calc(100vw - 32px);
-}
-
-.achievement-toast {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md, 12px);
-  padding: var(--spacing-md, 12px) var(--spacing-lg, 16px);
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 215, 0, 0.05));
-  border: 1px solid rgba(255, 215, 0, 0.3);
-  border-radius: var(--radius-lg, 12px);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.4),
-    0 0 24px rgba(255, 215, 0, 0.15);
-  animation: toast-appear 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-}
-
-.achievement-icon {
-  font-size: 2rem;
-  line-height: 1;
-  flex-shrink: 0;
-  filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.4));
-}
-
-.achievement-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.achievement-label {
-  font-size: 0.65rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  color: var(--gold, #ffd700);
-  margin-bottom: 2px;
-}
-
-.achievement-name {
-  font-size: 1rem;
-  font-weight: 800;
-  color: var(--text-primary, #fff);
-  line-height: 1.2;
-}
-
-.achievement-desc {
-  font-size: 0.75rem;
-  color: var(--text-secondary, #aaa);
-  margin-top: 2px;
-}
-
-.achievement-player {
-  font-size: 0.7rem;
-  color: var(--text-muted, #888);
-  margin-top: 4px;
-  font-weight: 500;
-}
-
-@keyframes toast-appear {
-  from {
-    opacity: 0;
-    transform: translateX(40px) scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0) scale(1);
-  }
-}
-
-.toast-slide-leave-active {
-  transition: all 0.4s ease-in;
-}
-
-.toast-slide-leave-to {
-  opacity: 0;
-  transform: translateX(40px);
-}
-</style>

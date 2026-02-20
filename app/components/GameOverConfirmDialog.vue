@@ -31,94 +31,27 @@ const checkoutDartLabel = computed(() => {
 </script>
 
 <template>
-  <div class="confirm-overlay">
-    <div class="confirm-card">
-      <div class="confirm-title">
+  <div class="fixed inset-0 flex items-center justify-center z-[110] bg-black/50">
+    <div class="bg-surface-1 border-[3px] border-black rounded-lg p-xl px-2xl text-center max-w-[360px] w-[90vw] shadow-xl animate-[scale-in_0.3s_var(--ease-spring)]">
+      <div class="text-2xl font-extrabold text-yellow mb-md">
         Confirm Game Over?
       </div>
-      <div class="confirm-detail">
-        <span class="confirm-winner">{{ winnerName }}</span> checked out
-        <span v-if="checkoutDartLabel" class="confirm-dart">{{ checkoutDartLabel }}</span>
+      <div class="text-base text-fg-secondary mb-xl">
+        <span class="font-bold text-fg">{{ winnerName }}</span> checked out
+        <span v-if="checkoutDartLabel" class="inline-block font-bold text-yellow bg-yellow-light border-2 border-black rounded-sm px-[6px] py-[1px] ml-1">{{ checkoutDartLabel }}</span>
       </div>
-      <div class="confirm-actions">
-        <button class="btn btn-gold" @click="$emit('confirm')">
+      <div class="flex flex-col gap-sm">
+        <Button variant="default" @click="$emit('confirm')">
           Confirm Result
-        </button>
-        <button
-          class="btn btn-secondary"
+        </Button>
+        <Button
+          variant="secondary"
           :disabled="!canUndo"
           @click="$emit('cancel')"
         >
           Undo Last Throw
-        </button>
+        </Button>
       </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-.confirm-overlay {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 110;
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(8px);
-}
-
-.confirm-card {
-  background: var(--surface-1);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-xl) var(--spacing-2xl);
-  text-align: center;
-  max-width: 360px;
-  width: 90vw;
-  animation: scale-in 0.3s var(--ease-spring);
-}
-
-.confirm-title {
-  font-size: 1.5rem;
-  font-weight: 800;
-  background: var(--gold-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin-bottom: var(--spacing-md);
-}
-
-.confirm-detail {
-  font-size: 1rem;
-  color: var(--text-secondary);
-  margin-bottom: var(--spacing-xl);
-}
-
-.confirm-winner {
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.confirm-dart {
-  display: inline-block;
-  font-weight: 700;
-  color: var(--gold);
-  background: rgba(255, 215, 0, 0.08);
-  border: 1px solid rgba(255, 215, 0, 0.15);
-  border-radius: var(--radius-sm);
-  padding: 1px 6px;
-  margin-left: 4px;
-}
-
-.confirm-actions {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-}
-
-@keyframes scale-in {
-  from { transform: scale(0.8); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
-</style>

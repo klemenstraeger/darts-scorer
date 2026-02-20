@@ -68,40 +68,43 @@ const completionStats = computed(() => {
 </script>
 
 <template>
-  <div v-if="state" class="training-play">
+  <div v-if="state" class="training-play-root flex flex-col overflow-hidden px-sm md:px-md">
     <!-- Top bar -->
-    <div class="play-header">
-      <div class="play-header-left">
-        <button class="play-back-btn" @click="confirmStop ? handleStop() : (confirmStop = true)">
+    <div class="flex items-center justify-between py-xs shrink-0">
+      <div>
+        <button
+          class="inline-flex items-center gap-xs bg-transparent border-none text-fg-muted text-[0.8rem] font-semibold cursor-pointer px-sm py-xs rounded-sm transition-all duration-fast hover:text-[var(--red)] hover:bg-[var(--surface-2)]"
+          @click="confirmStop ? handleStop() : (confirmStop = true)"
+        >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="15 18 9 12 15 6" />
           </svg>
           {{ confirmStop ? 'Confirm Stop?' : 'Stop' }}
         </button>
       </div>
-      <span class="play-mode-name" :style="{ color: modeInfo?.color }">
+      <span class="text-[0.85rem] font-extrabold uppercase tracking-widest" :style="{ color: modeInfo?.color }">
         {{ modeInfo?.name ?? state.mode }}
       </span>
-      <div class="play-header-right">
-        <span class="play-darts-count">{{ state.throws.length }} darts</span>
+      <div>
+        <span class="text-[0.8rem] font-semibold text-fg-muted tabular-nums">{{ state.throws.length }} darts</span>
       </div>
     </div>
 
     <!-- Mode-specific display -->
-    <div class="play-display">
+    <div class="shrink-0 py-sm">
       <TrainingHeader :state="(state as TrainingModeState)" />
     </div>
 
     <!-- Score input -->
-    <div class="play-input">
+    <div class="flex-1 min-h-0 flex flex-col gap-xs">
       <ManualScoreInput
         :disabled="state.isComplete"
         @score="onScore"
       />
 
-      <div class="play-actions">
+      <div class="flex gap-sm shrink-0 pb-xs">
         <button
-          class="btn btn-undo flex-1"
+          class="flex-1 min-h-[48px] rounded-lg text-base font-bold uppercase tracking-wider bg-surface-1 border-2 border-black text-fg-secondary shadow-md cursor-pointer transition-all duration-fast hover:not-disabled:-translate-x-0.5 hover:not-disabled:-translate-y-0.5 hover:not-disabled:shadow-lg hover:not-disabled:bg-[var(--surface-2)] active:not-disabled:translate-x-0.5 active:not-disabled:translate-y-0.5 active:not-disabled:shadow-none disabled:opacity-40 disabled:cursor-not-allowed"
           :disabled="state.isComplete || state.throws.length === 0"
           @click="undoThrow"
         >
@@ -112,32 +115,32 @@ const completionStats = computed(() => {
 
     <!-- Event flash overlay -->
     <Transition name="fade">
-      <div v-if="lastEvent === 'target_hit'" class="overlay bg-black/40">
-        <span class="hit-text">Hit!</span>
+      <div v-if="lastEvent === 'target_hit'" class="fixed inset-0 flex items-center justify-center z-100 pointer-events-none bg-black/40">
+        <span class="text-[3rem] font-black text-[var(--green)]" style="animation: flash-appear 0.3s var(--ease-spring);">Hit!</span>
       </div>
     </Transition>
 
     <Transition name="fade">
-      <div v-if="lastEvent === 'target_missed'" class="overlay bg-black/40">
-        <span class="miss-text">Miss</span>
+      <div v-if="lastEvent === 'target_missed'" class="fixed inset-0 flex items-center justify-center z-100 pointer-events-none bg-black/40">
+        <span class="text-[2.5rem] font-black text-fg-muted" style="animation: flash-appear 0.3s var(--ease-spring);">Miss</span>
       </div>
     </Transition>
 
     <Transition name="fade">
-      <div v-if="lastEvent === 'shanghai'" class="overlay bg-black/50">
-        <span class="shanghai-text">Shanghai!</span>
+      <div v-if="lastEvent === 'shanghai'" class="fixed inset-0 flex items-center justify-center z-100 pointer-events-none bg-black/50">
+        <span class="text-[4rem] font-black text-[var(--yellow)]" style="animation: flash-appear 0.4s var(--ease-spring);">Shanghai!</span>
       </div>
     </Transition>
 
     <Transition name="fade">
-      <div v-if="lastEvent === 'failed'" class="overlay bg-black/60">
-        <span class="failed-text">Failed!</span>
+      <div v-if="lastEvent === 'failed'" class="fixed inset-0 flex items-center justify-center z-100 pointer-events-none bg-black/60">
+        <span class="text-[4rem] font-black text-[var(--red)]" style="animation: flash-appear 0.4s var(--ease-spring);">Failed!</span>
       </div>
     </Transition>
 
     <!-- Audio FAB -->
     <button
-      class="audio-fab"
+      class="fixed bottom-[12px] right-[68px] md:bottom-[24px] md:right-[84px] w-10 h-10 rounded-full bg-surface-1 border-2 border-black text-fg-secondary cursor-pointer flex items-center justify-center z-10 shadow-[3px_3px_0_black] transition-all duration-fast hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_black] hover:text-[var(--yellow)]"
       :title="audioEnabled ? 'Mute' : 'Unmute'"
       @click="toggleAudio()"
     >
@@ -155,7 +158,7 @@ const completionStats = computed(() => {
 
     <!-- Dartboard FAB -->
     <button
-      class="dartboard-fab"
+      class="fixed bottom-[12px] right-[12px] md:bottom-[24px] md:right-[24px] w-12 h-12 rounded-full bg-surface-1 border-2 border-black text-fg-secondary cursor-pointer flex items-center justify-center z-10 shadow-[3px_3px_0_black] transition-all duration-fast hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_black] hover:text-[var(--yellow)]"
       :title="showDartboard ? 'Close dartboard' : 'Open dartboard'"
       @click="showDartboard = !showDartboard"
     >
@@ -168,13 +171,16 @@ const completionStats = computed(() => {
 
     <!-- Dartboard overlay -->
     <Transition name="fade">
-      <div v-if="showDartboard" class="dartboard-overlay" @click.self="showDartboard = false">
-        <div class="dartboard-container">
+      <div v-if="showDartboard" class="fixed inset-0 bg-black/85 flex items-center justify-center z-90" @click.self="showDartboard = false">
+        <div class="dartboard-popup relative w-[min(80vw,80vh,600px)] h-[min(80vw,80vh,600px)]">
           <DartBoard
             :disabled="state.isComplete"
             @score="onScore"
           />
-          <button class="dartboard-close" @click="showDartboard = false">
+          <button
+            class="absolute -top-3 -right-3 w-9 h-9 rounded-full bg-surface-1 border-2 border-black text-fg text-[1.2rem] cursor-pointer flex items-center justify-center z-[1] shadow-[3px_3px_0_black]"
+            @click="showDartboard = false"
+          >
             &times;
           </button>
         </div>
@@ -192,271 +198,16 @@ const completionStats = computed(() => {
   </div>
 </template>
 
-<style scoped>
-.training-play {
-  display: flex;
-  flex-direction: column;
+<style>
+/* Safe-area height calculation — cannot be done with Tailwind */
+.training-play-root {
   height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 44px);
   margin-bottom: calc(-1 * env(safe-area-inset-bottom, 0px));
-  padding: 0 var(--spacing-sm);
-  overflow: hidden;
 }
 
-@media (min-width: 768px) {
-  .training-play {
-    padding: 0 var(--spacing-md);
-  }
-}
-
-.play-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--spacing-xs) 0;
-  flex-shrink: 0;
-}
-
-.play-back-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  font-family: var(--font-sans);
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--radius-sm);
-  transition: all var(--duration-fast);
-}
-
-.play-back-btn:hover {
-  color: var(--red);
-  background: rgba(239, 68, 68, 0.08);
-}
-
-.play-mode-name {
-  font-size: 0.85rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.play-darts-count {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
-}
-
-.play-display {
-  flex-shrink: 0;
-  padding: var(--spacing-sm) 0;
-}
-
-.play-input {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-}
-
-.play-actions {
-  display: flex;
-  gap: var(--spacing-sm);
-  flex-shrink: 0;
-  padding-bottom: var(--spacing-xs);
-}
-
-.btn-undo {
-  min-height: 48px;
-  border-radius: var(--radius-lg);
-  font-size: 1rem;
-  font-weight: 700;
-  font-family: var(--font-sans);
-  cursor: pointer;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
-  transition: transform 50ms var(--ease-out), background var(--duration-fast);
-}
-
-.btn-undo:active:not(:disabled) {
-  transform: scale(0.97);
-}
-
-.btn-undo:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.btn-undo:hover:not(:disabled) {
-  background: var(--surface-3);
-  border-color: var(--border-default);
-}
-
-/* Flash overlays */
-.overlay {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-  pointer-events: none;
-}
-
-.hit-text {
-  font-size: 3rem;
-  font-weight: 900;
-  color: var(--green);
-  text-shadow: 0 0 40px rgba(34, 197, 94, 0.5);
-  animation: flash-appear 0.3s var(--ease-spring);
-}
-
-.miss-text {
-  font-size: 2.5rem;
-  font-weight: 900;
-  color: var(--text-muted);
-  animation: flash-appear 0.3s var(--ease-spring);
-}
-
-.shanghai-text {
-  font-size: 4rem;
-  font-weight: 900;
-  color: var(--gold);
-  text-shadow: 0 0 60px var(--gold-glow);
-  animation: flash-appear 0.4s var(--ease-spring);
-}
-
-.failed-text {
-  font-size: 4rem;
-  font-weight: 900;
-  color: var(--red);
-  text-shadow: 0 0 60px var(--red-glow);
-  animation: flash-appear 0.4s var(--ease-spring);
-}
-
-@keyframes flash-appear {
-  from { transform: scale(0.5); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
-
-/* FABs */
-.audio-fab {
-  position: fixed;
-  bottom: var(--space-md, 12px);
-  right: calc(var(--space-md, 12px) + 56px);
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: var(--surface-glass);
-  backdrop-filter: blur(var(--blur-glass));
-  border: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-  transition: transform var(--duration-fast), box-shadow var(--duration-fast), border-color var(--duration-fast);
-}
-
-.audio-fab:hover {
-  transform: scale(1.1);
-  border-color: var(--border-gold);
-  box-shadow: var(--shadow-glow-gold);
-  color: var(--gold);
-}
-
-.dartboard-fab {
-  position: fixed;
-  bottom: var(--space-md, 12px);
-  right: var(--space-md, 12px);
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: var(--surface-glass);
-  backdrop-filter: blur(var(--blur-glass));
-  border: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-  transition: transform var(--duration-fast), box-shadow var(--duration-fast), border-color var(--duration-fast);
-}
-
-.dartboard-fab:hover {
-  transform: scale(1.1);
-  border-color: var(--border-gold);
-  box-shadow: var(--shadow-glow-gold);
-  color: var(--gold);
-}
-
-@media (min-width: 768px) {
-  .audio-fab {
-    bottom: var(--space-xl, 24px);
-    right: calc(var(--space-xl, 24px) + 60px);
-  }
-  .dartboard-fab {
-    bottom: var(--space-xl, 24px);
-    right: var(--space-xl, 24px);
-  }
-}
-
-.dartboard-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(12px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 90;
-}
-
-.dartboard-container {
-  position: relative;
-  width: min(80vw, 80vh, 600px);
-  height: min(80vw, 80vh, 600px);
-}
-
-.dartboard-container :deep(.dartboard) {
+/* Deep selector for dartboard sizing */
+.dartboard-popup :deep(.dartboard) {
   width: 100%;
   height: 100%;
-}
-
-.dartboard-close {
-  position: absolute;
-  top: -12px;
-  right: -12px;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-primary);
-  font-size: 1.2rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1;
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity var(--duration-fast);
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
 }
 </style>

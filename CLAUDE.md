@@ -134,7 +134,7 @@ tests/
 
 - Tailwind CSS 4 utility classes. Custom CSS only in `app/assets/css/main.css`.
 - Use `cn()` from `~/lib/utils` to merge conditional class names.
-- Dark mode is the default. Use `dark:` variants where needed.
+- Light-only theme (no dark mode). Neo-brutalist design with warm off-white background.
 - Color tokens via CSS variables (shadcn theme system).
 
 ### Database

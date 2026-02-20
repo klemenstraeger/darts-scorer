@@ -79,12 +79,9 @@ const features = [
 
 <template>
   <div class="min-h-screen flex items-center justify-center p-lg bg-surface-0">
-    <ThemeToggle class="fixed top-sm right-sm z-50" />
-
     <div
       v-motion
-      class="glass-card-heavy w-full max-w-[400px] overflow-hidden"
-      style="padding: var(--spacing-3xl) var(--spacing-2xl)"
+      class="bg-surface-1 border-[3px] border-black rounded-lg shadow-lg w-full max-w-[400px] overflow-hidden px-2xl py-3xl"
       :initial="{ opacity: 0, y: 20 }"
       :enter="{ opacity: 1, y: 0, transition: { duration: 400 } }"
     >
@@ -93,10 +90,10 @@ const features = [
         <span
           v-for="i in 3"
           :key="i"
-          class="step-dot"
+          class="size-2 rounded-full bg-surface-3 transition-all duration-150"
           :class="{
-            active: i === step,
-            completed: i < step,
+            'bg-yellow scale-[1.35]': i === step,
+            'bg-yellow': i < step && i !== step,
           }"
         />
       </div>
@@ -107,7 +104,7 @@ const features = [
         <div v-if="step === 1" key="welcome" class="flex flex-col items-center gap-xl">
           <h1 class="text-center text-[2rem] font-black leading-tight">
             <span class="block text-fg">Darts</span>
-            <span class="block text-gradient-gold">Scorer</span>
+            <span class="block text-yellow font-black">Scorer</span>
           </h1>
 
           <p class="text-fg-muted text-[0.9rem] text-center leading-relaxed">
@@ -115,9 +112,9 @@ const features = [
             Score games, track stats, compete.
           </p>
 
-          <button class="btn btn-gold w-full p-md text-base" @click="nextStep">
+          <Button class="w-full p-md text-base" @click="nextStep">
             Get Started
-          </button>
+          </Button>
         </div>
 
         <!-- Step 2: Display Name -->
@@ -135,7 +132,7 @@ const features = [
                 ref="nameInput"
                 v-model="displayName"
                 type="text"
-                class="form-input w-full p-md px-lg bg-surface-2 border border-border-subtle rounded-md text-fg text-[1.1rem] font-semibold text-center outline-none"
+                class="w-full h-10 px-lg py-md bg-surface-2 border-2 border-black rounded-lg text-fg text-[1.1rem] font-semibold text-center outline-none transition-shadow focus:shadow-md placeholder:text-fg-muted placeholder:font-normal"
                 placeholder="Your display name"
                 required
                 minlength="2"
@@ -143,7 +140,7 @@ const features = [
               >
               <span
                 class="absolute right-md top-1/2 -translate-y-1/2 text-[0.7rem] text-fg-muted"
-                :class="{ 'text-gold': displayName.length > 18 }"
+                :class="{ 'text-yellow': displayName.length > 18 }"
               >
                 {{ displayName.length }}/20
               </span>
@@ -153,17 +150,17 @@ const features = [
               {{ error }}
             </p>
 
-            <button
+            <Button
               type="submit"
-              class="btn btn-gold w-full p-md text-base"
+              class="w-full p-md text-base"
               :disabled="loading || displayName.trim().length < 2"
             >
               {{ loading ? 'Creating...' : 'Continue' }}
-            </button>
+            </Button>
           </form>
 
           <button
-            class="text-fg-muted text-[0.85rem] font-medium hover:text-fg transition-colors"
+            class="text-fg-muted text-[0.85rem] font-medium hover:text-fg transition-colors cursor-pointer"
             @click="prevStep"
           >
             &larr; Back
@@ -180,7 +177,7 @@ const features = [
             <div
               v-for="feature in features"
               :key="feature.title"
-              class="feature-card"
+              class="flex flex-col items-center text-center gap-xs py-lg px-md bg-surface-2 border-2 border-black rounded-lg transition-colors hover:border-yellow"
             >
               <span class="text-2xl">{{ feature.icon }}</span>
               <span class="text-[0.85rem] font-bold text-fg">{{ feature.title }}</span>
@@ -188,93 +185,11 @@ const features = [
             </div>
           </div>
 
-          <button class="btn btn-gold w-full p-md text-base" @click="navigateTo('/dashboard')">
+          <Button class="w-full p-md text-base" @click="navigateTo('/dashboard')">
             Let's Go
-          </button>
+          </Button>
         </div>
       </Transition>
     </div>
   </div>
 </template>
-
-<style scoped>
-/* ── Form input ──────────────────────────────────────────────────────── */
-.form-input {
-  font-family: var(--font-sans);
-  transition: border-color var(--duration-normal) var(--ease-out);
-}
-
-.form-input:focus {
-  border-color: var(--gold-dim);
-}
-
-.form-input::placeholder {
-  color: var(--text-muted);
-  font-weight: 400;
-}
-
-/* ── Step indicator dots ─────────────────────────────────────────────── */
-.step-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--surface-3);
-  transition: all var(--duration-normal) var(--ease-out);
-}
-
-.step-dot.active {
-  background: var(--gold);
-  transform: scale(1.35);
-  box-shadow: 0 0 8px var(--gold-glow);
-}
-
-.step-dot.completed {
-  background: var(--gold-dim);
-}
-
-/* ── Feature cards ───────────────────────────────────────────────────── */
-.feature-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-lg) var(--spacing-md);
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  transition: border-color var(--duration-normal) var(--ease-out);
-}
-
-.feature-card:hover {
-  border-color: var(--border-gold);
-}
-
-/* ── Slide transitions ───────────────────────────────────────────────── */
-.slide-left-enter-active,
-.slide-left-leave-active,
-.slide-right-enter-active,
-.slide-right-leave-active {
-  transition: all var(--duration-slow) var(--ease-out);
-}
-
-/* Forward: enter from right, leave to left */
-.slide-left-enter-from {
-  opacity: 0;
-  transform: translateX(40px);
-}
-.slide-left-leave-to {
-  opacity: 0;
-  transform: translateX(-40px);
-}
-
-/* Backward: enter from left, leave to right */
-.slide-right-enter-from {
-  opacity: 0;
-  transform: translateX(-40px);
-}
-.slide-right-leave-to {
-  opacity: 0;
-  transform: translateX(40px);
-}
-</style>

@@ -71,69 +71,68 @@ function turnPlayerName(turn: { player_index: number }): string {
 </script>
 
 <template>
-  <div class="live-game">
+  <div class="flex flex-col gap-sm h-full overflow-hidden">
     <!-- Player panels — stacked vertically to fit column -->
     <div
       v-for="(player, i) in gameState.players"
       :key="i"
-      class="player-panel"
-      :class="{ active: i === gameState.current_player_index }"
+      class="flex flex-col items-center gap-xs px-sm py-md bg-surface-1 border-2 border-black rounded-lg shadow-md transition-all duration-200"
+      :class="i === gameState.current_player_index ? 'border-yellow shadow-lg' : ''"
     >
-      <div class="panel-header">
+      <div class="flex items-center gap-xs w-full justify-center">
         <PlayerAvatar v-bind="getAvatarProps(player.name)" :size="32" />
-        <span class="panel-name">{{ player.name }}</span>
-        <div class="panel-stats">
-          <span class="stat-chip">{{ playerAvg(i) }} avg</span>
-          <span v-if="hasSets" class="stat-chip">S {{ gameState.sets_won[i] ?? 0 }}</span>
-          <span v-if="isMatch" class="stat-chip">L {{ gameState.current_set_legs[i] ?? 0 }}</span>
+        <span class="text-[0.85rem] font-bold uppercase tracking-[1px]" :class="i === gameState.current_player_index ? 'text-yellow' : 'text-fg-secondary'">{{ player.name }}</span>
+        <div class="flex gap-xs ml-auto">
+          <span class="text-[0.65rem] font-semibold text-fg-muted bg-surface-2 px-[5px] py-[1px] rounded-sm tabular-nums whitespace-nowrap">{{ playerAvg(i) }} avg</span>
+          <span v-if="hasSets" class="text-[0.65rem] font-semibold text-fg-muted bg-surface-2 px-[5px] py-[1px] rounded-sm tabular-nums whitespace-nowrap">S {{ gameState.sets_won[i] ?? 0 }}</span>
+          <span v-if="isMatch" class="text-[0.65rem] font-semibold text-fg-muted bg-surface-2 px-[5px] py-[1px] rounded-sm tabular-nums whitespace-nowrap">L {{ gameState.current_set_legs[i] ?? 0 }}</span>
         </div>
       </div>
-      <div class="panel-score">
+      <div class="text-[clamp(2rem,5vw,4rem)] font-black tabular-nums leading-none" :class="i === gameState.current_player_index ? 'text-yellow' : 'text-fg'">
         {{ displayScores[i] ?? player.score }}
       </div>
     </div>
 
     <!-- Current turn darts -->
-    <div class="current-turn">
-      <div class="turn-label">
+    <div class="flex flex-col items-center gap-xs p-sm bg-surface-1 border-2 border-black rounded-md shrink-0">
+      <div class="text-[0.6rem] font-bold text-fg-muted uppercase tracking-[1px]">
         Current Turn
       </div>
-      <div class="turn-darts">
+      <div class="flex items-center gap-xs">
         <span
           v-for="slot in 3"
           :key="slot"
-          class="dart-slot"
-          :class="{ filled: gameState.current_turn.throws[slot - 1] }"
+          class="min-w-[48px] flex items-center justify-center"
         >
           <template v-if="gameState.current_turn.throws[slot - 1]">
             <ThrowBadge :throw="gameState.current_turn.throws[slot - 1]!" />
           </template>
           <template v-else>
-            <span class="dart-empty">&middot;</span>
+            <span class="text-[1.2rem] text-fg-muted">&middot;</span>
           </template>
         </span>
-        <span v-if="gameState.current_turn.throws.length > 0" class="turn-total">
+        <span v-if="gameState.current_turn.throws.length > 0" class="text-[1rem] font-extrabold text-fg tabular-nums ml-xs">
           = {{ gameState.current_turn.throws.reduce((s: number, t: ThrowResult) => s + throwPoints(t), 0) }}
         </span>
       </div>
     </div>
 
     <!-- Recent throws -->
-    <div v-if="recentTurns.length > 0" class="recent-throws">
-      <div class="turn-label">
+    <div v-if="recentTurns.length > 0" class="flex flex-col gap-xs flex-1 min-h-0 overflow-hidden">
+      <div class="text-[0.6rem] font-bold text-fg-muted uppercase tracking-[1px]">
         Recent
       </div>
-      <div class="recent-list">
+      <div class="flex flex-col gap-[3px] overflow-hidden">
         <div
           v-for="(turn, i) in recentTurns"
           :key="i"
-          class="recent-row"
+          class="flex items-center gap-xs px-xs py-[2px] bg-surface-2 rounded-sm"
         >
-          <span class="recent-player">{{ turnPlayerName(turn) }}</span>
-          <span class="recent-darts">
+          <span class="text-[0.7rem] font-semibold text-fg-muted min-w-[50px] whitespace-nowrap overflow-hidden text-ellipsis">{{ turnPlayerName(turn) }}</span>
+          <span class="flex gap-[3px] flex-1">
             <ThrowBadge v-for="(t, j) in turn.throws" :key="j" :throw="t" />
           </span>
-          <span class="recent-total" :class="{ busted: turn.busted }">
+          <span class="text-[0.8rem] font-extrabold tabular-nums min-w-[32px] text-right" :class="turn.busted ? 'text-red' : 'text-fg'">
             {{ turn.busted ? 'BUST' : turnTotal(turn) }}
           </span>
         </div>
@@ -141,192 +140,3 @@ function turnPlayerName(turn: { player_index: number }): string {
     </div>
   </div>
 </template>
-
-<style scoped>
-.live-game {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-  height: 100%;
-  overflow: hidden;
-}
-
-/* ── Player panels ── */
-.player-panel {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-md) var(--spacing-sm);
-  background: var(--surface-glass);
-  backdrop-filter: blur(var(--blur-glass));
-  -webkit-backdrop-filter: blur(var(--blur-glass));
-  border: 2px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  transition: border-color var(--duration-normal), box-shadow var(--duration-normal);
-}
-
-.player-panel.active {
-  border-color: var(--gold);
-  box-shadow: 0 0 24px var(--gold-glow);
-}
-
-.panel-header {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  width: 100%;
-  justify-content: center;
-}
-
-.panel-name {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.player-panel.active .panel-name {
-  background: var(--gold-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.panel-stats {
-  display: flex;
-  gap: var(--spacing-xs);
-  margin-left: auto;
-}
-
-.stat-chip {
-  font-size: 0.65rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  background: var(--surface-2);
-  padding: 1px 5px;
-  border-radius: var(--radius-sm);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-
-.panel-score {
-  font-size: clamp(2rem, 5vw, 4rem);
-  font-weight: 900;
-  color: var(--text-primary);
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-}
-
-.player-panel.active .panel-score {
-  background: var(--gold-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* ── Current turn ── */
-.current-turn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-sm);
-  background: var(--surface-glass);
-  backdrop-filter: blur(var(--blur-glass));
-  -webkit-backdrop-filter: blur(var(--blur-glass));
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  flex-shrink: 0;
-}
-
-.turn-label {
-  font-size: 0.6rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.turn-darts {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-}
-
-.dart-slot {
-  min-width: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.dart-empty {
-  font-size: 1.2rem;
-  color: var(--text-muted);
-}
-
-.turn-total {
-  font-size: 1rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  font-variant-numeric: tabular-nums;
-  margin-left: var(--spacing-xs);
-}
-
-/* ── Recent throws ── */
-.recent-throws {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
-}
-
-.recent-list {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  overflow: hidden;
-}
-
-.recent-row {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  padding: 2px var(--spacing-xs);
-  background: var(--surface-2);
-  border-radius: var(--radius-sm);
-}
-
-.recent-player {
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  min-width: 50px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.recent-darts {
-  display: flex;
-  gap: 3px;
-  flex: 1;
-}
-
-.recent-total {
-  font-size: 0.8rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  font-variant-numeric: tabular-nums;
-  min-width: 32px;
-  text-align: right;
-}
-
-.recent-total.busted {
-  color: var(--red);
-}
-</style>

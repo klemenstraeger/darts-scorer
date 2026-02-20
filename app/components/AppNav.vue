@@ -60,41 +60,43 @@ function handleNewGame() {
 </script>
 
 <template>
-  <nav class="app-nav glass-card sticky top-0 z-50 px-sm sm:px-lg py-sm mb-sm" data-tour="nav">
+  <nav class="app-nav bg-surface-1 border-2 border-black rounded-lg shadow-md sticky top-0 z-50 px-sm sm:px-lg py-sm mb-sm" data-tour="nav">
     <div class="flex items-center justify-between max-w-[1200px] mx-auto">
-      <NuxtLink :to="isAuthenticated ? '/dashboard' : '/play'" class="brand-link">
+      <NuxtLink :to="isAuthenticated ? '/dashboard' : '/play'" class="flex items-center gap-sm no-underline">
         <DartsLogo :size="26" />
-        <span class="brand-text brand-full">Darts Scorer</span>
-        <span class="brand-text brand-short">DS</span>
+        <span class="hidden sm:inline text-[1rem] font-extrabold text-yellow tracking-[1.5px] uppercase">Darts Scorer</span>
+        <span class="inline sm:hidden text-[0.85rem] font-extrabold text-yellow tracking-[1px] uppercase">DS</span>
       </NuxtLink>
 
       <div v-if="isGamePage && isTournamentMatch" class="flex items-center">
-        <span class="text-[0.7rem] font-bold text-gold uppercase tracking-wide">Tournament Match</span>
+        <span class="text-[0.7rem] font-bold text-yellow uppercase tracking-wide">Tournament Match</span>
       </div>
 
       <!-- Desktop inline nav links (hidden on mobile) -->
-      <div v-else-if="!isFullScreenPage" class="nav-links hidden sm:flex">
+      <div v-else-if="!isFullScreenPage" class="hidden sm:flex relative gap-0">
         <NuxtLink
           v-for="item in navItems"
           :key="item.path"
           :to="item.path"
-          class="nav-link"
-          :class="{ active: isNavItemActive(item) }"
+          class="app-nav-link relative flex items-center gap-xs px-lg py-sm text-fg-muted no-underline text-[0.85rem] font-semibold uppercase tracking-[0.5px] transition-colors duration-200 hover:text-fg-secondary"
+          :class="{ 'app-nav-link-active': isNavItemActive(item) }"
         >
           {{ item.label }}
         </NuxtLink>
       </div>
 
       <div class="flex items-center gap-xs sm:gap-md shrink-0">
-        <span v-if="profile" class="user-name">{{ profile.displayName }}</span>
-        <NuxtLink v-else-if="!isAuthenticated" to="/login" class="signin-link hidden sm:flex">
+        <span v-if="profile" class="text-[0.8rem] font-semibold text-fg-secondary max-w-[120px] truncate max-[480px]:hidden">{{ profile.displayName }}</span>
+        <NuxtLink v-else-if="!isAuthenticated" to="/login" class="hidden sm:flex items-center text-[0.8rem] font-semibold text-fg-muted no-underline transition-colors duration-150 hover:text-yellow">
           Sign In
         </NuxtLink>
-        <ThemeToggle />
-
         <!-- Game context menu -->
         <div v-if="isGamePage" class="relative">
-          <button class="menu-btn" title="Game menu" @click="toggleGameMenu">
+          <button
+            class="flex items-center justify-center p-xs bg-transparent border-none text-fg-muted cursor-pointer rounded-sm transition-all duration-150 hover:text-fg hover:bg-surface-2"
+            title="Game menu"
+            @click="toggleGameMenu"
+          >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="5" r="1" />
               <circle cx="12" cy="12" r="1" />
@@ -102,8 +104,11 @@ function handleNewGame() {
             </svg>
           </button>
           <Transition name="menu">
-            <div v-if="gameMenuOpen" class="menu-dropdown">
-              <button class="menu-item" @click="handleNewGame">
+            <div v-if="gameMenuOpen" class="absolute top-[calc(100%+var(--spacing-xs))] right-0 min-w-[160px] bg-surface-1 border-2 border-black rounded-md p-xs z-[52] shadow-md">
+              <button
+                class="flex items-center gap-sm w-full px-md py-sm bg-transparent border-none rounded-sm text-fg-secondary font-sans text-[0.8rem] font-semibold cursor-pointer transition-all duration-150 whitespace-nowrap hover:bg-surface-3 hover:text-fg"
+                @click="handleNewGame"
+              >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <line x1="12" y1="5" x2="12" y2="19" />
                   <line x1="5" y1="12" x2="19" y2="12" />
@@ -112,7 +117,7 @@ function handleNewGame() {
               </button>
               <button
                 v-if="!confirmStop"
-                class="menu-item menu-item-danger"
+                class="flex items-center gap-sm w-full px-md py-sm bg-transparent border-none rounded-sm text-fg-secondary font-sans text-[0.8rem] font-semibold cursor-pointer transition-all duration-150 whitespace-nowrap hover:text-red hover:bg-red-light"
                 @click="confirmStop = true"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -122,7 +127,7 @@ function handleNewGame() {
               </button>
               <button
                 v-else
-                class="menu-item menu-item-danger active"
+                class="flex items-center gap-sm w-full px-md py-sm border-none rounded-sm font-sans text-[0.8rem] font-semibold cursor-pointer transition-all duration-150 whitespace-nowrap text-red bg-red-light"
                 @click="handleStop"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -138,7 +143,12 @@ function handleNewGame() {
         </div>
 
         <!-- Desktop logout button -->
-        <button v-if="profile && !isFullScreenPage" class="logout-btn hidden sm:flex" title="Log out" @click="logout">
+        <button
+          v-if="profile && !isFullScreenPage"
+          class="hidden sm:flex items-center justify-center p-xs bg-transparent border-none text-fg-muted cursor-pointer rounded-sm transition-all duration-150 hover:text-red hover:bg-red-light"
+          title="Log out"
+          @click="logout"
+        >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
             <polyline points="16 17 21 12 16 7" />
@@ -153,17 +163,18 @@ function handleNewGame() {
   <Transition name="bottom-nav">
     <nav
       v-if="!isFullScreenPage"
-      class="bottom-nav glass-card flex sm:hidden"
+      class="app-bottom-nav bg-surface-1 border-t-2 border-black fixed bottom-0 left-0 right-0 z-50 flex sm:hidden justify-around items-center h-[48px]"
       aria-label="Main navigation"
     >
       <NuxtLink
         v-for="item in navItems"
         :key="item.path"
         :to="item.path"
-        class="bottom-nav-item"
-        :class="{ active: isNavItemActive(item) }"
+        class="flex flex-col items-center justify-center gap-[2px] flex-1 py-xs no-underline text-[0.6rem] font-semibold uppercase tracking-[0.3px] transition-colors duration-150"
+        :class="isNavItemActive(item) ? 'text-yellow' : 'text-fg-muted'"
         :aria-label="item.label"
         :aria-current="isNavItemActive(item) ? 'page' : undefined"
+        style="-webkit-tap-highlight-color: transparent;"
       >
         <!-- Home -->
         <svg v-if="item.icon === 'home'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -194,13 +205,14 @@ function handleNewGame() {
         <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="10" />
         </svg>
-        <span class="bottom-nav-label">{{ item.label }}</span>
+        <span class="leading-none">{{ item.label }}</span>
       </NuxtLink>
     </nav>
   </Transition>
 </template>
 
-<style scoped>
+<style>
+/* env() safe-area calculations cannot be expressed in Tailwind */
 .app-nav {
   padding-top: calc(env(safe-area-inset-top, 0px) + var(--spacing-sm));
   padding-left: calc(env(safe-area-inset-left, 0px) + var(--spacing-sm));
@@ -214,280 +226,25 @@ function handleNewGame() {
   }
 }
 
-.brand-link {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  text-decoration: none;
+/* Active nav link underline — ::after pseudo-element cannot be Tailwind */
+.app-nav-link-active {
+  color: var(--yellow) !important;
 }
 
-.brand-text {
-  font-size: 1rem;
-  font-weight: 800;
-  color: var(--gold);
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-}
-
-.brand-full {
-  display: none;
-}
-
-.brand-short {
-  display: inline;
-  font-size: 0.85rem;
-  letter-spacing: 1px;
-}
-
-@media (min-width: 640px) {
-  .brand-full {
-    display: inline;
-  }
-  .brand-short {
-    display: none;
-  }
-}
-
-.nav-links {
-  position: relative;
-  gap: 0;
-}
-
-.nav-link {
-  position: relative;
-  padding: var(--spacing-sm) var(--spacing-lg);
-  color: var(--text-muted);
-  text-decoration: none;
-  font-size: 0.85rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  transition: color var(--duration-normal) var(--ease-out);
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-}
-
-.nav-link:hover {
-  color: var(--text-secondary);
-}
-
-.nav-link.active {
-  color: var(--gold);
-}
-
-.nav-link.active::after {
+.app-nav-link-active::after {
   content: '';
   position: absolute;
   bottom: 0;
   left: var(--spacing-lg);
   right: var(--spacing-lg);
   height: 2px;
-  background: var(--gold);
-  border-radius: var(--radius-full);
-  box-shadow: 0 0 8px var(--gold-glow);
+  background: var(--yellow);
 }
 
-.user-name {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  max-width: 120px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.signin-link {
-  align-items: center;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-decoration: none;
-  transition: color var(--duration-fast);
-}
-
-.signin-link:hover {
-  color: var(--gold);
-}
-
-.logout-btn {
-  align-items: center;
-  justify-content: center;
-  padding: var(--spacing-xs);
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  border-radius: var(--radius-sm);
-  transition: all var(--duration-fast) var(--ease-out);
-}
-
-.logout-btn:hover {
-  color: var(--red);
-  background: rgba(239, 68, 68, 0.1);
-}
-
-/* ── Bottom navigation bar (mobile only) ── */
-.bottom-nav {
-  --bottom-nav-height: 48px;
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 50;
-  justify-content: space-around;
-  align-items: center;
-  height: var(--bottom-nav-height);
+/* Bottom nav safe-area padding */
+.app-bottom-nav {
   padding-bottom: env(safe-area-inset-bottom, 0px);
-  padding-top: 0;
   padding-left: env(safe-area-inset-left, 0px);
   padding-right: env(safe-area-inset-right, 0px);
-  border-radius: 0;
-  border-left: none;
-  border-right: none;
-  border-bottom: none;
-  border-top: 1px solid var(--surface-glass-border);
-}
-
-.bottom-nav-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  flex: 1;
-  padding: var(--spacing-xs) 0;
-  color: var(--text-muted);
-  text-decoration: none;
-  font-size: 0.6rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  transition: color var(--duration-fast) var(--ease-out);
-  -webkit-tap-highlight-color: transparent;
-}
-
-.bottom-nav-item.active {
-  color: var(--gold);
-}
-
-.bottom-nav-item.active svg {
-  filter: drop-shadow(0 0 4px var(--gold-glow));
-}
-
-.bottom-nav-label {
-  line-height: 1;
-}
-
-/* Bottom nav transition */
-.bottom-nav-enter-active {
-  transition: transform var(--duration-normal) var(--ease-out),
-              opacity var(--duration-normal) var(--ease-out);
-}
-
-.bottom-nav-leave-active {
-  transition: transform var(--duration-fast) var(--ease-out),
-              opacity var(--duration-fast) var(--ease-out);
-}
-
-.bottom-nav-enter-from,
-.bottom-nav-leave-to {
-  opacity: 0;
-  transform: translateY(100%);
-}
-
-/* Game context menu */
-.menu-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--spacing-xs);
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  border-radius: var(--radius-sm);
-  transition: all var(--duration-fast) var(--ease-out);
-}
-
-.menu-btn:hover {
-  color: var(--text-primary);
-  background: var(--surface-2);
-}
-
-.menu-dropdown {
-  position: absolute;
-  top: calc(100% + var(--spacing-xs));
-  right: 0;
-  min-width: 160px;
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  padding: var(--spacing-xs);
-  z-index: 52;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-}
-
-.menu-item {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  width: 100%;
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: transparent;
-  border: none;
-  border-radius: var(--radius-sm);
-  color: var(--text-secondary);
-  font-family: var(--font-sans);
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--duration-fast) var(--ease-out);
-  white-space: nowrap;
-}
-
-.menu-item:hover {
-  background: var(--surface-3);
-  color: var(--text-primary);
-}
-
-.menu-item-danger:hover {
-  color: var(--red);
-  background: rgba(239, 68, 68, 0.1);
-}
-
-.menu-item-danger.active {
-  color: var(--red);
-  background: rgba(239, 68, 68, 0.12);
-}
-
-.menu-enter-active {
-  transition: all var(--duration-fast) var(--ease-out);
-}
-
-.menu-leave-active {
-  transition: all var(--duration-fast) var(--ease-out);
-}
-
-.menu-enter-from,
-.menu-leave-to {
-  opacity: 0;
-  transform: translateY(-4px) scale(0.95);
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity var(--duration-fast);
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-
-@media (max-width: 480px) {
-  .user-name {
-    display: none;
-  }
 }
 </style>

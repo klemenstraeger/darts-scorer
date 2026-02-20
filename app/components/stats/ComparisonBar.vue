@@ -38,107 +38,35 @@ const rightWins = computed(() => props.rightValue > props.leftValue)
 </script>
 
 <template>
-  <div class="comparison-row">
-    <div class="comparison-value left" :class="{ winner: leftWins }">
+  <div class="flex items-center gap-md py-sm">
+    <div
+      class="min-w-[48px] text-base font-bold text-fg-muted tabular-nums text-right transition-colors duration-100"
+      :class="{ 'text-yellow': leftWins }"
+    >
       {{ leftDisplay }}
     </div>
-    <div class="comparison-center">
-      <div class="comparison-label">
+    <div class="flex-1 flex flex-col items-center gap-1">
+      <div class="text-[0.7rem] font-semibold uppercase tracking-[1px] text-fg-muted">
         {{ label }}
       </div>
-      <div class="comparison-track">
+      <div class="w-full h-2 rounded bg-surface-2 border border-black flex overflow-hidden gap-0.5">
         <div
-          class="comparison-fill left-fill"
-          :class="{ winner: leftWins }"
+          class="h-full rounded transition-[width] duration-500 ease-out"
+          :class="leftWins ? 'bg-yellow' : 'bg-blue'"
           :style="{ width: `${leftPct}%` }"
         />
         <div
-          class="comparison-fill right-fill"
-          :class="{ winner: rightWins }"
+          class="h-full rounded transition-[width] duration-500 ease-out"
+          :class="rightWins ? 'bg-yellow' : 'bg-red'"
           :style="{ width: `${rightPct}%` }"
         />
       </div>
     </div>
-    <div class="comparison-value right" :class="{ winner: rightWins }">
+    <div
+      class="min-w-[48px] text-base font-bold text-fg-muted tabular-nums text-left transition-colors duration-100"
+      :class="{ 'text-yellow': rightWins }"
+    >
       {{ rightDisplay }}
     </div>
   </div>
 </template>
-
-<style scoped>
-.comparison-row {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  padding: var(--spacing-sm) 0;
-}
-
-.comparison-value {
-  min-width: 48px;
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
-  transition: color var(--duration-fast);
-}
-
-.comparison-value.left {
-  text-align: right;
-}
-
-.comparison-value.right {
-  text-align: left;
-}
-
-.comparison-value.winner {
-  color: var(--gold);
-}
-
-.comparison-center {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-
-.comparison-label {
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--text-muted);
-}
-
-.comparison-track {
-  width: 100%;
-  height: 8px;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.06);
-  display: flex;
-  overflow: hidden;
-  gap: 2px;
-}
-
-.comparison-fill {
-  height: 100%;
-  transition: width 0.5s var(--ease-out);
-  border-radius: 4px;
-}
-
-.left-fill {
-  background: rgba(59, 130, 246, 0.35);
-}
-
-.left-fill.winner {
-  background: linear-gradient(90deg, rgba(59, 130, 246, 0.5), rgba(255, 215, 0, 0.6));
-}
-
-.right-fill {
-  background: rgba(239, 68, 68, 0.35);
-}
-
-.right-fill.winner {
-  background: linear-gradient(270deg, rgba(239, 68, 68, 0.5), rgba(255, 215, 0, 0.6));
-}
-</style>

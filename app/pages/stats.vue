@@ -484,7 +484,7 @@ const ringBreakdownForDonut = computed(() => {
   const ringColors = {
     Miss: 'var(--red)',
     S: 'var(--blue)',
-    D: 'var(--gold)',
+    D: 'var(--yellow)',
     T: 'var(--green)',
     Bull: 'var(--purple)',
   } as Record<string, string>
@@ -677,7 +677,7 @@ function gameAverage(gameId: number): number | null {
       <!-- Section 1: Hero -->
       <div
         v-motion
-        class="stats-hero"
+        class="relative flex items-center gap-lg px-lg py-xl rounded-xl bg-yellow-light border-2 border-black overflow-visible mb-xl shadow-md"
         :initial="{ opacity: 0, y: -10 }"
         :enter="{ opacity: 1, y: 0, transition: { duration: 300 } }"
       >
@@ -689,24 +689,23 @@ function gameAverage(gameId: number): number | null {
             Track trends, accuracy, and game flow.
           </p>
         </div>
-        <div class="export-wrapper" style="position: relative; z-index: 10;">
+        <div class="export-wrapper relative z-10 shrink-0">
           <button
-            class="export-btn"
+            class="px-lg py-xs bg-surface-1 border-2 border-black rounded-full text-fg-secondary text-[0.8rem] font-medium cursor-pointer shadow-sm transition-all duration-150 hover:enabled:-translate-x-0.5 hover:enabled:-translate-y-0.5 hover:enabled:shadow-md active:enabled:translate-x-0.5 active:enabled:translate-y-0.5 active:enabled:shadow-none disabled:opacity-50 disabled:cursor-not-allowed"
             :disabled="exporting"
             @click="showExportMenu = !showExportMenu"
           >
             {{ exporting ? 'Exporting...' : 'Export' }}
           </button>
-          <div v-if="showExportMenu" class="export-menu">
-            <button class="export-menu-item" @click="exportData('csv')">
+          <div v-if="showExportMenu" class="absolute top-[calc(100%+6px)] right-0 bg-surface-1 border-2 border-black rounded-lg overflow-hidden min-w-[150px] shadow-lg">
+            <button class="block w-full px-lg py-sm bg-transparent border-none text-fg-secondary text-[0.8rem] font-medium text-left cursor-pointer transition-colors duration-150 hover:bg-surface-2" @click="exportData('csv')">
               Download CSV
             </button>
-            <button class="export-menu-item" @click="exportData('json')">
+            <button class="block w-full px-lg py-sm bg-transparent border-none text-fg-secondary text-[0.8rem] font-medium text-left cursor-pointer transition-colors duration-150 hover:bg-surface-2" @click="exportData('json')">
               Download JSON
             </button>
           </div>
         </div>
-        <div class="stats-glow" />
       </div>
 
       <!-- Tab switcher -->
@@ -717,15 +716,15 @@ function gameAverage(gameId: number): number | null {
         :enter="{ opacity: 1, transition: { duration: 300, delay: 80 } }"
       >
         <button
-          class="tab-btn"
-          :class="{ active: activeTab === 'stats' }"
+          class="px-xl py-xs border-2 border-black rounded-full text-[0.85rem] font-medium cursor-pointer shadow-sm transition-all duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md"
+          :class="activeTab === 'stats' ? 'bg-yellow-light text-fg font-semibold' : 'bg-surface-1 text-fg-secondary'"
           @click="switchTab('stats')"
         >
           Player Stats
         </button>
         <button
-          class="tab-btn"
-          :class="{ active: activeTab === 'rankings' }"
+          class="px-xl py-xs border-2 border-black rounded-full text-[0.85rem] font-medium cursor-pointer shadow-sm transition-all duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md"
+          :class="activeTab === 'rankings' ? 'bg-yellow-light text-fg font-semibold' : 'bg-surface-1 text-fg-secondary'"
           @click="switchTab('rankings')"
         >
           Rankings
@@ -745,12 +744,24 @@ function gameAverage(gameId: number): number | null {
             v-for="player in rankings"
             :key="player.name"
             v-motion
-            class="glass-card p-md flex items-center gap-md rankings-row"
-            :class="{ 'rank-gold': player.rank === 1, 'rank-silver': player.rank === 2, 'rank-bronze': player.rank === 3 }"
+            class="bg-surface-1 border-2 border-black rounded-lg shadow-md p-md flex items-center gap-md transition-all duration-150 cursor-default hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-lg"
+            :class="{
+              'bg-yellow-light': player.rank === 1,
+              'bg-[#f0f0f0]': player.rank === 2,
+              'bg-[#fdf0e0]': player.rank === 3,
+            }"
             :initial="{ opacity: 0, x: -10 }"
             :enter="{ opacity: 1, x: 0, transition: { duration: 300, delay: 80 + player.rank * 50 } }"
           >
-            <div class="rank-badge" :class="{ 'rank-1': player.rank === 1, 'rank-2': player.rank === 2, 'rank-3': player.rank === 3 }">
+            <div
+              class="w-8 h-8 rounded-full flex items-center justify-center text-[0.85rem] font-bold shrink-0 border-2 border-black"
+              :class="{
+                'bg-yellow text-fg-inverse': player.rank === 1,
+                'bg-[#c0c0c0] text-fg-inverse': player.rank === 2,
+                'bg-[#cd7f32] text-fg-inverse': player.rank === 3,
+                'bg-surface-2 text-fg-muted': player.rank > 3,
+              }"
+            >
               {{ player.rank }}
             </div>
             <PlayerAvatar :name="player.name" :avatar-seed="player.avatarSeed" :avatar-style="player.avatarStyle" :size="36" />
@@ -761,11 +772,11 @@ function gameAverage(gameId: number): number | null {
               <div class="flex items-center gap-xs">
                 <span
                   v-if="player.trend.length >= 2"
-                  class="elo-trend"
+                  class="text-[0.7rem] font-semibold px-[6px] py-[1px] rounded tabular-nums"
                   :class="{
-                    'trend-up': eloTrendDirection(player.trend) === 'up',
-                    'trend-down': eloTrendDirection(player.trend) === 'down',
-                    'trend-neutral': eloTrendDirection(player.trend) === 'neutral',
+                    'text-green bg-green-light': eloTrendDirection(player.trend) === 'up',
+                    'text-red bg-red-light': eloTrendDirection(player.trend) === 'down',
+                    'text-fg-muted bg-surface-2': eloTrendDirection(player.trend) === 'neutral',
                   }"
                 >
                   <template v-if="eloTrendDirection(player.trend) === 'up'">+{{ eloTrendDelta(player.trend) }}</template>
@@ -776,8 +787,8 @@ function gameAverage(gameId: number): number | null {
                   <span
                     v-for="(entry, i) in player.trend"
                     :key="i"
-                    class="sparkline-dot"
-                    :class="entry.result === 'win' ? 'spark-win' : 'spark-loss'"
+                    class="w-1.5 h-1.5 rounded-full shrink-0"
+                    :class="entry.result === 'win' ? 'bg-green' : 'bg-red'"
                   />
                 </span>
               </div>
@@ -806,8 +817,8 @@ function gameAverage(gameId: number): number | null {
           <button
             v-for="player in players"
             :key="player.id"
-            class="player-chip"
-            :class="{ active: player.name === selectedPlayer }"
+            class="flex items-center gap-xs px-lg py-xs border-2 border-black rounded-full text-[0.85rem] font-medium cursor-pointer transition-all duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md"
+            :class="player.name === selectedPlayer ? 'bg-yellow-light text-fg font-semibold shadow-sm' : 'bg-surface-1 text-fg-secondary'"
             @click="selectPlayer(player.name)"
           >
             <PlayerAvatar v-bind="getAvatarProps(player.name)" :size="22" />
@@ -839,7 +850,7 @@ function gameAverage(gameId: number): number | null {
           <!-- ============================================================ -->
           <section class="flex flex-col gap-md">
             <div class="flex items-center justify-between gap-md mb-md flex-wrap">
-              <h3 class="section-title !mb-0">
+              <h3 class="text-[0.8rem] text-fg-muted uppercase tracking-wide">
                 Overview
               </h3>
               <span class="text-[0.7rem] text-fg-muted uppercase tracking-widest">{{ filterLabel }}</span>
@@ -851,8 +862,8 @@ function gameAverage(gameId: number): number | null {
                 v-for="(card, i) in primaryCards"
                 :key="card.key"
                 v-motion
-                class="primary-stat-card"
-                :class="{ 'primary-hero': card.hero }"
+                class="px-xl py-lg text-center flex flex-col items-center gap-xs rounded-lg border-2 border-black"
+                :class="card.hero ? 'bg-yellow-light shadow-md' : 'bg-surface-1'"
                 :initial="{ opacity: 0, y: 20 }"
                 :enter="{ opacity: 1, y: 0, transition: { duration: 300, delay: 150 + i * 40 } }"
               >
@@ -883,8 +894,8 @@ function gameAverage(gameId: number): number | null {
               <span
                 v-for="(won, i) in recentForm"
                 :key="i"
-                class="form-dot"
-                :class="won ? 'form-win' : 'form-loss'"
+                class="w-2 h-2 rounded-full shrink-0 border border-black"
+                :class="won ? 'bg-green' : 'bg-red'"
               />
             </div>
 
@@ -894,7 +905,7 @@ function gameAverage(gameId: number): number | null {
                 v-for="(card, i) in secondaryCards"
                 :key="card.key"
                 v-motion
-                class="glass-card p-md text-center flex flex-col items-center gap-[2px]"
+                class="bg-surface-1 border-2 border-black rounded-lg shadow-md p-md text-center flex flex-col items-center gap-[2px]"
                 :title="card.title"
                 :initial="{ opacity: 0, y: 12 }"
                 :enter="{ opacity: 1, y: 0, transition: { duration: 300, delay: 280 + i * 30 } }"
@@ -919,16 +930,16 @@ function gameAverage(gameId: number): number | null {
             </div>
 
             <!-- Metric explainer -->
-            <details class="metric-explainer">
-              <summary class="text-[0.7rem] text-fg-muted cursor-pointer hover:text-fg-secondary transition-colors">
+            <details class="stats-metric-explainer mt-xs">
+              <summary class="text-[0.7rem] text-fg-muted cursor-pointer hover:text-fg-secondary transition-colors list-none select-none">
                 What do these mean?
               </summary>
-              <div class="explainer-content">
-                <p><strong>3-Dart Avg</strong> &mdash; Average points per 3-dart visit across all turns, including busts (counted as 0).</p>
-                <p><strong>Scoring Avg</strong> &mdash; Average per 3-dart visit, excluding busted turns entirely. Usually higher than 3-Dart Avg.</p>
-                <p><strong>First 9 Avg</strong> &mdash; Average of your first 3 visits (9 darts) each leg. Shows opening strength before checkout pressure.</p>
-                <p><strong>Bust Rate</strong> &mdash; Percentage of turns that busted (went over the remaining score).</p>
-                <p><strong>Avg Darts/Leg</strong> &mdash; Average number of darts needed to complete a leg. Lower is better.</p>
+              <div class="mt-sm p-md bg-surface-1 border-2 border-black rounded-md text-[0.72rem] text-fg-muted leading-relaxed flex flex-col gap-xs">
+                <p><strong class="text-fg-secondary">3-Dart Avg</strong> &mdash; Average points per 3-dart visit across all turns, including busts (counted as 0).</p>
+                <p><strong class="text-fg-secondary">Scoring Avg</strong> &mdash; Average per 3-dart visit, excluding busted turns entirely. Usually higher than 3-Dart Avg.</p>
+                <p><strong class="text-fg-secondary">First 9 Avg</strong> &mdash; Average of your first 3 visits (9 darts) each leg. Shows opening strength before checkout pressure.</p>
+                <p><strong class="text-fg-secondary">Bust Rate</strong> &mdash; Percentage of turns that busted (went over the remaining score).</p>
+                <p><strong class="text-fg-secondary">Avg Darts/Leg</strong> &mdash; Average number of darts needed to complete a leg. Lower is better.</p>
               </div>
             </details>
           </section>
@@ -940,15 +951,15 @@ function gameAverage(gameId: number): number | null {
             :initial="{ opacity: 0 }"
             :enter="{ opacity: 1, transition: { duration: 300, delay: 400 } }"
           >
-            <h3 class="section-title">
+            <h3 class="text-[0.8rem] text-fg-muted uppercase tracking-wide mb-md">
               Scoring Milestones
             </h3>
             <div class="grid grid-cols-4 gap-md max-sm:grid-cols-2">
               <div
                 v-for="m in milestoneCards"
                 :key="m.label"
-                class="milestone-card"
-                :class="m.accent"
+                class="p-lg text-center rounded-lg border-2 border-black"
+                :class="m.accent === 'gold' ? 'bg-yellow-light shadow-md text-fg' : 'bg-surface-1 text-fg'"
               >
                 <div class="text-[2rem] font-extrabold tabular-nums">
                   {{ m.value }}
@@ -1090,12 +1101,12 @@ function gameAverage(gameId: number): number | null {
             :enter="{ opacity: 1, y: 0, transition: { duration: 300, delay: 550 } }"
           >
             <div class="flex items-center justify-between gap-md">
-              <h3 class="section-title !mb-0">
+              <h3 class="text-[0.8rem] text-fg-muted uppercase tracking-wide">
                 Head-to-Head
               </h3>
               <NuxtLink
                 :to="{ path: '/stats/head-to-head', query: { player1: selectedPlayer } }"
-                class="h2h-compare-link"
+                class="flex items-center gap-xs text-[0.75rem] font-semibold text-fg-muted no-underline uppercase tracking-wide transition-colors duration-150 hover:text-yellow"
               >
                 Compare
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1108,7 +1119,7 @@ function gameAverage(gameId: number): number | null {
                 v-for="h2h in headToHead"
                 :key="h2h.opponent"
                 :to="{ path: '/stats/head-to-head', query: { player1: selectedPlayer, player2: h2h.opponent } }"
-                class="glass-card p-md flex items-center gap-md h2h-row-link"
+                class="bg-surface-1 border-2 border-black rounded-lg shadow-md p-md flex items-center gap-md no-underline cursor-pointer transition-all duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-lg"
               >
                 <PlayerAvatar v-bind="getAvatarProps(h2h.opponent)" :size="28" />
                 <div class="flex-1 min-w-0">
@@ -1121,8 +1132,8 @@ function gameAverage(gameId: number): number | null {
                 </div>
                 <div class="flex items-center gap-sm">
                   <span class="text-[0.9rem] font-bold tabular-nums" :class="h2h.wins >= h2h.losses ? 'text-green' : 'text-fg-muted'">{{ h2h.wins }}</span>
-                  <div class="h2h-bar" :style="{ '--win-pct': `${(h2h.wins / h2h.games_played) * 100}%` }">
-                    <div class="h2h-bar-fill" />
+                  <div class="w-[60px] h-1.5 rounded-[3px] bg-surface-3 overflow-hidden relative border border-black" :style="{ '--win-pct': `${(h2h.wins / h2h.games_played) * 100}%` }">
+                    <div class="absolute top-0 left-0 h-full rounded-[3px] bg-green transition-all duration-300" :style="{ width: `${(h2h.wins / h2h.games_played) * 100}%` }" />
                   </div>
                   <span class="text-[0.9rem] font-bold tabular-nums" :class="h2h.losses > h2h.wins ? 'text-red' : 'text-fg-muted'">{{ h2h.losses }}</span>
                 </div>
@@ -1133,7 +1144,7 @@ function gameAverage(gameId: number): number | null {
           <!-- Recommendations -->
           <section class="flex flex-col gap-md">
             <div class="flex items-baseline justify-between gap-md mb-md">
-              <h3 class="section-title !mb-0">
+              <h3 class="text-[0.8rem] text-fg-muted uppercase tracking-wide">
                 Recommendations
               </h3>
               <span class="text-[0.7rem] text-fg-muted uppercase tracking-widest">Based on recent trends</span>
@@ -1157,21 +1168,21 @@ function gameAverage(gameId: number): number | null {
           :initial="{ opacity: 0 }"
           :enter="{ opacity: 1, transition: { duration: 300, delay: 500 } }"
         >
-          <h3 class="section-title mt-2xl">
+          <h3 class="text-[0.8rem] text-fg-muted uppercase tracking-wide mb-md mt-2xl">
             Game History
           </h3>
           <div class="flex flex-col gap-sm">
             <div
               v-for="game in history"
               :key="game.id"
-              class="glass-card p-md flex justify-between items-center max-sm:flex-wrap max-sm:gap-sm"
+              class="bg-surface-1 border-2 border-black rounded-lg shadow-md p-md flex justify-between items-center max-sm:flex-wrap max-sm:gap-sm"
             >
               <div class="flex items-center gap-md">
-                <span class="text-[0.75rem] font-bold text-gold bg-gold-tint px-[8px] py-[2px] rounded-sm">{{ game.mode }}</span>
+                <span class="text-[0.75rem] font-bold text-fg bg-yellow-light px-[8px] py-[2px] rounded-sm">{{ game.mode }}</span>
                 <span class="text-[0.85rem] text-fg-secondary">
                   <template v-for="(p, i) in game.players" :key="p.player_name">
                     <span v-if="i > 0" class="text-fg-muted mx-xs text-[0.75rem]">vs</span>
-                    <span :class="{ 'text-gold font-semibold': game.winner_name === p.player_name }">
+                    <span :class="{ 'text-yellow font-semibold': game.winner_name === p.player_name }">
                       {{ p.player_name }}
                     </span>
                   </template>
@@ -1190,7 +1201,7 @@ function gameAverage(gameId: number): number | null {
                 </div>
                 <NuxtLink
                   :to="`/game/${game.id}/replay`"
-                  class="replay-link"
+                  class="inline-flex items-center justify-center w-8 h-8 rounded-md bg-surface-1 border-2 border-black text-fg-muted shrink-0 no-underline transition-all duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md hover:text-yellow"
                   title="Watch replay"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -1202,7 +1213,7 @@ function gameAverage(gameId: number): number | null {
           </div>
           <div v-if="hasMoreHistory" class="flex justify-center mt-lg">
             <button
-              class="load-more-btn"
+              class="px-xl py-sm bg-surface-1 border-2 border-black rounded-full text-fg-secondary text-[0.8rem] font-medium cursor-pointer shadow-sm transition-all duration-150 hover:enabled:-translate-x-0.5 hover:enabled:-translate-y-0.5 hover:enabled:shadow-md active:enabled:translate-x-0.5 active:enabled:translate-y-0.5 active:enabled:shadow-none disabled:opacity-50 disabled:cursor-not-allowed"
               :disabled="loadingMore"
               @click="loadMoreHistory"
             >
@@ -1224,7 +1235,7 @@ function gameAverage(gameId: number): number | null {
           :enter="{ opacity: 1, y: 0, transition: { duration: 300, delay: 600 } }"
         >
           <div class="flex items-baseline justify-between gap-md mb-md">
-            <h3 class="section-title !mb-0">
+            <h3 class="text-[0.8rem] text-fg-muted uppercase tracking-wide">
               Achievements
             </h3>
             <span class="text-[0.7rem] text-fg-muted uppercase tracking-widest tabular-nums">
@@ -1235,29 +1246,31 @@ function gameAverage(gameId: number): number | null {
             <div
               v-for="achievement in achievementList"
               :key="achievement.id"
-              class="achievement-card"
-              :class="{ unlocked: achievement.unlocked, locked: !achievement.unlocked }"
+              class="flex flex-col items-center gap-1 px-sm py-md rounded-lg border-2 border-black text-center transition-all duration-150"
+              :class="achievement.unlocked
+                ? 'bg-yellow-light shadow-sm hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md'
+                : 'bg-surface-1 opacity-45'"
             >
-              <div class="achievement-card-icon">
+              <div class="text-[1.8rem] leading-none" :class="!achievement.unlocked ? 'grayscale' : ''">
                 {{ achievement.icon }}
               </div>
-              <div class="achievement-card-name">
+              <div class="text-[0.8rem] font-bold text-fg leading-tight">
                 {{ achievement.name }}
               </div>
-              <div class="achievement-card-desc">
+              <div class="text-[0.65rem] text-fg-muted leading-tight">
                 {{ achievement.description }}
               </div>
               <template v-if="achievement.unlocked">
-                <div class="achievement-card-players">
+                <div class="flex flex-wrap gap-[3px] justify-center mt-[2px]">
                   <span
                     v-for="u in achievement.unlockedBy"
                     :key="u.playerName"
-                    class="achievement-player-tag"
+                    class="text-[0.6rem] font-semibold text-fg bg-yellow-light px-[6px] py-[1px] rounded-full border border-black"
                   >
                     {{ u.playerName }}
                   </span>
                 </div>
-                <div v-if="achievementUnlockDate(achievement)" class="achievement-card-date">
+                <div v-if="achievementUnlockDate(achievement)" class="text-[0.6rem] text-fg-muted">
                   {{ achievementUnlockDate(achievement) }}
                 </div>
               </template>
@@ -1269,540 +1282,19 @@ function gameAverage(gameId: number): number | null {
   </AuthGate>
 </template>
 
-<style scoped>
-.stats-hero {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-lg);
-  padding: var(--spacing-lg) var(--spacing-xl);
-  border-radius: var(--radius-xl);
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.08), rgba(59, 130, 246, 0.08));
-  border: 1px solid var(--border-subtle);
-  overflow: visible;
-  margin-bottom: var(--spacing-xl);
-}
-
-.stats-glow {
-  position: absolute;
-  top: -60px;
-  right: -40px;
-  width: 220px;
-  height: 220px;
-  background: radial-gradient(circle, rgba(255, 215, 0, 0.25), transparent 70%);
-  filter: blur(6px);
-}
-
-.section-title {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: var(--spacing-md);
-}
-
-/* Primary stat cards (3 hero metrics) */
-.primary-stat-card {
-  padding: var(--spacing-lg) var(--spacing-xl);
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-xs);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-subtle);
-  background: var(--surface-glass);
-  backdrop-filter: blur(var(--blur-glass));
-  -webkit-backdrop-filter: blur(var(--blur-glass));
-}
-
-.primary-stat-card.primary-hero {
-  border-color: rgba(255, 215, 0, 0.25);
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.08), transparent);
-  box-shadow: 0 0 24px rgba(255, 215, 0, 0.08);
-}
-
-/* Metric explainer */
-.metric-explainer {
-  margin-top: var(--spacing-xs);
-}
-
-.metric-explainer summary {
-  list-style: none;
-  user-select: none;
-}
-
-.metric-explainer summary::-webkit-details-marker {
+<style>
+/* Metric explainer arrow pseudo-element — cannot be Tailwind */
+.stats-metric-explainer summary::-webkit-details-marker {
   display: none;
 }
 
-.metric-explainer summary::before {
+.stats-metric-explainer summary::before {
   content: '\25B6  ';
   font-size: 0.55rem;
   vertical-align: middle;
 }
 
-.metric-explainer[open] summary::before {
+.stats-metric-explainer[open] summary::before {
   content: '\25BC  ';
-}
-
-.explainer-content {
-  margin-top: var(--spacing-sm);
-  padding: var(--spacing-md);
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  line-height: 1.6;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-}
-
-.explainer-content strong {
-  color: var(--text-secondary);
-}
-
-.player-chip {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-xs) var(--spacing-lg);
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-full);
-  color: var(--text-secondary);
-  font-family: var(--font-sans);
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition:
-    background var(--duration-fast),
-    border-color var(--duration-fast),
-    color var(--duration-fast),
-    transform var(--duration-fast);
-}
-
-.player-chip:hover {
-  background: var(--surface-3);
-  transform: translateY(-1px);
-}
-
-.player-chip.active {
-  background: rgba(255, 215, 0, 0.12);
-  border-color: var(--border-gold);
-  color: var(--gold);
-  font-weight: 600;
-}
-
-/* Milestone cards */
-.milestone-card {
-  padding: var(--spacing-lg);
-  text-align: center;
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-subtle);
-  background: var(--surface-2);
-}
-
-.milestone-card.gold {
-  border-color: rgba(255, 215, 0, 0.25);
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.08), transparent);
-  color: var(--gold);
-  box-shadow: 0 0 24px rgba(255, 215, 0, 0.1);
-}
-
-.milestone-card.muted {
-  color: var(--text-primary);
-}
-
-/* Head-to-head bar */
-.h2h-bar {
-  width: 60px;
-  height: 6px;
-  border-radius: 3px;
-  background: rgba(255, 255, 255, 0.08);
-  overflow: hidden;
-  position: relative;
-}
-
-.h2h-bar-fill {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: var(--win-pct);
-  border-radius: 3px;
-  background: linear-gradient(90deg, rgba(34, 197, 94, 0.8), rgba(34, 197, 94, 0.4));
-  transition: width var(--duration-normal) var(--ease-out);
-}
-
-/* Recent form dots */
-.form-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.form-win {
-  background: rgba(34, 197, 94, 0.9);
-  box-shadow: 0 0 6px rgba(34, 197, 94, 0.4);
-}
-
-.form-loss {
-  background: rgba(239, 68, 68, 0.9);
-  box-shadow: 0 0 6px rgba(239, 68, 68, 0.4);
-}
-
-/* Load more button */
-.load-more-btn {
-  padding: var(--spacing-sm) var(--spacing-xl);
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-full);
-  color: var(--text-secondary);
-  font-family: var(--font-sans);
-  font-size: 0.8rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition:
-    background var(--duration-fast),
-    border-color var(--duration-fast);
-}
-
-.load-more-btn:hover:not(:disabled) {
-  background: var(--surface-3);
-  border-color: var(--border-default);
-}
-
-.load-more-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* Export button */
-.export-wrapper {
-  flex-shrink: 0;
-}
-
-.export-btn {
-  padding: var(--spacing-xs) var(--spacing-lg);
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-full);
-  color: var(--text-secondary);
-  font-family: var(--font-sans);
-  font-size: 0.8rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition:
-    background var(--duration-fast),
-    border-color var(--duration-fast);
-}
-
-.export-btn:hover:not(:disabled) {
-  background: var(--surface-3);
-  border-color: var(--border-default);
-}
-
-.export-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.export-menu {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  min-width: 150px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-}
-
-.export-menu-item {
-  display: block;
-  width: 100%;
-  padding: var(--spacing-sm) var(--spacing-lg);
-  background: none;
-  border: none;
-  color: var(--text-secondary);
-  font-family: var(--font-sans);
-  font-size: 0.8rem;
-  font-weight: 500;
-  text-align: left;
-  cursor: pointer;
-  transition: background var(--duration-fast);
-}
-
-.export-menu-item:hover {
-  background: var(--surface-3);
-}
-
-/* H2H row link */
-.h2h-row-link {
-  text-decoration: none;
-  transition:
-    border-color var(--duration-fast),
-    background var(--duration-fast);
-  cursor: pointer;
-}
-
-.h2h-row-link:hover {
-  border-color: var(--border-default);
-  background: var(--surface-3);
-}
-
-/* H2H compare link */
-.h2h-compare-link {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-decoration: none;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  transition: color var(--duration-fast);
-}
-
-.h2h-compare-link:hover {
-  color: var(--gold);
-}
-
-/* Color utilities */
-.text-green {
-  color: rgba(34, 197, 94, 0.9);
-}
-
-.text-red {
-  color: rgba(239, 68, 68, 0.9);
-}
-
-/* Tab buttons */
-.tab-btn {
-  padding: var(--spacing-xs) var(--spacing-xl);
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-full);
-  color: var(--text-secondary);
-  font-family: var(--font-sans);
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition:
-    background var(--duration-fast),
-    border-color var(--duration-fast),
-    color var(--duration-fast);
-}
-
-.tab-btn:hover {
-  background: var(--surface-3);
-}
-
-.tab-btn.active {
-  background: rgba(255, 215, 0, 0.12);
-  border-color: var(--border-gold);
-  color: var(--gold);
-  font-weight: 600;
-}
-
-/* Rankings */
-.rankings-row {
-  transition: transform var(--duration-fast), box-shadow var(--duration-fast);
-}
-
-.rankings-row:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-}
-
-.rank-gold {
-  border-color: rgba(255, 215, 0, 0.25);
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.06), transparent);
-}
-
-.rank-silver {
-  border-color: rgba(192, 192, 192, 0.2);
-  background: linear-gradient(135deg, rgba(192, 192, 192, 0.04), transparent);
-}
-
-.rank-bronze {
-  border-color: rgba(205, 127, 50, 0.2);
-  background: linear-gradient(135deg, rgba(205, 127, 50, 0.04), transparent);
-}
-
-.rank-badge {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.85rem;
-  font-weight: 700;
-  flex-shrink: 0;
-  background: var(--surface-3);
-  color: var(--text-muted);
-  border: 1px solid var(--border-subtle);
-}
-
-.rank-badge.rank-1 {
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 215, 0, 0.1));
-  color: var(--gold);
-  border-color: rgba(255, 215, 0, 0.4);
-  box-shadow: 0 0 12px rgba(255, 215, 0, 0.2);
-}
-
-.rank-badge.rank-2 {
-  background: linear-gradient(135deg, rgba(192, 192, 192, 0.25), rgba(192, 192, 192, 0.08));
-  color: #c0c0c0;
-  border-color: rgba(192, 192, 192, 0.3);
-}
-
-.rank-badge.rank-3 {
-  background: linear-gradient(135deg, rgba(205, 127, 50, 0.25), rgba(205, 127, 50, 0.08));
-  color: #cd7f32;
-  border-color: rgba(205, 127, 50, 0.3);
-}
-
-.elo-trend {
-  font-size: 0.7rem;
-  font-weight: 600;
-  padding: 1px 6px;
-  border-radius: 4px;
-  tabular-nums: true;
-}
-
-.trend-up {
-  color: rgba(34, 197, 94, 0.9);
-  background: rgba(34, 197, 94, 0.1);
-}
-
-.trend-down {
-  color: rgba(239, 68, 68, 0.9);
-  background: rgba(239, 68, 68, 0.1);
-}
-
-.trend-neutral {
-  color: var(--text-muted);
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.sparkline-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.spark-win {
-  background: rgba(34, 197, 94, 0.8);
-}
-
-.spark-loss {
-  background: rgba(239, 68, 68, 0.8);
-}
-
-/* Achievement cards */
-.achievement-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: var(--spacing-md) var(--spacing-sm);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-subtle);
-  background: var(--surface-2);
-  text-align: center;
-  transition: transform var(--duration-fast), box-shadow var(--duration-fast);
-}
-
-.achievement-card.unlocked {
-  border-color: rgba(255, 215, 0, 0.25);
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.08), transparent);
-  box-shadow: 0 0 16px rgba(255, 215, 0, 0.08);
-}
-
-.achievement-card.unlocked:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 20px rgba(255, 215, 0, 0.15);
-}
-
-.achievement-card.locked {
-  opacity: 0.45;
-}
-
-.achievement-card-icon {
-  font-size: 1.8rem;
-  line-height: 1;
-}
-
-.achievement-card.locked .achievement-card-icon {
-  filter: grayscale(1);
-}
-
-.achievement-card-name {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  line-height: 1.2;
-}
-
-.achievement-card-desc {
-  font-size: 0.65rem;
-  color: var(--text-muted);
-  line-height: 1.3;
-}
-
-.achievement-card-players {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 3px;
-  justify-content: center;
-  margin-top: 2px;
-}
-
-.achievement-player-tag {
-  font-size: 0.6rem;
-  font-weight: 600;
-  color: var(--gold);
-  background: rgba(255, 215, 0, 0.1);
-  padding: 1px 6px;
-  border-radius: var(--radius-full);
-}
-
-.achievement-card-date {
-  font-size: 0.6rem;
-  color: var(--text-muted);
-}
-
-.replay-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-md);
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-muted);
-  flex-shrink: 0;
-  transition:
-    background var(--duration-fast),
-    color var(--duration-fast),
-    border-color var(--duration-fast),
-    transform var(--duration-fast);
-}
-
-.replay-link:hover {
-  background: var(--surface-3);
-  color: var(--gold);
-  border-color: var(--border-gold);
-  transform: translateY(-1px);
 }
 </style>

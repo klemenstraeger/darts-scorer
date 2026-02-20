@@ -27,7 +27,10 @@ const dateLabel = computed(() => {
 </script>
 
 <template>
-  <NuxtLink :to="`/tournaments/${id}`" class="tournament-card glass-card p-lg flex flex-col gap-sm">
+  <NuxtLink
+    :to="`/tournaments/${id}`"
+    class="no-underline bg-surface-1 border-2 border-black rounded-lg shadow-md transition-all cursor-pointer hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-lg active:translate-x-[2px] active:translate-y-[2px] active:shadow-none p-lg flex flex-col gap-sm"
+  >
     <div class="flex items-center justify-between gap-sm">
       <span class="text-[1rem] font-bold text-fg truncate">{{ name }}</span>
       <FormatBadge :format="format" />
@@ -46,55 +49,36 @@ const dateLabel = computed(() => {
     </div>
     <div class="flex items-center gap-sm">
       <span
-        class="status-dot"
+        class="tournament-card-status-dot"
         :class="{
           'bg-green': status === 'in_progress',
-          'bg-gold': status === 'created',
+          'bg-yellow': status === 'created',
           'bg-fg-muted': status === 'completed',
         }"
       />
       <span
         class="text-[0.75rem] font-semibold" :class="{
           'text-green': status === 'in_progress',
-          'text-gold': status === 'created',
+          'text-yellow': status === 'created',
           'text-fg-muted': status === 'completed',
         }"
       >{{ statusLabel }}</span>
       <span v-if="winnerName" class="text-[0.75rem] text-fg-muted ml-auto">
-        Winner: <span class="font-bold text-gold">{{ winnerName }}</span>
+        Winner: <span class="font-bold text-yellow">{{ winnerName }}</span>
       </span>
     </div>
   </NuxtLink>
 </template>
 
-<style scoped>
-.tournament-card {
-  text-decoration: none;
-  transition: transform var(--duration-fast) var(--ease-out),
-              box-shadow var(--duration-fast) var(--ease-out),
-              border-color var(--duration-fast) var(--ease-out);
-  cursor: pointer;
-}
-
-.tournament-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
-  border-color: var(--border-default);
-}
-
-.status-dot {
+<style>
+.tournament-card-status-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
-.status-dot.bg-green {
-  animation: pulse-status 2s ease-in-out infinite;
-}
-
-@keyframes pulse-status {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+.tournament-card-status-dot.bg-green {
+  animation: pulse-opacity 2s ease-in-out infinite;
 }
 </style>

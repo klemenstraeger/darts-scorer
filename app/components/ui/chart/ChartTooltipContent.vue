@@ -42,29 +42,29 @@ const tooltipLabel = computed(() => {
 </script>
 
 <template>
-  <div class="chart-tooltip">
+  <div class="bg-surface-1 border-2 border-black rounded-md shadow-md px-3 py-2 min-w-[100px] text-[0.75rem]">
     <slot>
-      <div v-if="!nestLabel && tooltipLabel" class="tooltip-label">
+      <div v-if="!nestLabel && tooltipLabel" class="font-semibold text-fg mb-1">
         {{ tooltipLabel }}
       </div>
-      <div class="tooltip-items">
+      <div class="flex flex-col gap-1">
         <div
           v-for="{ value, itemConfig, indicatorColor, key } in payload"
           :key="key"
-          class="tooltip-row"
+          class="flex items-center gap-2"
         >
           <template v-if="!hideIndicator">
             <div
-              class="tooltip-dot"
+              class="w-2 h-2 rounded-sm shrink-0"
               :style="{ background: indicatorColor }"
             />
           </template>
 
-          <div class="tooltip-content">
-            <span class="tooltip-key">
+          <div class="flex flex-1 justify-between items-center gap-3">
+            <span class="text-fg-muted">
               {{ itemConfig?.label || key }}
             </span>
-            <span v-if="value != null" class="tooltip-value">
+            <span v-if="value != null" class="font-semibold text-fg tabular-nums">
               {{ typeof value === 'number' ? value.toLocaleString(undefined, { maximumFractionDigits: 1 }) : value }}
             </span>
           </div>
@@ -73,62 +73,3 @@ const tooltipLabel = computed(() => {
     </slot>
   </div>
 </template>
-
-<style scoped>
-.chart-tooltip {
-  background: var(--surface-glass);
-  backdrop-filter: blur(var(--blur-glass));
-  -webkit-backdrop-filter: blur(var(--blur-glass));
-  border: 1px solid var(--surface-glass-border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg);
-  padding: 8px 12px;
-  min-width: 100px;
-  font-size: 0.75rem;
-  font-family: var(--font-sans);
-}
-
-.tooltip-label {
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 4px;
-}
-
-.tooltip-items {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.tooltip-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.tooltip-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 2px;
-  flex-shrink: 0;
-}
-
-.tooltip-content {
-  display: flex;
-  flex: 1;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-}
-
-.tooltip-key {
-  color: var(--text-muted);
-}
-
-.tooltip-value {
-  font-weight: 600;
-  color: var(--text-primary);
-  font-variant-numeric: tabular-nums;
-  font-family: var(--font-sans);
-}
-</style>

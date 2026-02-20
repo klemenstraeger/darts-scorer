@@ -44,7 +44,7 @@ const categories = computed(() => {
 })
 
 const colors = computed(() => {
-  const c = ['var(--gold)']
+  const c = ['var(--yellow)']
   if (props.rolling && props.rolling > 0)
     c.push('var(--blue)')
   return c
@@ -52,7 +52,7 @@ const colors = computed(() => {
 
 const chartConfig = computed<ChartConfig>(() => {
   const config: ChartConfig = {
-    value: { label: props.valueLabel ?? 'Score', color: 'var(--gold)' },
+    value: { label: props.valueLabel ?? 'Score', color: 'var(--yellow)' },
   }
   if (props.rolling && props.rolling > 0) {
     config.rolling = {
@@ -87,20 +87,8 @@ const legendRollingLabel = computed(() => props.rollingLabel ?? `${props.rolling
       />
     </div>
     <div v-if="rolling" class="flex gap-md text-[0.7rem] text-fg-muted">
-      <span class="inline-flex items-center gap-[6px]"><span class="dot-gold w-2 h-2 rounded-full inline-block" />{{ legendValueLabel }}</span>
-      <span class="inline-flex items-center gap-[6px]"><span class="dot-blue w-2 h-2 rounded-full inline-block" />{{ legendRollingLabel }}</span>
+      <span class="inline-flex items-center gap-[6px]"><span class="w-2 h-2 rounded-full inline-block bg-yellow" />{{ legendValueLabel }}</span>
+      <span class="inline-flex items-center gap-[6px]"><span class="w-2 h-2 rounded-full inline-block bg-blue" />{{ legendRollingLabel }}</span>
     </div>
   </div>
 </template>
-
-<style scoped>
-.dot-gold {
-  background: var(--gold);
-  box-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
-}
-
-.dot-blue {
-  background: var(--blue);
-  box-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
-}
-</style>
