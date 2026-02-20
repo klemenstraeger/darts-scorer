@@ -17,10 +17,11 @@ const modifiers: { label: string, shortcut: string, value: Modifier }[] = [
 ]
 
 const numbers = [
-  [1, 2, 3, 4, 5],
-  [6, 7, 8, 9, 10],
-  [11, 12, 13, 14, 15],
-  [16, 17, 18, 19, 20],
+  [1, 2, 3, 4],
+  [5, 6, 7, 8],
+  [9, 10, 11, 12],
+  [13, 14, 15, 16],
+  [17, 18, 19, 20],
 ]
 
 function emitScore(segment: number, mult?: number) {
@@ -206,8 +207,8 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 /* ── Number grid ────────────────────────────────────────────────────── */
 .manual-number-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  grid-template-rows: repeat(4, 1fr);
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(5, 1fr);
   gap: 4px;
   flex: 1;
   min-height: 0;
