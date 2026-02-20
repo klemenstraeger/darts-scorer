@@ -150,7 +150,7 @@ function handleNewGame() {
   <Transition name="bottom-nav">
     <nav
       v-if="!isFullScreenPage"
-      class="bottom-nav glass-card sm:hidden"
+      class="bottom-nav glass-card flex sm:hidden"
       aria-label="Main navigation"
     >
       <NuxtLink
@@ -333,7 +333,6 @@ function handleNewGame() {
   left: 0;
   right: 0;
   z-index: 50;
-  display: flex;
   justify-content: space-around;
   align-items: center;
   height: var(--bottom-nav-height);
