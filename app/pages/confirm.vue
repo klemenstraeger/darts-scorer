@@ -41,10 +41,9 @@ onMounted(async () => {
 
 <template>
   <div class="min-h-screen flex items-center justify-center p-lg bg-surface-0">
-    <ThemeToggle class="fixed top-sm right-sm z-50" />
-    <div class="glass-card-heavy p-3xl text-center">
+    <div class="bg-surface-1 border-[3px] border-black rounded-lg shadow-lg p-3xl text-center">
       <div v-if="loading" class="flex flex-col items-center gap-lg text-fg-secondary">
-        <div class="spinner" />
+        <div class="size-8 border-[3px] border-surface-3 border-t-yellow rounded-full" style="animation: spin 0.8s linear infinite;" />
         <p>Confirming your account...</p>
       </div>
       <div v-else-if="error">
@@ -58,18 +57,3 @@ onMounted(async () => {
     </div>
   </div>
 </template>
-
-<style scoped>
-.spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid var(--border-subtle);
-  border-top-color: var(--gold);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-</style>

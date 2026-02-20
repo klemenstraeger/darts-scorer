@@ -18,7 +18,7 @@ const currentTargetLabel = computed(() => {
 </script>
 
 <template>
-  <div class="atc-display">
+  <div class="flex flex-col gap-md">
     <TrainingProgress
       :current="state.currentTargetIndex"
       :total="state.targets.length"
@@ -26,23 +26,24 @@ const currentTargetLabel = computed(() => {
       color="#3b82f6"
     />
 
-    <div class="atc-main">
-      <span class="atc-variant">{{ state.variant }}</span>
-      <div class="atc-target">
-        <span class="atc-target-label">Current Target</span>
-        <span class="atc-target-value">{{ currentTargetLabel }}</span>
+    <div class="text-center flex flex-col items-center gap-xs">
+      <span class="text-[0.7rem] font-bold text-fg-muted uppercase tracking-[1px]">{{ state.variant }}</span>
+      <div class="text-center">
+        <span class="block text-xs font-bold text-fg-muted uppercase">Current Target</span>
+        <span class="block text-[3.5rem] font-black text-[#3b82f6] leading-none">{{ currentTargetLabel }}</span>
       </div>
-      <span class="atc-darts">{{ state.totalDarts }} darts thrown</span>
+      <span class="text-[0.85rem] font-semibold text-fg-secondary tabular-nums">{{ state.totalDarts }} darts thrown</span>
     </div>
 
-    <div class="atc-grid">
+    <div class="flex flex-wrap gap-[4px] justify-center">
       <span
         v-for="(target, i) in state.targets"
         :key="target"
-        class="atc-num"
+        class="flex items-center justify-center w-[32px] h-[28px] text-xs font-bold border-2 border-black transition-all duration-200"
         :class="{
-          hit: i < state.currentTargetIndex,
-          current: i === state.currentTargetIndex,
+          'bg-[#dbeafe] text-[#3b82f6]': i < state.currentTargetIndex,
+          'bg-[#bfdbfe] text-[#3b82f6] border-[#3b82f6] shadow-sm': i === state.currentTargetIndex,
+          'bg-surface-2 text-fg-muted': i > state.currentTargetIndex,
         }"
       >
         {{ target === 25 ? 'B' : target }}
@@ -50,89 +51,3 @@ const currentTargetLabel = computed(() => {
     </div>
   </div>
 </template>
-
-<style scoped>
-.atc-display {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-}
-
-.atc-main {
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-xs);
-}
-
-.atc-variant {
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.atc-target {
-  text-align: center;
-}
-
-.atc-target-label {
-  display: block;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  text-transform: uppercase;
-}
-
-.atc-target-value {
-  display: block;
-  font-size: 3.5rem;
-  font-weight: 900;
-  color: #3b82f6;
-  line-height: 1;
-}
-
-.atc-darts {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  font-variant-numeric: tabular-nums;
-}
-
-.atc-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  justify-content: center;
-}
-
-.atc-num {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 28px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  border-radius: var(--radius-sm);
-  background: var(--surface-2);
-  color: var(--text-muted);
-  border: 1px solid var(--border-subtle);
-  transition: all 0.2s var(--ease-out);
-}
-
-.atc-num.hit {
-  background: rgba(59, 130, 246, 0.15);
-  color: #3b82f6;
-  border-color: rgba(59, 130, 246, 0.3);
-}
-
-.atc-num.current {
-  background: rgba(59, 130, 246, 0.2);
-  color: #3b82f6;
-  border-color: #3b82f6;
-  box-shadow: 0 0 12px rgba(59, 130, 246, 0.2);
-}
-</style>

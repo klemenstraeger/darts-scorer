@@ -6,9 +6,10 @@ import { Area, Axis, CurveType, Line } from '@unovis/ts'
 
 import { VisArea, VisAxis, VisLine, VisXYContainer } from '@unovis/vue'
 import { useMounted } from '@vueuse/core'
-import { useId } from 'reka-ui'
 import { computed, ref } from 'vue'
 import { ChartCrosshair, ChartTooltipContent, componentToString, defaultColors } from '@/components/ui/chart'
+
+let _areaChartId = 0
 
 const props = withDefaults(defineProps<BaseChartProps<T> & {
   chartConfig?: ChartConfig
@@ -33,7 +34,7 @@ const _emits = defineEmits<{
 type KeyOfT = Extract<keyof T, string>
 type Data = typeof props.data[number]
 
-const chartRef = useId()
+const chartRef = `area-chart-${++_areaChartId}`
 
 const index = computed(() => props.index as KeyOfT)
 const colors = computed(() => props.colors?.length ? props.colors : defaultColors(props.categories.length))
@@ -121,7 +122,7 @@ const tooltipTemplate = computed(() => {
         :grid-line="showGridLine"
         :attributes="{
           [Axis.selectors.grid]: {
-            'stroke': 'var(--border-subtle)',
+            'stroke': '#D1D5DB',
             'stroke-dasharray': '3 3',
           },
         }"

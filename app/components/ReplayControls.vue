@@ -27,15 +27,15 @@ function onSeek(event: Event) {
 </script>
 
 <template>
-  <div class="replay-controls">
+  <div class="flex flex-col gap-md p-lg bg-surface-1 border-2 border-black rounded-lg shadow-md">
     <!-- Timeline scrubber -->
-    <div class="scrubber-row">
-      <span class="position-label tabular-nums">
+    <div class="flex items-center gap-md">
+      <span class="text-[0.75rem] text-fg-muted min-w-[70px] text-center font-medium tabular-nums">
         {{ currentPosition }} / {{ totalPositions }}
       </span>
       <input
         type="range"
-        class="scrubber"
+        class="replay-scrubber"
         :min="0"
         :max="totalPositions"
         :value="currentPosition"
@@ -44,9 +44,9 @@ function onSeek(event: Event) {
     </div>
 
     <!-- Playback buttons -->
-    <div class="controls-row">
+    <div class="flex items-center justify-center gap-sm">
       <button
-        class="control-btn"
+        class="inline-flex items-center justify-center w-9 h-9 border-2 border-black rounded-md bg-surface-1 text-fg-secondary cursor-pointer shadow-sm transition-all duration-150 hover:text-fg hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md active:translate-x-0.5 active:translate-y-0.5 active:shadow-none disabled:opacity-30 disabled:cursor-not-allowed"
         title="Go to start"
         :disabled="!canStepBack"
         @click="emit('goToStart')"
@@ -58,7 +58,7 @@ function onSeek(event: Event) {
       </button>
 
       <button
-        class="control-btn"
+        class="inline-flex items-center justify-center w-9 h-9 border-2 border-black rounded-md bg-surface-1 text-fg-secondary cursor-pointer shadow-sm transition-all duration-150 hover:text-fg hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md active:translate-x-0.5 active:translate-y-0.5 active:shadow-none disabled:opacity-30 disabled:cursor-not-allowed"
         title="Step back"
         :disabled="!canStepBack"
         @click="emit('stepBack')"
@@ -69,7 +69,7 @@ function onSeek(event: Event) {
       </button>
 
       <button
-        class="control-btn play-btn"
+        class="inline-flex items-center justify-center w-11 h-11 rounded-full bg-yellow border-2 border-black text-fg-inverse cursor-pointer shadow-md transition-all duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-lg active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
         :title="isPlaying ? 'Pause' : 'Play'"
         @click="emit('togglePlay')"
       >
@@ -85,7 +85,7 @@ function onSeek(event: Event) {
       </button>
 
       <button
-        class="control-btn"
+        class="inline-flex items-center justify-center w-9 h-9 border-2 border-black rounded-md bg-surface-1 text-fg-secondary cursor-pointer shadow-sm transition-all duration-150 hover:text-fg hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md active:translate-x-0.5 active:translate-y-0.5 active:shadow-none disabled:opacity-30 disabled:cursor-not-allowed"
         title="Step forward"
         :disabled="!canStepForward"
         @click="emit('stepForward')"
@@ -96,7 +96,7 @@ function onSeek(event: Event) {
       </button>
 
       <button
-        class="control-btn"
+        class="inline-flex items-center justify-center w-9 h-9 border-2 border-black rounded-md bg-surface-1 text-fg-secondary cursor-pointer shadow-sm transition-all duration-150 hover:text-fg hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md active:translate-x-0.5 active:translate-y-0.5 active:shadow-none disabled:opacity-30 disabled:cursor-not-allowed"
         title="Go to end"
         :disabled="!canStepForward"
         @click="emit('goToEnd')"
@@ -108,12 +108,12 @@ function onSeek(event: Event) {
       </button>
 
       <!-- Speed selector -->
-      <div class="speed-group">
+      <div class="flex gap-[2px] ml-md bg-surface-2 rounded-md border-2 border-black overflow-hidden">
         <button
           v-for="s in speeds"
           :key="s"
-          class="speed-btn"
-          :class="{ active: speed === s }"
+          class="px-sm py-xs border-none bg-transparent text-fg-muted font-sans text-[0.7rem] font-semibold cursor-pointer transition-all duration-150 hover:bg-surface-3 hover:text-fg-secondary"
+          :class="speed === s ? 'bg-yellow-light text-yellow' : ''"
           @click="emit('setSpeed', s)"
         >
           {{ s }}x
@@ -123,35 +123,9 @@ function onSeek(event: Event) {
   </div>
 </template>
 
-<style scoped>
-.replay-controls {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-  padding: var(--spacing-lg);
-  background: var(--surface-glass);
-  backdrop-filter: blur(var(--blur-glass));
-  -webkit-backdrop-filter: blur(var(--blur-glass));
-  border: 1px solid var(--surface-glass-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
-}
-
-.scrubber-row {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-}
-
-.position-label {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  min-width: 70px;
-  text-align: center;
-  font-weight: 500;
-}
-
-.scrubber {
+<style>
+/* Range input needs custom styling that can't be pure Tailwind */
+.replay-scrubber {
   flex: 1;
   height: 6px;
   -webkit-appearance: none;
@@ -162,120 +136,28 @@ function onSeek(event: Event) {
   cursor: pointer;
 }
 
-.scrubber::-webkit-slider-thumb {
+.replay-scrubber::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: var(--gold);
+  background: var(--yellow);
+  border: 2px solid black;
   cursor: pointer;
-  box-shadow: 0 0 8px var(--gold-glow);
   transition: transform var(--duration-fast);
 }
 
-.scrubber::-webkit-slider-thumb:hover {
+.replay-scrubber::-webkit-slider-thumb:hover {
   transform: scale(1.2);
 }
 
-.scrubber::-moz-range-thumb {
+.replay-scrubber::-moz-range-thumb {
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: var(--gold);
+  background: var(--yellow);
   cursor: pointer;
-  border: none;
-  box-shadow: 0 0 8px var(--gold-glow);
-}
-
-.controls-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-sm);
-}
-
-.control-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  background: var(--surface-2);
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition:
-    background var(--duration-fast),
-    color var(--duration-fast),
-    border-color var(--duration-fast),
-    transform var(--duration-fast);
-}
-
-.control-btn:hover:not(:disabled) {
-  background: var(--surface-3);
-  color: var(--text-primary);
-  border-color: var(--border-default);
-  transform: translateY(-1px);
-}
-
-.control-btn:active:not(:disabled) {
-  transform: scale(0.95);
-}
-
-.control-btn:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-
-.play-btn {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: var(--gold-gradient);
-  border-color: transparent;
-  color: var(--text-inverse);
-}
-
-.play-btn:hover:not(:disabled) {
-  background: var(--gold-gradient);
-  color: var(--text-inverse);
-  box-shadow: var(--shadow-glow-gold);
-  border-color: transparent;
-}
-
-.speed-group {
-  display: flex;
-  gap: 2px;
-  margin-left: var(--spacing-md);
-  background: var(--surface-2);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-subtle);
-  overflow: hidden;
-}
-
-.speed-btn {
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border: none;
-  background: transparent;
-  color: var(--text-muted);
-  font-family: var(--font-sans);
-  font-size: 0.7rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition:
-    background var(--duration-fast),
-    color var(--duration-fast);
-}
-
-.speed-btn:hover {
-  background: var(--surface-3);
-  color: var(--text-secondary);
-}
-
-.speed-btn.active {
-  background: rgba(255, 215, 0, 0.15);
-  color: var(--gold);
+  border: 2px solid black;
 }
 </style>

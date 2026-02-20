@@ -8,7 +8,7 @@ withDefaults(defineProps<{ size?: number }>(), { size: 28 })
     :width="size"
     :height="size"
     viewBox="0 0 100 100"
-    class="darts-logo"
+    class="text-yellow shrink-0"
   >
     <!-- Outer ring -->
     <circle cx="50" cy="50" r="44" fill="none" stroke="currentColor" stroke-width="4" opacity="0.25" />
@@ -31,10 +31,3 @@ withDefaults(defineProps<{ size?: number }>(), { size: 28 })
     </g>
   </svg>
 </template>
-
-<style scoped>
-.darts-logo {
-  color: var(--gold);
-  flex-shrink: 0;
-}
-</style>

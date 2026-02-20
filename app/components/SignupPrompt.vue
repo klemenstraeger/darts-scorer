@@ -1,72 +1,23 @@
 <template>
-  <div class="signup-prompt">
-    <div class="prompt-icon">
+  <div class="flex flex-col items-center gap-sm p-lg px-xl bg-surface-1 border-2 border-black rounded-md shadow-md text-center animate-[scale-in_0.5s_var(--ease-spring)_0.18s_both]">
+    <div class="w-[44px] h-[44px] flex items-center justify-center rounded-md bg-yellow-light text-yellow">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <line x1="18" y1="20" x2="18" y2="10" />
         <line x1="12" y1="20" x2="12" y2="4" />
         <line x1="6" y1="20" x2="6" y2="14" />
       </svg>
     </div>
-    <h4 class="prompt-title">
+    <h4 class="text-base font-bold text-fg">
       Save Your Stats
     </h4>
-    <p class="prompt-text">
+    <p class="text-[0.8rem] text-fg-secondary leading-relaxed max-w-[320px]">
       Create a free account to save game history, track averages, manage players, and compete in tournaments.
     </p>
-    <NuxtLink to="/login" class="btn btn-gold prompt-btn">
+    <NuxtLink
+      to="/login"
+      class="inline-flex items-center justify-center gap-2 px-xl py-sm text-[0.85rem] font-extrabold mt-xs bg-yellow border-2 border-black rounded-md shadow-md text-black transition-all duration-100 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-lg active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
+    >
       Create Free Account
     </NuxtLink>
   </div>
 </template>
-
-<style scoped>
-.signup-prompt {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-lg) var(--spacing-xl);
-  background: var(--surface-glass);
-  backdrop-filter: blur(var(--blur-glass));
-  -webkit-backdrop-filter: blur(var(--blur-glass));
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  text-align: center;
-  animation: scale-in 0.5s var(--ease-spring) 0.18s both;
-}
-
-.prompt-icon {
-  width: 44px;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-md);
-  background: var(--gold-tint);
-  color: var(--gold);
-}
-
-.prompt-title {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.prompt-text {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  line-height: 1.5;
-  max-width: 320px;
-}
-
-.prompt-btn {
-  padding: var(--spacing-sm) var(--spacing-xl);
-  font-size: 0.85rem;
-  margin-top: var(--spacing-xs);
-}
-
-@keyframes scale-in {
-  from { transform: scale(0.8); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
-</style>

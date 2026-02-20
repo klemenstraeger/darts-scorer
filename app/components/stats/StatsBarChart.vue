@@ -19,7 +19,7 @@ const accentColor = computed(() => {
     case 'green':
       return 'var(--green)'
     default:
-      return 'var(--gold)'
+      return 'var(--yellow)'
   }
 })
 

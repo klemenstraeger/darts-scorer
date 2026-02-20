@@ -60,11 +60,11 @@ const relevantMatches = computed(() => {
 </script>
 
 <template>
-  <div class="tournament-view" :class="{ compact }">
+  <div class="flex flex-col gap-md h-full overflow-y-auto overflow-x-hidden" :class="{ 'text-[0.9em]': compact }">
     <!-- Knockout -->
     <template v-if="isKnockout">
-      <div class="section">
-        <div class="bracket-container">
+      <div class="flex flex-col gap-sm">
+        <div class="overflow-x-auto">
           <KnockoutBracket :matches="knockoutMatches" :show-play-button="false" />
         </div>
       </div>
@@ -72,21 +72,21 @@ const relevantMatches = computed(() => {
 
     <!-- League -->
     <template v-if="isLeague">
-      <div class="section">
-        <span class="section-label">Standings</span>
-        <div class="glass-card p-md">
+      <div class="flex flex-col gap-sm">
+        <span class="text-[0.65rem] font-bold text-fg-muted uppercase tracking-[1px]">Standings</span>
+        <div class="bg-surface-1 border-2 border-black rounded-md shadow-md p-md">
           <StandingsTable :standings="standings" />
         </div>
       </div>
-      <div v-if="!compact" class="section">
-        <span class="section-label">Matches</span>
-        <div class="match-list">
+      <div v-if="!compact" class="flex flex-col gap-sm">
+        <span class="text-[0.65rem] font-bold text-fg-muted uppercase tracking-[1px]">Matches</span>
+        <div class="flex flex-col gap-xs">
           <MatchCard
             v-for="match in relevantMatches"
             :key="match.id"
             :match="match"
             :show-play-button="false"
-            :class="{ 'live-glow': match.id === liveMatchId }"
+            :class="{ 'spectator-live-glow': match.id === liveMatchId }"
           />
         </div>
       </div>
@@ -95,24 +95,24 @@ const relevantMatches = computed(() => {
     <!-- Group formats -->
     <template v-if="hasGroups">
       <!-- Tab switch for group_knockout -->
-      <div v-if="format === 'group_knockout' && hasKnockoutPhase" class="section">
-        <div class="mode-toggle">
+      <div v-if="format === 'group_knockout' && hasKnockoutPhase" class="flex flex-col gap-sm">
+        <div class="spectator-mode-toggle">
           <button
-            class="mode-option"
+            class="spectator-mode-option"
             :class="{ active: activeTab === 'groups' }"
             @click="activeTab = 'groups'"
           >
             Groups
           </button>
           <button
-            class="mode-option"
+            class="spectator-mode-option"
             :class="{ active: activeTab === 'knockout' }"
             @click="activeTab = 'knockout'"
           >
             Knockout
           </button>
           <div
-            class="mode-pill"
+            class="spectator-mode-pill"
             :style="{ transform: activeTab === 'knockout' ? 'translateX(100%)' : 'translateX(0)' }"
           />
         </div>
@@ -120,28 +120,28 @@ const relevantMatches = computed(() => {
 
       <!-- Groups view -->
       <template v-if="activeTab === 'groups' || !hasKnockoutPhase">
-        <div class="section">
+        <div class="flex flex-col gap-sm">
           <GroupTabs
             v-if="groupCount && groupCount > 1"
             v-model="selectedGroup"
             :group-count="groupCount"
           />
-          <div class="glass-card p-md">
+          <div class="bg-surface-1 border-2 border-black rounded-md shadow-md p-md">
             <StandingsTable
               :standings="currentGroupStandings"
               :advance-count="format === 'group_knockout' ? (advancePerGroup ?? undefined) : undefined"
             />
           </div>
         </div>
-        <div v-if="!compact" class="section">
-          <span class="section-label">Matches</span>
-          <div class="match-list">
+        <div v-if="!compact" class="flex flex-col gap-sm">
+          <span class="text-[0.65rem] font-bold text-fg-muted uppercase tracking-[1px]">Matches</span>
+          <div class="flex flex-col gap-xs">
             <MatchCard
               v-for="match in currentGroupMatches"
               :key="match.id"
               :match="match"
               :show-play-button="false"
-              :class="{ 'live-glow': match.id === liveMatchId }"
+              :class="{ 'spectator-live-glow': match.id === liveMatchId }"
             />
           </div>
         </div>
@@ -149,9 +149,9 @@ const relevantMatches = computed(() => {
 
       <!-- Knockout view -->
       <template v-if="activeTab === 'knockout' && hasKnockoutPhase">
-        <div class="section">
-          <span class="section-label">Knockout Stage</span>
-          <div class="bracket-container">
+        <div class="flex flex-col gap-sm">
+          <span class="text-[0.65rem] font-bold text-fg-muted uppercase tracking-[1px]">Knockout Stage</span>
+          <div class="overflow-x-auto">
             <KnockoutBracket :matches="knockoutMatches" :show-play-button="false" />
           </div>
         </div>
@@ -160,60 +160,18 @@ const relevantMatches = computed(() => {
   </div>
 </template>
 
-<style scoped>
-.tournament-view {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-  height: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
-.tournament-view.compact {
-  font-size: 0.9em;
-}
-
-.section {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-}
-
-.section-label {
-  font-size: 0.65rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.bracket-container {
-  overflow-x: auto;
-}
-
-.match-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-}
-
-.live-glow {
-  border-color: var(--gold) !important;
-  box-shadow: 0 0 16px var(--gold-glow) !important;
-}
-
-/* ── Mode toggle (same pattern as tournament page) ── */
-.mode-toggle {
+<style>
+/* Mode toggle — requires positional children (pill element) */
+.spectator-mode-toggle {
   position: relative;
   display: flex;
-  background: var(--surface-2);
+  background: var(--surface-1);
   border-radius: var(--radius-md);
   overflow: hidden;
-  border: 1px solid var(--border-subtle);
+  border: 2px solid black;
 }
 
-.mode-option {
+.spectator-mode-option {
   position: relative;
   z-index: 1;
   flex: 1;
@@ -229,18 +187,24 @@ const relevantMatches = computed(() => {
   text-align: center;
 }
 
-.mode-option.active {
+.spectator-mode-option.active {
   color: var(--text-inverse);
 }
 
-.mode-pill {
+.spectator-mode-pill {
   position: absolute;
   top: 2px;
   left: 2px;
   width: calc(50% - 2px);
   height: calc(100% - 4px);
-  background: var(--gold-gradient);
+  background: var(--yellow);
   border-radius: calc(var(--radius-md) - 2px);
   transition: transform var(--duration-normal) var(--ease-spring);
+}
+
+/* Live glow on match cards */
+.spectator-live-glow {
+  border-color: var(--yellow) !important;
+  box-shadow: 4px 4px 0 black !important;
 }
 </style>

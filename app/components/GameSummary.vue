@@ -17,92 +17,24 @@ const checkoutLabel = computed(() =>
 </script>
 
 <template>
-  <div class="game-summary">
+  <div class="flex flex-col items-center gap-xl p-xl bg-surface-1 border-2 border-black rounded-lg shadow-sm w-full">
     <!-- Players row -->
-    <div class="players-row">
+    <div class="flex items-center gap-lg flex-wrap justify-center">
       <template v-for="(name, i) in players" :key="name">
-        <div class="player-entry">
+        <div class="flex flex-col items-center gap-xs">
           <PlayerAvatar v-bind="getAvatarProps(name)" :size="44" />
-          <span class="player-name">{{ name }}</span>
+          <span class="text-[0.9rem] font-bold text-fg">{{ name }}</span>
         </div>
-        <span v-if="i < players.length - 1" class="vs-badge">vs</span>
+        <span v-if="i < players.length - 1" class="text-[0.75rem] font-extrabold text-fg-muted uppercase tracking-[0.05em]">vs</span>
       </template>
     </div>
 
     <!-- Settings tags -->
-    <div class="settings-tags">
-      <span class="tag tag-gold">{{ gameMode }}</span>
-      <span class="tag">{{ checkoutLabel }}</span>
-      <span class="tag">{{ legsToWin }} {{ legsToWin === 1 ? 'Leg' : 'Legs' }}</span>
-      <span v-if="setsToWin > 1" class="tag">{{ setsToWin }} Sets</span>
+    <div class="flex flex-wrap gap-sm justify-center">
+      <span class="px-md py-xs bg-yellow-light border-2 border-black rounded-full text-[0.75rem] font-semibold text-yellow">{{ gameMode }}</span>
+      <span class="px-md py-xs bg-surface-2 border-2 border-black rounded-full text-[0.75rem] font-semibold text-fg-secondary">{{ checkoutLabel }}</span>
+      <span class="px-md py-xs bg-surface-2 border-2 border-black rounded-full text-[0.75rem] font-semibold text-fg-secondary">{{ legsToWin }} {{ legsToWin === 1 ? 'Leg' : 'Legs' }}</span>
+      <span v-if="setsToWin > 1" class="px-md py-xs bg-surface-2 border-2 border-black rounded-full text-[0.75rem] font-semibold text-fg-secondary">{{ setsToWin }} Sets</span>
     </div>
   </div>
 </template>
-
-<style scoped>
-.game-summary {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-xl);
-  padding: var(--spacing-xl);
-  background: var(--surface-1);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  width: 100%;
-}
-
-/* ── Players ─────────────────────────────────────────────────── */
-.players-row {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-lg);
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.player-entry {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-xs);
-}
-
-.player-name {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.vs-badge {
-  font-size: 0.75rem;
-  font-weight: 800;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-/* ── Settings tags ───────────────────────────────────────────── */
-.settings-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-sm);
-  justify-content: center;
-}
-
-.tag {
-  padding: var(--spacing-xs) var(--spacing-md);
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-full);
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-}
-
-.tag-gold {
-  background: rgba(255, 215, 0, 0.1);
-  border-color: var(--border-gold);
-  color: var(--gold);
-}
-</style>

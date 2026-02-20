@@ -49,35 +49,35 @@ const sorted = computed(() => {
 </script>
 
 <template>
-  <div class="standings-wrapper">
+  <div class="overflow-x-auto">
     <table class="standings-table">
       <thead>
         <tr>
-          <th class="col-pos">
+          <th class="standings-col-pos">
             #
           </th>
-          <th class="col-name">
+          <th class="standings-col-name">
             Player
           </th>
-          <th class="col-num sortable" @click="toggleSort('played')">
+          <th class="standings-col-num standings-sortable" @click="toggleSort('played')">
             P{{ sortIndicator('played') }}
           </th>
-          <th class="col-num sortable" @click="toggleSort('won')">
+          <th class="standings-col-num standings-sortable" @click="toggleSort('won')">
             W{{ sortIndicator('won') }}
           </th>
-          <th class="col-num sortable" @click="toggleSort('lost')">
+          <th class="standings-col-num standings-sortable" @click="toggleSort('lost')">
             L{{ sortIndicator('lost') }}
           </th>
-          <th class="col-num sortable" @click="toggleSort('legsWon')">
+          <th class="standings-col-num standings-sortable" @click="toggleSort('legsWon')">
             F{{ sortIndicator('legsWon') }}
           </th>
-          <th class="col-num sortable" @click="toggleSort('legsLost')">
+          <th class="standings-col-num standings-sortable" @click="toggleSort('legsLost')">
             A{{ sortIndicator('legsLost') }}
           </th>
-          <th class="col-num sortable" @click="toggleSort('legDifference')">
+          <th class="standings-col-num standings-sortable" @click="toggleSort('legDifference')">
             +/-{{ sortIndicator('legDifference') }}
           </th>
-          <th class="col-num sortable" @click="toggleSort('points')">
+          <th class="standings-col-num standings-sortable" @click="toggleSort('points')">
             Pts{{ sortIndicator('points') }}
           </th>
         </tr>
@@ -86,33 +86,33 @@ const sorted = computed(() => {
         <tr
           v-for="(s, i) in sorted"
           :key="s.id"
-          :class="{ advancing: advanceCount && i < advanceCount }"
+          :class="{ 'standings-advancing': advanceCount && i < advanceCount }"
         >
-          <td class="col-pos">
+          <td class="standings-col-pos">
             {{ i + 1 }}
           </td>
-          <td class="col-name">
+          <td class="standings-col-name">
             <span class="flex items-center gap-xs"><PlayerAvatar v-bind="getAvatarProps(s.playerName)" :size="18" />{{ s.playerName }}</span>
           </td>
-          <td class="col-num">
+          <td class="standings-col-num">
             {{ s.played }}
           </td>
-          <td class="col-num">
+          <td class="standings-col-num">
             {{ s.won }}
           </td>
-          <td class="col-num">
+          <td class="standings-col-num">
             {{ s.lost }}
           </td>
-          <td class="col-num">
+          <td class="standings-col-num">
             {{ s.legsWon }}
           </td>
-          <td class="col-num">
+          <td class="standings-col-num">
             {{ s.legsLost }}
           </td>
-          <td class="col-num" :class="{ positive: s.legDifference > 0, negative: s.legDifference < 0 }">
+          <td class="standings-col-num" :class="{ 'text-green': s.legDifference > 0, 'text-red': s.legDifference < 0 }">
             {{ s.legDifference > 0 ? '+' : '' }}{{ s.legDifference }}
           </td>
-          <td class="col-num font-bold">
+          <td class="standings-col-num font-bold">
             {{ s.points }}
           </td>
         </tr>
@@ -121,15 +121,13 @@ const sorted = computed(() => {
   </div>
 </template>
 
-<style scoped>
-.standings-wrapper {
-  overflow-x: auto;
-}
-
+<style>
+/* StandingsTable — complex table styling with pseudo-selectors and responsive overrides */
 .standings-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.8rem;
+  border: 2px solid black;
 }
 
 .standings-table th {
@@ -140,33 +138,34 @@ const sorted = computed(() => {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   text-align: left;
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 2px solid black;
   white-space: nowrap;
+  background: var(--surface-2);
 }
 
-.standings-table th.sortable {
+.standings-sortable {
   cursor: pointer;
   user-select: none;
-  transition: color var(--duration-fast);
 }
 
-.standings-table th.sortable:hover {
+.standings-sortable:hover {
   color: var(--text-primary);
+  background: var(--surface-3);
 }
 
 .standings-table td {
   padding: var(--spacing-sm) var(--spacing-sm);
   color: var(--text-secondary);
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 2px solid black;
 }
 
-.col-pos {
+.standings-col-pos {
   width: 30px;
   font-weight: 700;
   color: var(--text-muted);
 }
 
-.col-name {
+.standings-col-name {
   font-weight: 600;
   color: var(--text-primary);
   white-space: nowrap;
@@ -175,25 +174,27 @@ const sorted = computed(() => {
   max-width: 120px;
 }
 
-.col-num {
+.standings-col-num {
   text-align: center;
   width: 36px;
   font-variant-numeric: tabular-nums;
 }
 
-tr.advancing .col-pos {
-  color: var(--gold);
+tr.standings-advancing .standings-col-pos {
+  color: var(--yellow);
+  font-weight: 800;
 }
 
-tr.advancing .col-name {
-  color: var(--gold);
+tr.standings-advancing .standings-col-name {
+  color: var(--yellow);
 }
 
-.positive { color: var(--green); }
-.negative { color: var(--red); }
+tr.standings-advancing {
+  background: var(--yellow-light);
+}
 
 @media (max-width: 480px) {
-  .col-num {
+  .standings-col-num {
     width: 28px;
   }
 

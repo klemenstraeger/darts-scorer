@@ -369,7 +369,10 @@ const turnProgress = computed(() => {
         <p class="text-red text-[1rem] mb-md">
           {{ error.data?.message || 'Failed to load replay' }}
         </p>
-        <NuxtLink to="/stats" class="btn btn-secondary">
+        <NuxtLink
+          to="/stats"
+          class="inline-flex items-center justify-center gap-2 rounded-md border-2 border-black bg-surface-1 px-lg py-sm text-[0.85rem] font-semibold text-fg shadow-sm transition-all duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
+        >
           Back to Stats
         </NuxtLink>
       </div>
@@ -377,12 +380,10 @@ const turnProgress = computed(() => {
       <!-- Replay content -->
       <template v-else-if="replayData">
         <!-- Header -->
-        <div class="replay-header mb-xl">
+        <div class="relative mb-xl">
           <div class="flex items-center gap-md mb-sm">
-            <NuxtLink to="/stats" class="back-link">
-              &larr; Stats
-            </NuxtLink>
-            <span class="text-[0.75rem] font-bold text-gold bg-gold-tint px-[8px] py-[2px] rounded-sm">
+            <BackLink to="/stats" label="Stats" />
+            <span class="text-[0.75rem] font-bold text-yellow bg-yellow-light border border-black px-[8px] py-[2px] rounded-sm">
               {{ replayData.game.mode }}
             </span>
           </div>
@@ -392,35 +393,35 @@ const turnProgress = computed(() => {
           <p class="text-[0.85rem] text-fg-muted">
             {{ replayData.players.map(p => p.playerName).join(' vs ') }}
             <template v-if="replayData.game.winnerName">
-              &mdash; Winner: <span class="text-gold font-semibold">{{ replayData.game.winnerName }}</span>
+              &mdash; Winner: <span class="text-yellow font-semibold">{{ replayData.game.winnerName }}</span>
             </template>
             &nbsp;&bull;&nbsp;
             {{ formatDate(replayData.game.createdAt) }}
           </p>
         </div>
 
-        <div class="replay-layout">
+        <div class="grid grid-cols-[1fr_280px] gap-xl items-start max-[700px]:grid-cols-1">
           <!-- Left column: Dartboard -->
-          <div class="board-column">
+          <div class="flex flex-col items-center gap-md">
             <DartBoard
               :disabled="true"
               :highlight-segments="dartMarkers"
             />
 
             <!-- Current throw labels under the board -->
-            <div v-if="currentTurnInfo" class="dart-labels">
+            <div v-if="currentTurnInfo" class="flex gap-sm justify-center flex-wrap">
               <div
                 v-for="(t, i) in currentTurnInfo.throws"
                 :key="i"
-                class="dart-label"
-                :class="{ 'dart-miss': t.segment === 0 }"
+                class="flex items-center gap-xs px-md py-xs bg-surface-1 border-2 border-black rounded-sm text-[0.8rem] font-semibold text-fg"
+                :class="{ 'text-fg-muted opacity-70': t.segment === 0 }"
               >
                 {{ formatThrowLabel(t) }}
-                <span class="dart-points">{{ t.points }}</span>
+                <span class="text-[0.7rem] text-fg-muted font-normal">{{ t.points }}</span>
               </div>
               <div
                 v-if="currentTurnInfo.busted"
-                class="dart-label dart-bust"
+                class="flex items-center gap-xs px-md py-xs bg-red-light border-2 border-black rounded-sm text-[0.8rem] font-semibold text-red"
               >
                 BUST
               </div>
@@ -428,24 +429,30 @@ const turnProgress = computed(() => {
           </div>
 
           <!-- Right column: Scores + Turn info -->
-          <div class="info-column">
+          <div class="flex flex-col gap-md">
             <!-- Player scores -->
-            <div class="scores-panel glass-card p-lg">
-              <h3 class="panel-title">
+            <div class="bg-surface-1 border-2 border-black rounded-lg shadow-md p-lg">
+              <h3 class="text-[0.7rem] text-fg-muted uppercase tracking-wide mb-md">
                 Scores
               </h3>
-              <div class="player-scores">
+              <div class="flex flex-col gap-sm">
                 <div
                   v-for="player in replayData.players"
                   :key="player.playerName"
-                  class="player-score-row"
-                  :class="{
-                    'active-player': player.playerName === activePlayerName,
-                    'is-winner': replayData.game.winnerName === player.playerName && currentPosition >= totalPositions,
-                  }"
+                  class="flex justify-between items-center px-md py-sm rounded-md border-2 transition-all duration-150"
+                  :class="[
+                    player.playerName === activePlayerName
+                      ? 'bg-yellow-light border-black'
+                      : replayData.game.winnerName === player.playerName && currentPosition >= totalPositions
+                        ? 'bg-yellow-light border-black'
+                        : 'border-transparent',
+                  ]"
                 >
-                  <span class="player-name">{{ player.playerName }}</span>
-                  <span class="player-score tabular-nums">
+                  <span
+                    class="text-[0.85rem] font-semibold"
+                    :class="player.playerName === activePlayerName ? 'text-yellow' : 'text-fg'"
+                  >{{ player.playerName }}</span>
+                  <span class="text-[1.4rem] font-extrabold text-fg tabular-nums">
                     {{ playerScores.get(player.playerName) ?? startingScore }}
                   </span>
                 </div>
@@ -453,20 +460,23 @@ const turnProgress = computed(() => {
             </div>
 
             <!-- Current turn info -->
-            <div class="turn-panel glass-card p-lg">
-              <h3 class="panel-title">
+            <div class="bg-surface-1 border-2 border-black rounded-lg shadow-md p-lg">
+              <h3 class="text-[0.7rem] text-fg-muted uppercase tracking-wide mb-md">
                 Current Turn
               </h3>
-              <div v-if="currentTurnInfo" class="turn-info">
-                <div class="turn-meta">
-                  <span class="turn-player">{{ currentTurnInfo.playerName }}</span>
-                  <span class="turn-number">Turn {{ currentTurnInfo.turnNumber }}</span>
+              <div v-if="currentTurnInfo" class="flex flex-col gap-sm">
+                <div class="flex justify-between items-center">
+                  <span class="text-[0.85rem] font-semibold text-yellow">{{ currentTurnInfo.playerName }}</span>
+                  <span class="text-[0.7rem] text-fg-muted uppercase tracking-[0.5px]">Turn {{ currentTurnInfo.turnNumber }}</span>
                 </div>
-                <div class="turn-score-row">
-                  <span class="turn-points tabular-nums">{{ currentTurnInfo.totalVisiblePoints }}</span>
-                  <span class="turn-darts-count">{{ turnProgress }} darts</span>
+                <div class="flex justify-between items-baseline">
+                  <span class="text-[1.8rem] font-extrabold text-fg tabular-nums">{{ currentTurnInfo.totalVisiblePoints }}</span>
+                  <span class="text-[0.75rem] text-fg-muted">{{ turnProgress }} darts</span>
                 </div>
-                <div v-if="currentTurnInfo.busted" class="bust-badge">
+                <div
+                  v-if="currentTurnInfo.busted"
+                  class="inline-block px-md py-xs bg-red-light border-2 border-black rounded-sm text-red text-[0.75rem] font-bold uppercase tracking-wide text-center"
+                >
                   BUST
                 </div>
               </div>
@@ -478,13 +488,13 @@ const turnProgress = computed(() => {
             <!-- Game summary (shown at end) -->
             <div
               v-if="currentPosition >= totalPositions && replayData.game.winnerName"
-              class="summary-panel glass-card p-lg"
+              class="bg-yellow-light border-2 border-black rounded-lg shadow-md p-lg"
             >
-              <h3 class="panel-title">
+              <h3 class="text-[0.7rem] text-fg-muted uppercase tracking-wide mb-md">
                 Result
               </h3>
               <div class="text-center">
-                <div class="text-[1.2rem] font-extrabold text-gold mb-xs">
+                <div class="text-[1.2rem] font-extrabold text-yellow mb-xs">
                   {{ replayData.game.winnerName }} wins!
                 </div>
                 <div class="text-[0.8rem] text-fg-muted">
@@ -515,221 +525,10 @@ const turnProgress = computed(() => {
         </div>
 
         <!-- Keyboard hint -->
-        <div class="keyboard-hint">
+        <div class="text-center text-[0.7rem] text-fg-muted mt-md opacity-70">
           Space: play/pause &bull; Arrow keys: step &bull; Home/End: jump
         </div>
       </template>
     </div>
   </AuthGate>
 </template>
-
-<style scoped>
-.replay-header {
-  position: relative;
-}
-
-.back-link {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  text-decoration: none;
-  transition: color var(--duration-fast);
-}
-
-.back-link:hover {
-  color: var(--text-primary);
-}
-
-.replay-layout {
-  display: grid;
-  grid-template-columns: 1fr 280px;
-  gap: var(--spacing-xl);
-  align-items: start;
-}
-
-@media (max-width: 700px) {
-  .replay-layout {
-    grid-template-columns: 1fr;
-  }
-}
-
-.board-column {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-md);
-}
-
-.info-column {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-}
-
-.panel-title {
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: var(--spacing-md);
-}
-
-/* Player scores */
-.player-scores {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-}
-
-.player-score-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--radius-md);
-  border: 1px solid transparent;
-  transition:
-    background var(--duration-fast),
-    border-color var(--duration-fast);
-}
-
-.player-score-row.active-player {
-  background: rgba(255, 215, 0, 0.08);
-  border-color: var(--border-gold);
-}
-
-.player-score-row.is-winner {
-  background: rgba(255, 215, 0, 0.12);
-  border-color: var(--border-gold);
-}
-
-.player-name {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.active-player .player-name {
-  color: var(--gold);
-}
-
-.player-score {
-  font-size: 1.4rem;
-  font-weight: 800;
-  color: var(--text-primary);
-}
-
-/* Turn info */
-.turn-info {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-}
-
-.turn-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.turn-player {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--gold);
-}
-
-.turn-number {
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.turn-score-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-}
-
-.turn-points {
-  font-size: 1.8rem;
-  font-weight: 800;
-  color: var(--text-primary);
-}
-
-.turn-darts-count {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-
-.bust-badge {
-  display: inline-block;
-  padding: var(--spacing-xs) var(--spacing-md);
-  background: var(--red-tint);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  border-radius: var(--radius-sm);
-  color: var(--red);
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  text-align: center;
-}
-
-/* Dart labels under board */
-.dart-labels {
-  display: flex;
-  gap: var(--spacing-sm);
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.dart-label {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-xs) var(--spacing-md);
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.dart-label.dart-miss {
-  color: var(--text-muted);
-  opacity: 0.7;
-}
-
-.dart-label.dart-bust {
-  background: var(--red-tint);
-  border-color: rgba(239, 68, 68, 0.3);
-  color: var(--red);
-}
-
-.dart-points {
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  font-weight: 400;
-}
-
-/* Summary panel */
-.summary-panel {
-  border-color: var(--border-gold);
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.06), transparent);
-}
-
-/* Keyboard hint */
-.keyboard-hint {
-  text-align: center;
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  margin-top: var(--spacing-md);
-  opacity: 0.7;
-}
-
-/* Color utilities */
-.text-red {
-  color: var(--red);
-}
-</style>

@@ -23,16 +23,16 @@ const colorClass = computed(() => {
 </script>
 
 <template>
-  <span class="inline-flex items-center gap-1 px-sm py-[2px] rounded-sm text-xs font-semibold border border-transparent" :class="colorClass">
+  <span class="throw-badge inline-flex items-center gap-1 px-sm py-[2px] rounded-sm text-xs font-semibold border-2 border-black" :class="colorClass">
     <span class="font-bold">{{ label }}</span>
-    <span class="opacity-60 text-[0.7rem]">{{ points }}</span>
+    <span class="badge-points opacity-60 text-[0.7rem]">{{ points }}</span>
   </span>
 </template>
 
-<style scoped>
-.single { background: var(--surface-2); color: var(--text-secondary); border-color: var(--border-subtle); }
-.double { background: rgba(255, 215, 0, 0.1); color: var(--gold); border-color: rgba(255, 215, 0, 0.2); }
-.treble { background: rgba(59, 130, 246, 0.1); color: var(--blue); border-color: rgba(59, 130, 246, 0.2); }
-.miss { background: rgba(239, 68, 68, 0.1); color: var(--red); border-color: rgba(239, 68, 68, 0.2); }
-.bull { background: rgba(34, 197, 94, 0.1); color: var(--green); border-color: rgba(34, 197, 94, 0.2); }
+<style>
+.throw-badge.single { background: var(--surface-2); color: var(--text-secondary); }
+.throw-badge.double { background: var(--yellow-light); color: var(--yellow); }
+.throw-badge.treble { background: var(--blue-light); color: var(--blue); }
+.throw-badge.miss { background: var(--red-light); color: var(--red); }
+.throw-badge.bull { background: var(--green-light); color: var(--green); }
 </style>

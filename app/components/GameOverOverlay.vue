@@ -28,64 +28,64 @@ const winnerName = computed(() => {
 </script>
 
 <template>
-  <div class="gameover-overlay">
-    <div class="gameover-content">
+  <div class="fixed inset-0 flex items-center justify-center z-100 bg-black/50 overflow-y-auto p-md">
+    <div class="text-center max-w-[520px] w-full bg-surface-1 border-[3px] border-black rounded-lg p-xl shadow-[8px_8px_0_black]">
       <!-- Title -->
-      <div class="gameover-title">
+      <div class="text-[2.5rem] font-extrabold text-yellow mb-sm" style="animation: scale-in 0.5s var(--ease-spring);">
         Game Over
       </div>
 
       <!-- Winner -->
-      <div class="gameover-winner">
+      <div class="flex items-center justify-center gap-md mb-lg" style="animation: scale-in 0.5s var(--ease-spring) 0.1s both;">
         <PlayerAvatar v-if="winnerName" v-bind="getAvatarProps(winnerName)" :size="56" />
         <div>
-          <div class="winner-name">
+          <div class="text-[1.5rem] font-bold text-fg">
             {{ winnerName }}
           </div>
-          <div class="winner-badge">
+          <div class="text-[0.7rem] font-extrabold tracking-[2px] text-yellow uppercase">
             WINNER
           </div>
         </div>
       </div>
 
       <!-- Player stat cards -->
-      <div class="gameover-stats">
+      <div class="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-sm mb-xl" style="animation: scale-in 0.5s var(--ease-spring) 0.15s both;">
         <div
           v-for="(player, i) in state.players"
           :key="i"
-          class="stat-card"
-          :class="{ winner: i === state.winner_index }"
+          class="bg-surface-1 border-2 border-black rounded-md p-md shadow-sm"
+          :class="i === state.winner_index ? 'border-yellow bg-yellow-light' : ''"
         >
-          <div class="stat-card-header">
+          <div class="flex items-center gap-sm mb-sm pb-sm border-b-2 border-black/10">
             <PlayerAvatar v-bind="getAvatarProps(player.name)" :size="32" />
-            <span class="stat-player-name">{{ player.name }}</span>
+            <span class="text-[0.85rem] font-bold text-fg uppercase tracking-[0.5px]">{{ player.name }}</span>
           </div>
-          <div class="stat-grid">
-            <div class="stat-item">
-              <span class="stat-value">{{ threeDartAverage(player).toFixed(1) }}</span>
-              <span class="stat-label">Avg</span>
+          <div class="grid grid-cols-3 gap-x-sm gap-y-xs">
+            <div class="flex flex-col items-center">
+              <span class="text-[1.1rem] font-extrabold text-fg tabular-nums">{{ threeDartAverage(player).toFixed(1) }}</span>
+              <span class="text-[0.65rem] font-semibold text-fg-secondary uppercase tracking-[0.5px]">Avg</span>
             </div>
-            <div class="stat-item">
-              <span class="stat-value">{{ totalDartsThrown(player) }}</span>
-              <span class="stat-label">Darts</span>
+            <div class="flex flex-col items-center">
+              <span class="text-[1.1rem] font-extrabold text-fg tabular-nums">{{ totalDartsThrown(player) }}</span>
+              <span class="text-[0.65rem] font-semibold text-fg-secondary uppercase tracking-[0.5px]">Darts</span>
             </div>
-            <div class="stat-item">
-              <span class="stat-value">{{ highestTurnScore(player) }}</span>
-              <span class="stat-label">Best</span>
+            <div class="flex flex-col items-center">
+              <span class="text-[1.1rem] font-extrabold text-fg tabular-nums">{{ highestTurnScore(player) }}</span>
+              <span class="text-[0.65rem] font-semibold text-fg-secondary uppercase tracking-[0.5px]">Best</span>
             </div>
-            <div v-if="count180s(player) > 0" class="stat-item">
-              <span class="stat-value stat-highlight">{{ count180s(player) }}</span>
-              <span class="stat-label">180s</span>
+            <div v-if="count180s(player) > 0" class="flex flex-col items-center">
+              <span class="text-[1.1rem] font-extrabold text-yellow tabular-nums">{{ count180s(player) }}</span>
+              <span class="text-[0.65rem] font-semibold text-fg-secondary uppercase tracking-[0.5px]">180s</span>
             </div>
-            <div v-if="i === state.winner_index && getCheckoutDart(player)" class="stat-item">
-              <span class="stat-value stat-highlight">{{ throwLabel(getCheckoutDart(player)!) }}</span>
-              <span class="stat-label">Checkout</span>
+            <div v-if="i === state.winner_index && getCheckoutDart(player)" class="flex flex-col items-center">
+              <span class="text-[1.1rem] font-extrabold text-yellow tabular-nums">{{ throwLabel(getCheckoutDart(player)!) }}</span>
+              <span class="text-[0.65rem] font-semibold text-fg-secondary uppercase tracking-[0.5px]">Checkout</span>
             </div>
-            <div v-if="isMatch" class="stat-item">
-              <span class="stat-value">
+            <div v-if="isMatch" class="flex flex-col items-center">
+              <span class="text-[1.1rem] font-extrabold text-fg tabular-nums">
                 <template v-if="hasSets">{{ state.sets_won[i] ?? 0 }}s </template>{{ player.legs_won }}l
               </span>
-              <span class="stat-label">{{ hasSets ? 'Sets/Legs' : 'Legs' }}</span>
+              <span class="text-[0.65rem] font-semibold text-fg-secondary uppercase tracking-[0.5px]">{{ hasSets ? 'Sets/Legs' : 'Legs' }}</span>
             </div>
           </div>
         </div>
@@ -95,20 +95,23 @@ const winnerName = computed(() => {
       <SignupPrompt v-if="!isAuthenticated" />
 
       <!-- Action buttons -->
-      <div class="gameover-actions">
+      <div class="flex gap-md justify-center" style="animation: scale-in 0.5s var(--ease-spring) 0.2s both;">
         <NuxtLink
           v-if="isTournamentMatch"
           :to="`/tournaments/${tournamentId}`"
-          class="btn btn-gold"
+          class="inline-flex items-center justify-center px-xl py-md bg-yellow border-2 border-black rounded-lg text-fg-inverse font-extrabold text-[0.95rem] no-underline shadow-md transition-all duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-lg active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
           @click="$emit('clearTournament')"
         >
           Back to Tournament
         </NuxtLink>
         <template v-else>
-          <button class="btn btn-gold" @click="$emit('dismiss')">
+          <Button variant="default" size="lg" @click="$emit('dismiss')">
             Continue
-          </button>
-          <NuxtLink :to="isAuthenticated ? '/dashboard' : '/play'" class="btn btn-secondary">
+          </Button>
+          <NuxtLink
+            :to="isAuthenticated ? '/dashboard' : '/play'"
+            class="inline-flex items-center justify-center px-xl py-md bg-surface-1 border-2 border-black rounded-lg text-fg font-extrabold text-[0.95rem] no-underline shadow-md transition-all duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-lg active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
+          >
             New Game
           </NuxtLink>
         </template>
@@ -116,140 +119,3 @@ const winnerName = computed(() => {
     </div>
   </div>
 </template>
-
-<style scoped>
-.gameover-overlay {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(8px);
-  overflow-y: auto;
-  padding: var(--spacing-md);
-}
-
-.gameover-content {
-  text-align: center;
-  max-width: 520px;
-  width: 100%;
-}
-
-.gameover-title {
-  font-size: 2.5rem;
-  font-weight: 800;
-  background: var(--gold-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin-bottom: var(--spacing-sm);
-  animation: scale-in 0.5s var(--ease-spring);
-}
-
-.gameover-winner {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-lg);
-  animation: scale-in 0.5s var(--ease-spring) 0.1s both;
-}
-
-.winner-name {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.winner-badge {
-  font-size: 0.7rem;
-  font-weight: 800;
-  letter-spacing: 2px;
-  color: var(--gold);
-  text-transform: uppercase;
-}
-
-.gameover-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-xl);
-  animation: scale-in 0.5s var(--ease-spring) 0.15s both;
-}
-
-.stat-card {
-  background: var(--surface-glass);
-  backdrop-filter: blur(var(--blur-glass));
-  -webkit-backdrop-filter: blur(var(--blur-glass));
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  padding: var(--spacing-md);
-}
-
-.stat-card.winner {
-  border-color: var(--border-gold);
-  box-shadow: 0 0 16px rgba(255, 215, 0, 0.1);
-}
-
-.stat-card-header {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-sm);
-  padding-bottom: var(--spacing-sm);
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-.stat-player-name {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.stat-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--spacing-xs) var(--spacing-sm);
-}
-
-.stat-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.stat-value {
-  font-size: 1.1rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  tabular-nums: true;
-}
-
-.stat-highlight {
-  color: var(--gold);
-}
-
-.stat-label {
-  font-size: 0.65rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.gameover-actions {
-  display: flex;
-  gap: var(--spacing-md);
-  justify-content: center;
-  animation: scale-in 0.5s var(--ease-spring) 0.2s both;
-}
-
-@keyframes scale-in {
-  from { transform: scale(0.8); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
-</style>

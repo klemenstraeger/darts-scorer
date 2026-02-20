@@ -53,29 +53,29 @@ function removeTeam(name: string) {
 </script>
 
 <template>
-  <div class="team-picker">
+  <div class="flex flex-col gap-lg w-full">
     <!-- Search bar -->
     <input
       v-if="showSearch"
       v-model="search"
-      class="picker-search"
+      class="w-full px-sm py-sm bg-surface-1 border-2 border-black rounded-md text-fg text-[0.9rem] outline-none transition-all duration-150 focus:shadow-sm placeholder:text-fg-muted"
       type="text"
       placeholder="Search teams..."
     >
 
     <!-- Team grid -->
-    <div class="team-grid">
+    <div class="grid grid-cols-2 gap-md max-[400px]:grid-cols-1">
       <button
         v-for="team in filteredTeams"
         :key="team.id"
-        class="team-card"
+        class="flex flex-col items-center gap-xs px-sm py-lg bg-surface-1 border-2 border-black rounded-lg cursor-pointer transition-all duration-150 min-h-[90px] font-sans shadow-sm hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
         :class="{
-          selected: selectionIndex(team.name) >= 0,
-          dimmed: maxReached && selectionIndex(team.name) < 0,
+          'border-yellow bg-yellow-light': selectionIndex(team.name) >= 0,
+          'opacity-35 cursor-default pointer-events-none': maxReached && selectionIndex(team.name) < 0,
         }"
         @click="toggleTeam(team.name)"
       >
-        <div class="card-icon">
+        <div class="relative w-12 h-12 rounded-full flex items-center justify-center text-fg-muted" :class="selectionIndex(team.name) >= 0 ? 'bg-yellow-light text-fg' : 'bg-surface-3'">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
             <circle cx="9" cy="7" r="4" />
@@ -84,19 +84,22 @@ function removeTeam(name: string) {
           </svg>
           <span
             v-if="selectionIndex(team.name) >= 0"
-            class="selection-badge"
+            class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-yellow text-fg-inverse text-[0.7rem] font-extrabold flex items-center justify-center border-2 border-black"
           >
             {{ selectionIndex(team.name) + 1 }}
           </span>
         </div>
-        <span class="card-name">{{ team.name }}</span>
-        <span class="card-members">{{ team.members.map(m => m.playerName).join(', ') }}</span>
+        <span class="text-[0.8rem] font-semibold text-center overflow-hidden text-ellipsis whitespace-nowrap max-w-full" :class="selectionIndex(team.name) >= 0 ? 'text-fg' : 'text-fg-secondary'">{{ team.name }}</span>
+        <span class="text-[0.65rem] text-fg-muted text-center overflow-hidden text-ellipsis whitespace-nowrap max-w-full">{{ team.members.map(m => m.playerName).join(', ') }}</span>
       </button>
 
-      <div v-if="filteredTeams.length === 0" class="empty-state">
+      <div v-if="filteredTeams.length === 0" class="col-span-full flex flex-col items-center gap-md p-2xl text-fg-muted text-[0.9rem]">
         <template v-if="teams.length === 0">
           <p>No teams yet.</p>
-          <NuxtLink to="/teams" class="btn btn-secondary text-[0.85rem]">
+          <NuxtLink
+            to="/teams"
+            class="inline-flex items-center justify-center px-lg py-sm bg-surface-1 border-2 border-black rounded-lg text-fg font-bold text-[0.85rem] no-underline shadow-sm transition-all duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
+          >
             Manage Teams
           </NuxtLink>
         </template>
@@ -107,217 +110,22 @@ function removeTeam(name: string) {
     </div>
 
     <!-- Selected summary -->
-    <div v-if="modelValue.length > 0" class="selected-summary">
-      <div class="selected-chips">
+    <div v-if="modelValue.length > 0" class="pt-sm border-t-2 border-black/10">
+      <div class="flex flex-wrap gap-sm">
         <span
           v-for="name in modelValue"
           :key="name"
-          class="selected-chip"
+          class="flex items-center gap-xs px-md py-xs bg-yellow-light border-2 border-black rounded-full text-fg text-[0.8rem] font-semibold"
         >
           {{ name }}
-          <button class="chip-remove" @click="removeTeam(name)">&times;</button>
+          <button class="bg-transparent border-none text-fg-muted text-[1rem] cursor-pointer p-0 leading-none transition-colors duration-150 hover:text-red" @click="removeTeam(name)">&times;</button>
         </span>
       </div>
     </div>
 
     <!-- Status line -->
-    <p class="picker-status">
+    <p class="text-[0.75rem] text-fg-muted text-center">
       {{ modelValue.length }} of {{ min }}-{{ max }} teams
     </p>
   </div>
 </template>
-
-<style scoped>
-.team-picker {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-lg);
-  width: 100%;
-}
-
-.picker-search {
-  width: 100%;
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  color: var(--text-primary);
-  font-family: var(--font-sans);
-  font-size: 0.9rem;
-  outline: none;
-  transition: border-color var(--duration-fast);
-}
-
-.picker-search:focus {
-  border-color: var(--border-gold);
-}
-
-.picker-search::placeholder {
-  color: var(--text-muted);
-}
-
-.team-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--spacing-md);
-}
-
-@media (max-width: 400px) {
-  .team-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.team-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-lg) var(--spacing-sm);
-  background: var(--surface-1);
-  border: 2px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  cursor: pointer;
-  transition:
-    border-color var(--duration-fast),
-    background var(--duration-fast),
-    opacity var(--duration-fast),
-    transform var(--duration-fast) var(--ease-out);
-  min-height: 90px;
-  font-family: var(--font-sans);
-}
-
-.team-card:hover:not(.dimmed) {
-  border-color: var(--border-default);
-  background: var(--surface-2);
-}
-
-.team-card:active:not(.dimmed) {
-  transform: scale(0.96);
-}
-
-.team-card.selected {
-  border-color: var(--gold);
-  background: rgba(255, 215, 0, 0.06);
-}
-
-.team-card.dimmed {
-  opacity: 0.35;
-  cursor: default;
-}
-
-.card-icon {
-  position: relative;
-  width: 48px;
-  height: 48px;
-  border-radius: var(--radius-full);
-  background: var(--surface-3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-muted);
-}
-
-.team-card.selected .card-icon {
-  color: var(--gold);
-  background: rgba(255, 215, 0, 0.1);
-}
-
-.selection-badge {
-  position: absolute;
-  bottom: -4px;
-  right: -4px;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: var(--gold-gradient);
-  color: var(--text-inverse);
-  font-size: 0.7rem;
-  font-weight: 800;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
-}
-
-.card-name {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  text-align: center;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 100%;
-}
-
-.team-card.selected .card-name {
-  color: var(--gold);
-}
-
-.card-members {
-  font-size: 0.65rem;
-  color: var(--text-muted);
-  text-align: center;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 100%;
-}
-
-.selected-summary {
-  padding-top: var(--spacing-sm);
-  border-top: 1px solid var(--border-subtle);
-}
-
-.selected-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-sm);
-}
-
-.selected-chip {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-xs) var(--spacing-md);
-  background: rgba(255, 215, 0, 0.1);
-  border: 1px solid var(--border-gold);
-  border-radius: var(--radius-full);
-  color: var(--gold);
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.chip-remove {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  font-size: 1rem;
-  cursor: pointer;
-  padding: 0 2px;
-  line-height: 1;
-  transition: color var(--duration-fast);
-}
-
-.chip-remove:hover {
-  color: var(--red);
-}
-
-.picker-status {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  text-align: center;
-}
-
-.empty-state {
-  grid-column: 1 / -1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-md);
-  padding: var(--spacing-2xl);
-  color: var(--text-muted);
-  font-size: 0.9rem;
-}
-</style>

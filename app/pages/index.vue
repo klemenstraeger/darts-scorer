@@ -1,15 +1,13 @@
 <script setup lang="ts">
-definePageMeta({ layout: false })
-
 const user = useSupabaseUser()
 
 // Redirect logged-in users to dashboard
-if (import.meta.client) {
-  watchEffect(() => {
-    if (user.value)
-      navigateTo('/dashboard')
-  })
-}
+// if (import.meta.client) {
+//   watchEffect(() => {
+//     if (user.value)
+//       navigateTo('/dashboard')
+//   })
+// }
 
 useHead({
   title: 'Darts Scorer — Professional Darts Scoring & Tournament Management',
@@ -35,10 +33,12 @@ useHead({
   ],
 })
 
+definePageMeta({ layout: false })
+
 const features = [
   {
     icon: 'target',
-    color: 'gold',
+    color: 'yellow',
     title: 'Real-Time Scoring',
     description: 'Track 501, 301, and more with instant score updates, checkout suggestions, and throw-by-throw history.',
   },
@@ -73,37 +73,44 @@ const highlights = [
   { label: 'Works Offline', sublabel: 'Full PWA — no internet needed' },
   { label: 'Install as App', sublabel: 'Add to home screen on any device' },
 ]
+
+const iconBgClass: Record<string, string> = {
+  yellow: 'bg-yellow-light text-yellow',
+  blue: 'bg-blue-light text-blue',
+  purple: 'bg-purple-light text-purple',
+  green: 'bg-green-light text-green',
+}
 </script>
 
 <template>
-  <div class="landing-page bg-surface-0">
+  <div class="overflow-x-hidden bg-surface-0">
     <!-- ── Hero ────────────────────────────────────────────────────── -->
-    <section class="hero-section">
-      <div class="hero-bg">
-        <div class="hero-ring hero-ring-1" />
-        <div class="hero-ring hero-ring-2" />
-        <div class="hero-ring hero-ring-3" />
+    <section class="relative min-h-screen max-sm:min-h-[90vh] flex items-center justify-center overflow-hidden">
+      <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div class="absolute w-[300px] h-[300px] rounded-full border-2 border-black opacity-6" />
+        <div class="absolute w-[500px] h-[500px] rounded-full border-2 border-black opacity-6" />
+        <div class="absolute w-[700px] h-[700px] rounded-full border-2 border-black opacity-6" />
       </div>
 
-      <div class="hero-content">
+      <div class="relative z-1 flex flex-col items-center gap-xl p-2xl text-center">
         <div class="anim-fade-in" style="--delay: 0ms; --from-scale: 0.8;">
-          <DartsLogo :size="120" class="hero-logo" />
+          <DartsLogo :size="120" />
         </div>
 
-        <h1 class="hero-title anim-fade-in-up" style="--delay: 200ms;">
+        <h1 class="anim-fade-in-up font-black leading-[1.05] tracking-tight text-[clamp(3rem,8vw,5rem)]" style="--delay: 200ms;">
           <span class="block text-fg">Darts</span>
-          <span class="block text-gradient-gold">Scorer</span>
+          <span class="block text-yellow font-black">Scorer</span>
         </h1>
 
-        <p class="hero-tagline anim-fade-in-up" style="--delay: 350ms;">
+        <p class="anim-fade-in-up text-fg-secondary max-w-[500px] leading-relaxed text-[clamp(1rem,2.5vw,1.25rem)]" style="--delay: 350ms;">
           Professional scoring, tournament management, and statistics
         </p>
 
-        <div class="hero-ctas anim-fade-in-up" style="--delay: 500ms;">
-          <NuxtLink to="/play" class="btn btn-gold hero-btn">
+        <div class="anim-fade-in-up flex gap-md mt-md max-[480px]:flex-col max-[480px]:w-full max-[480px]:max-w-[280px]" style="--delay: 500ms;">
+          <NuxtLink to="/play" class="inline-flex items-center justify-center gap-sm px-2xl py-md text-base font-extrabold bg-yellow border-2 border-black rounded-lg shadow-md transition-all duration-100 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-lg active:translate-x-0.5 active:translate-y-0.5 active:shadow-none">
             Play Now
           </NuxtLink>
-          <NuxtLink to="/login" class="btn btn-secondary hero-btn">
+          <NuxtLink to="/login" class="inline-flex items-center justify-center gap-sm px-2xl py-md text-base font-bold bg-surface-2 border-2 border-black rounded-lg shadow-md transition-all duration-100 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-lg active:translate-x-0.5 active:translate-y-0.5 active:shadow-none">
             Sign In
           </NuxtLink>
         </div>
@@ -111,43 +118,42 @@ const highlights = [
     </section>
 
     <!-- ── Features ────────────────────────────────────────────────── -->
-    <section id="features" class="landing-section">
-      <h2 class="section-title">
+    <section id="features" class="px-xl py-3xl max-w-[1000px] mx-auto max-sm:px-lg max-sm:py-2xl">
+      <h2 class="text-center font-extrabold text-fg mb-sm text-[clamp(1.5rem,4vw,2.2rem)]">
         Everything You Need
       </h2>
-      <p class="section-subtitle">
+      <p class="text-center text-fg-muted max-w-[520px] mx-auto mb-2xl leading-relaxed text-[clamp(0.9rem,2vw,1.05rem)]">
         A complete darts companion built for players who take their game seriously.
       </p>
 
-      <div class="features-grid">
+      <div class="grid grid-cols-2 gap-lg max-sm:grid-cols-1">
         <div
           v-for="(feature, i) in features"
           :key="feature.title"
-          class="feature-card glass-card anim-fade-in-up"
+          class="bg-surface-1 border-2 border-black rounded-lg shadow-md p-2xl flex flex-col gap-md transition-all duration-100 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-lg anim-fade-in-up"
           :style="{ '--delay': `${i * 100}ms` }"
         >
-          <div class="feature-icon" :class="`feature-icon-${feature.color}`">
-            <!-- Target icon -->
+          <div
+            class="w-12 h-12 flex items-center justify-center rounded-md border-2 border-black"
+            :class="iconBgClass[feature.color]"
+          >
             <svg v-if="feature.icon === 'target'" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" />
             </svg>
-            <!-- Trophy icon -->
             <svg v-else-if="feature.icon === 'trophy'" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" /><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" /><path d="M4 22h16" /><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20 7 22" /><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20 17 22" /><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
             </svg>
-            <!-- Bot icon -->
             <svg v-else-if="feature.icon === 'bot'" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <rect x="3" y="11" width="18" height="10" rx="2" /><circle cx="8.5" cy="16" r="1.5" /><circle cx="15.5" cy="16" r="1.5" /><path d="M12 2v5M7 7h10" />
             </svg>
-            <!-- Chart icon -->
             <svg v-else-if="feature.icon === 'chart'" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" />
             </svg>
           </div>
-          <h3 class="feature-title">
+          <h3 class="text-[1.1rem] font-bold text-fg">
             {{ feature.title }}
           </h3>
-          <p class="feature-description">
+          <p class="text-[0.9rem] text-fg-secondary leading-relaxed">
             {{ feature.description }}
           </p>
         </div>
@@ -155,28 +161,28 @@ const highlights = [
     </section>
 
     <!-- ── How It Works ────────────────────────────────────────────── -->
-    <section class="landing-section how-it-works-section">
-      <h2 class="section-title">
+    <section class="px-xl pt-xl pb-3xl max-w-[1000px] mx-auto max-sm:px-lg max-sm:py-2xl">
+      <h2 class="text-center font-extrabold text-fg mb-sm text-[clamp(1.5rem,4vw,2.2rem)]">
         Get Started in Seconds
       </h2>
-      <p class="section-subtitle">
+      <p class="text-center text-fg-muted max-w-[520px] mx-auto mb-2xl leading-relaxed text-[clamp(0.9rem,2vw,1.05rem)]">
         From landing to first throw in under a minute.
       </p>
 
-      <div class="steps-grid">
+      <div class="grid grid-cols-3 gap-lg max-sm:grid-cols-1">
         <div
           v-for="(step, i) in steps"
           :key="step.number"
-          class="step-card anim-fade-in-up"
+          class="flex flex-col items-center text-center gap-md p-2xl bg-surface-1 border-2 border-black rounded-lg shadow-sm transition-all duration-100 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md anim-fade-in-up"
           :style="{ '--delay': `${i * 120}ms` }"
         >
-          <div class="step-number">
+          <div class="w-11 h-11 flex items-center justify-center rounded-full bg-yellow border-2 border-black text-white text-[1.1rem] font-extrabold">
             {{ step.number }}
           </div>
-          <h3 class="step-title">
+          <h3 class="text-[1.05rem] font-bold text-fg">
             {{ step.title }}
           </h3>
-          <p class="step-description">
+          <p class="text-[0.85rem] text-fg-muted leading-relaxed">
             {{ step.description }}
           </p>
         </div>
@@ -184,491 +190,51 @@ const highlights = [
     </section>
 
     <!-- ── Highlights ──────────────────────────────────────────────── -->
-    <section class="highlights-section">
-      <div class="highlights-grid">
+    <section class="border-y-2 border-black bg-surface-1 px-xl py-2xl">
+      <div class="flex justify-center gap-3xl max-w-[800px] mx-auto max-sm:flex-col max-sm:items-center max-sm:gap-xl">
         <div
           v-for="(item, i) in highlights"
           :key="item.label"
-          class="highlight-item anim-fade-in"
+          class="flex flex-col items-center text-center gap-xs anim-fade-in"
           :style="{ '--delay': `${i * 100}ms` }"
         >
-          <span class="highlight-label">{{ item.label }}</span>
-          <span class="highlight-sublabel">{{ item.sublabel }}</span>
+          <span class="text-[1.1rem] font-extrabold text-yellow">{{ item.label }}</span>
+          <span class="text-[0.85rem] text-fg-muted">{{ item.sublabel }}</span>
         </div>
       </div>
     </section>
 
     <!-- ── Final CTA ───────────────────────────────────────────────── -->
-    <section class="landing-section cta-section">
-      <div class="cta-card glass-card-heavy anim-fade-in-up">
-        <h2 class="cta-title">
+    <section class="px-xl py-3xl max-w-[1000px] mx-auto flex justify-center max-sm:px-lg max-sm:py-2xl">
+      <div class="flex flex-col items-center gap-lg p-3xl text-center max-w-[560px] w-full bg-yellow border-2 border-black shadow-lg rounded-lg anim-fade-in-up">
+        <h2 class="font-extrabold text-fg text-[clamp(1.3rem,3vw,1.8rem)]">
           Ready to Level Up Your Darts Game?
         </h2>
-        <p class="cta-subtitle">
+        <p class="text-[0.95rem] text-fg-secondary leading-relaxed">
           Join players using Darts Scorer for professional-grade game tracking.
         </p>
-        <NuxtLink to="/play" class="btn btn-gold cta-btn">
+        <NuxtLink to="/play" class="inline-flex items-center justify-center gap-sm px-3xl py-md text-[1.05rem] font-extrabold bg-surface-1 border-2 border-black rounded-lg shadow-md transition-all duration-100 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-lg active:translate-x-0.5 active:translate-y-0.5 active:shadow-none">
           Start Playing Now
         </NuxtLink>
       </div>
     </section>
 
     <!-- ── Footer ──────────────────────────────────────────────────── -->
-    <footer class="landing-footer">
-      <div class="footer-content">
-        <div class="footer-brand">
+    <footer class="px-xl py-2xl border-t-2 border-black">
+      <div class="flex items-center justify-between max-w-[1000px] mx-auto max-sm:flex-col max-sm:gap-lg">
+        <div class="flex items-center gap-sm">
           <DartsLogo :size="24" />
-          <span class="footer-brand-text">Darts Scorer</span>
+          <span class="text-[0.9rem] font-bold text-fg-secondary">Darts Scorer</span>
         </div>
-        <nav class="footer-nav">
-          <NuxtLink to="/login" class="footer-link">
+        <nav class="flex gap-lg">
+          <NuxtLink to="/login" class="text-[0.85rem] text-fg-muted no-underline transition-colors duration-100 hover:text-yellow">
             Login
           </NuxtLink>
         </nav>
-        <p class="footer-copy">
+        <p class="text-[0.75rem] text-fg-muted">
           &copy; {{ new Date().getFullYear() }} Darts Scorer
         </p>
       </div>
     </footer>
   </div>
 </template>
-
-<style scoped>
-/* ── CSS Animations (SSR-safe replacement for v-motion) ──────────────── */
-.anim-fade-in-up {
-  animation: fade-in-up 600ms var(--ease-out) both;
-  animation-delay: var(--delay, 0ms);
-}
-
-.anim-fade-in {
-  animation: fade-in 500ms var(--ease-out) both;
-  animation-delay: var(--delay, 0ms);
-}
-
-@keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(24px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: scale(var(--from-scale, 1));
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-/* ── Landing page container ──────────────────────────────────────────── */
-.landing-page {
-  overflow-x: hidden;
-}
-
-/* ── Hero section ────────────────────────────────────────────────────── */
-.hero-section {
-  position: relative;
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-
-@media (max-width: 640px) {
-  .hero-section {
-    min-height: 90vh;
-  }
-}
-
-.hero-bg {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-}
-
-.hero-ring {
-  position: absolute;
-  border-radius: 50%;
-  border: 1px solid var(--border-subtle);
-  opacity: 0.08;
-  animation: ring-pulse 6s ease-in-out infinite;
-}
-
-.hero-ring-1 {
-  width: 300px;
-  height: 300px;
-  animation-delay: 0s;
-}
-
-.hero-ring-2 {
-  width: 500px;
-  height: 500px;
-  animation-delay: 2s;
-}
-
-.hero-ring-3 {
-  width: 700px;
-  height: 700px;
-  animation-delay: 4s;
-}
-
-@keyframes ring-pulse {
-  0%, 100% { transform: scale(1); opacity: 0.08; }
-  50% { transform: scale(1.05); opacity: 0.04; }
-}
-
-.hero-content {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-xl);
-  padding: var(--spacing-2xl);
-  text-align: center;
-}
-
-.hero-logo {
-  filter: drop-shadow(0 0 30px var(--gold-glow));
-}
-
-.hero-title {
-  font-size: clamp(3rem, 8vw, 5rem);
-  font-weight: 900;
-  line-height: 1.05;
-  letter-spacing: -1px;
-}
-
-.hero-tagline {
-  font-size: clamp(1rem, 2.5vw, 1.25rem);
-  color: var(--text-secondary);
-  max-width: 500px;
-  line-height: 1.5;
-}
-
-.hero-ctas {
-  display: flex;
-  gap: var(--spacing-md);
-  margin-top: var(--spacing-md);
-}
-
-@media (max-width: 480px) {
-  .hero-ctas {
-    flex-direction: column;
-    width: 100%;
-    max-width: 280px;
-  }
-}
-
-.hero-btn {
-  padding: var(--spacing-md) var(--spacing-2xl);
-  font-size: 1rem;
-}
-
-/* ── Sections ────────────────────────────────────────────────────────── */
-.landing-section {
-  padding: var(--spacing-3xl) var(--spacing-xl);
-  max-width: 1000px;
-  margin: 0 auto;
-}
-
-@media (max-width: 640px) {
-  .landing-section {
-    padding: var(--spacing-2xl) var(--spacing-lg);
-  }
-}
-
-.section-title {
-  font-size: clamp(1.5rem, 4vw, 2.2rem);
-  font-weight: 800;
-  color: var(--text-primary);
-  text-align: center;
-  margin-bottom: var(--spacing-sm);
-}
-
-.section-subtitle {
-  font-size: clamp(0.9rem, 2vw, 1.05rem);
-  color: var(--text-muted);
-  text-align: center;
-  max-width: 520px;
-  margin: 0 auto var(--spacing-2xl);
-  line-height: 1.5;
-}
-
-/* ── Features grid ───────────────────────────────────────────────────── */
-.features-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--spacing-lg);
-}
-
-@media (max-width: 640px) {
-  .features-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.feature-card {
-  padding: var(--spacing-2xl);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-  transition: border-color var(--duration-normal) var(--ease-out);
-}
-
-.feature-card:hover {
-  border-color: var(--border-gold);
-}
-
-.feature-icon {
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-md);
-}
-
-.feature-icon-gold {
-  background: var(--gold-tint);
-  color: var(--gold);
-}
-
-.feature-icon-blue {
-  background: var(--blue-tint);
-  color: var(--blue);
-}
-
-.feature-icon-purple {
-  background: rgba(168, 85, 247, 0.1);
-  color: var(--purple);
-}
-
-.feature-icon-green {
-  background: var(--green-tint);
-  color: var(--green);
-}
-
-.feature-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.feature-description {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  line-height: 1.6;
-}
-
-/* ── How It Works ────────────────────────────────────────────────────── */
-.how-it-works-section {
-  padding-top: var(--spacing-xl);
-}
-
-.steps-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--spacing-lg);
-}
-
-@media (max-width: 640px) {
-  .steps-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.step-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: var(--spacing-md);
-  padding: var(--spacing-2xl) var(--spacing-lg);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  transition: border-color var(--duration-normal) var(--ease-out);
-}
-
-.step-card:hover {
-  border-color: var(--border-gold);
-}
-
-.step-number {
-  width: 44px;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: var(--gold-gradient);
-  color: var(--text-inverse);
-  font-size: 1.1rem;
-  font-weight: 800;
-}
-
-.step-title {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.step-description {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  line-height: 1.5;
-}
-
-/* ── Highlights ──────────────────────────────────────────────────────── */
-.highlights-section {
-  border-top: 1px solid var(--border-subtle);
-  border-bottom: 1px solid var(--border-subtle);
-  background: var(--surface-1);
-  padding: var(--spacing-2xl) var(--spacing-xl);
-}
-
-.highlights-grid {
-  display: flex;
-  justify-content: center;
-  gap: var(--spacing-3xl);
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-@media (max-width: 640px) {
-  .highlights-grid {
-    flex-direction: column;
-    align-items: center;
-    gap: var(--spacing-xl);
-  }
-}
-
-.highlight-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: var(--spacing-xs);
-}
-
-.highlight-label {
-  font-size: 1.1rem;
-  font-weight: 800;
-  color: var(--gold);
-}
-
-.highlight-sublabel {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-}
-
-/* ── Final CTA ───────────────────────────────────────────────────────── */
-.cta-section {
-  display: flex;
-  justify-content: center;
-}
-
-.cta-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-lg);
-  padding: var(--spacing-3xl) var(--spacing-2xl);
-  text-align: center;
-  max-width: 560px;
-  width: 100%;
-}
-
-.cta-title {
-  font-size: clamp(1.3rem, 3vw, 1.8rem);
-  font-weight: 800;
-  color: var(--text-primary);
-}
-
-.cta-subtitle {
-  font-size: 0.95rem;
-  color: var(--text-secondary);
-  line-height: 1.5;
-}
-
-.cta-btn {
-  padding: var(--spacing-md) var(--spacing-3xl);
-  font-size: 1.05rem;
-}
-
-/* ── Footer ──────────────────────────────────────────────────────────── */
-.landing-footer {
-  padding: var(--spacing-2xl) var(--spacing-xl);
-  border-top: 1px solid var(--border-subtle);
-}
-
-.footer-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  max-width: 1000px;
-  margin: 0 auto;
-}
-
-@media (max-width: 640px) {
-  .footer-content {
-    flex-direction: column;
-    gap: var(--spacing-lg);
-  }
-}
-
-.footer-brand {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-}
-
-.footer-brand-text {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--text-secondary);
-}
-
-.footer-nav {
-  display: flex;
-  gap: var(--spacing-lg);
-}
-
-.footer-link {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  text-decoration: none;
-  transition: color var(--duration-fast);
-}
-
-.footer-link:hover {
-  color: var(--gold);
-}
-
-.footer-copy {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-
-/* ── Reduce motion for accessibility ─────────────────────────────────── */
-@media (prefers-reduced-motion: reduce) {
-  .anim-fade-in-up,
-  .anim-fade-in,
-  .hero-ring {
-    animation: none;
-    opacity: 1;
-    transform: none;
-  }
-}
-</style>

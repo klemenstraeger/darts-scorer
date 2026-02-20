@@ -111,291 +111,104 @@ function isPast(rawDate: Date): boolean {
 </script>
 
 <template>
-  <div class="fixture-calendar">
-    <div v-if="fixturesByDate.length === 0" class="empty-state">
+  <div class="flex flex-col gap-lg">
+    <div v-if="fixturesByDate.length === 0" class="text-center p-2xl text-fg-muted text-[0.85rem]">
       No fixtures scheduled
     </div>
     <div
       v-for="group in fixturesByDate"
       :key="group.date"
-      class="fixture-day"
+      class="flex flex-col gap-sm"
       :class="{
-        today: isToday(group.date),
-        past: isPast(group.rawDate) && group.date !== 'Unscheduled',
-        unscheduled: group.date === 'Unscheduled',
+        'fixture-day-today': isToday(group.date),
       }"
     >
-      <div class="day-header">
-        <span class="day-date">{{ group.date }}</span>
-        <span v-if="isToday(group.date)" class="today-badge">Today</span>
-        <span class="day-count">{{ group.matches.length }} match{{ group.matches.length !== 1 ? 'es' : '' }}</span>
+      <div class="flex items-center gap-sm py-xs">
+        <span
+          class="text-[0.8rem] font-bold"
+          :class="[
+            isPast(group.rawDate) && group.date !== 'Unscheduled' ? 'text-fg-muted' : 'text-fg',
+            group.date === 'Unscheduled' ? 'text-fg-muted italic' : '',
+          ]"
+        >{{ group.date }}</span>
+        <span v-if="isToday(group.date)" class="text-[0.6rem] font-extrabold uppercase tracking-[0.5px] text-black bg-yellow px-xs py-[1px] rounded-sm border-2 border-black">Today</span>
+        <span class="text-[0.7rem] text-fg-muted ml-auto">{{ group.matches.length }} match{{ group.matches.length !== 1 ? 'es' : '' }}</span>
       </div>
-      <div class="day-matches">
+      <div class="flex flex-col gap-xs">
         <div
           v-for="match in group.matches"
           :key="match.id"
-          class="fixture-match"
-          :class="[statusClass(match), { playable: isPlayable(match) && showPlayButton }]"
+          class="flex items-center gap-sm px-md py-sm bg-surface-1 rounded-md shadow-sm"
+          :class="[
+            match.status === 'in_progress' ? 'border-[3px] border-yellow' : isPlayable(match) && showPlayButton ? 'border-2 border-yellow' : 'border-2 border-black',
+            match.status === 'completed' ? 'opacity-80' : '',
+          ]"
         >
-          <div class="fixture-status-dot" :class="statusClass(match)" />
-          <div class="fixture-players">
-            <div class="fixture-player" :class="{ winner: match.winnerName === match.player1Name }">
+          <div
+            class="w-1.5 h-1.5 rounded-full shrink-0"
+            :class="[
+              match.status === 'pending' ? 'bg-fg-muted' : '',
+              match.status === 'in_progress' ? 'bg-yellow' : '',
+              match.status === 'completed' ? 'bg-green' : '',
+            ]"
+            :style="match.status === 'in_progress' ? 'animation: pulse-opacity 1.5s ease-in-out infinite;' : ''"
+          />
+          <div class="flex-1 flex items-center gap-xs min-w-0">
+            <div class="flex-1 flex items-center gap-xs min-w-0" :class="{ 'fixture-winner': match.winnerName === match.player1Name }">
               <PlayerAvatar v-if="match.player1Name" v-bind="getAvatarProps(match.player1Name)" :size="18" />
-              <span class="fixture-player-name">{{ match.player1Name || 'TBD' }}</span>
+              <span
+                class="text-[0.78rem] font-semibold truncate"
+                :class="match.winnerName === match.player1Name ? 'text-yellow font-bold' : 'text-fg-secondary'"
+              >{{ match.player1Name || 'TBD' }}</span>
             </div>
-            <div class="fixture-score">
+            <div class="shrink-0 flex items-center gap-[2px] min-w-[48px] justify-center">
               <template v-if="match.status === 'completed'">
-                <span class="score-num" :class="{ 'score-winner': match.winnerName === match.player1Name }">{{ match.player1LegsWon }}</span>
-                <span class="score-sep">-</span>
-                <span class="score-num" :class="{ 'score-winner': match.winnerName === match.player2Name }">{{ match.player2LegsWon }}</span>
+                <span class="text-[0.85rem] font-extrabold tabular-nums" :class="match.winnerName === match.player1Name ? 'text-yellow' : 'text-fg'">{{ match.player1LegsWon }}</span>
+                <span class="text-[0.7rem] text-fg-muted mx-[1px]">-</span>
+                <span class="text-[0.85rem] font-extrabold tabular-nums" :class="match.winnerName === match.player2Name ? 'text-yellow' : 'text-fg'">{{ match.player2LegsWon }}</span>
               </template>
-              <span v-else-if="match.status === 'in_progress'" class="score-live">LIVE</span>
-              <span v-else class="score-vs">vs</span>
+              <span v-else-if="match.status === 'in_progress'" class="text-[0.6rem] font-extrabold text-yellow uppercase" style="animation: pulse-opacity 1.5s ease-in-out infinite;">LIVE</span>
+              <span v-else class="text-[0.65rem] font-semibold text-fg-muted uppercase">vs</span>
             </div>
-            <div class="fixture-player right" :class="{ winner: match.winnerName === match.player2Name }">
-              <span class="fixture-player-name">{{ match.player2Name || 'TBD' }}</span>
+            <div class="flex-1 flex items-center gap-xs min-w-0 justify-end" :class="{ 'fixture-winner': match.winnerName === match.player2Name }">
+              <span
+                class="text-[0.78rem] font-semibold truncate"
+                :class="match.winnerName === match.player2Name ? 'text-yellow font-bold' : 'text-fg-secondary'"
+              >{{ match.player2Name || 'TBD' }}</span>
               <PlayerAvatar v-if="match.player2Name" v-bind="getAvatarProps(match.player2Name)" :size="18" />
             </div>
           </div>
-          <div class="fixture-round">
+          <div class="text-[0.6rem] font-semibold text-fg-muted shrink-0 w-6 text-center max-[480px]:hidden">
             R{{ match.round }}
           </div>
-          <button
+          <Button
             v-if="isPlayable(match) && showPlayButton"
-            class="btn btn-gold fixture-play-btn"
+            variant="default"
+            size="sm"
+            class="shrink-0 text-[0.7rem] px-sm py-xs"
             @click.stop="emit('play', match.id)"
           >
             Play
-          </button>
+          </Button>
         </div>
       </div>
     </div>
   </div>
 </template>
 
-<style scoped>
-.fixture-calendar {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-lg);
-}
-
-.empty-state {
-  text-align: center;
-  padding: var(--spacing-2xl);
-  color: var(--text-muted);
-  font-size: 0.85rem;
-}
-
-.fixture-day {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-}
-
-.fixture-day.today {
+<style>
+/* Today left-bar indicator — ::before pseudo-element cannot be Tailwind */
+.fixture-day-today {
   position: relative;
 }
 
-.fixture-day.today::before {
+.fixture-day-today::before {
   content: '';
   position: absolute;
   left: -8px;
   top: 0;
   bottom: 0;
   width: 3px;
-  background: var(--gold-gradient);
-  border-radius: var(--radius-full);
-}
-
-.day-header {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-xs) 0;
-}
-
-.day-date {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.fixture-day.past .day-date {
-  color: var(--text-muted);
-}
-
-.fixture-day.unscheduled .day-date {
-  color: var(--text-muted);
-  font-style: italic;
-}
-
-.today-badge {
-  font-size: 0.6rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--gold);
-  background: rgba(245, 158, 11, 0.1);
-  padding: 1px var(--spacing-xs);
-  border-radius: var(--radius-full);
-  border: 1px solid rgba(245, 158, 11, 0.2);
-}
-
-.day-count {
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  margin-left: auto;
-}
-
-.day-matches {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-}
-
-.fixture-match {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  transition: border-color var(--duration-fast);
-}
-
-.fixture-match.playable {
-  border-color: var(--border-gold);
-}
-
-.fixture-match.in-progress {
-  border-color: var(--gold);
-  box-shadow: 0 0 12px var(--gold-glow);
-}
-
-.fixture-match.completed {
-  opacity: 0.8;
-}
-
-.fixture-status-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.fixture-status-dot.pending {
-  background: var(--text-muted);
-}
-
-.fixture-status-dot.in-progress {
-  background: var(--gold);
-  animation: pulse-dot 1.5s ease-in-out infinite;
-}
-
-.fixture-status-dot.completed {
-  background: var(--green);
-}
-
-@keyframes pulse-dot {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
-}
-
-.fixture-players {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  min-width: 0;
-}
-
-.fixture-player {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  min-width: 0;
-}
-
-.fixture-player.right {
-  justify-content: flex-end;
-}
-
-.fixture-player-name {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.fixture-player.winner .fixture-player-name {
-  color: var(--gold);
-  font-weight: 700;
-}
-
-.fixture-score {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  min-width: 48px;
-  justify-content: center;
-}
-
-.score-num {
-  font-size: 0.85rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  font-variant-numeric: tabular-nums;
-}
-
-.score-num.score-winner {
-  color: var(--gold);
-}
-
-.score-sep {
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  margin: 0 1px;
-}
-
-.score-vs {
-  font-size: 0.65rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-}
-
-.score-live {
-  font-size: 0.6rem;
-  font-weight: 800;
-  color: var(--gold);
-  text-transform: uppercase;
-  animation: pulse-dot 1.5s ease-in-out infinite;
-}
-
-.fixture-round {
-  font-size: 0.6rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  flex-shrink: 0;
-  width: 24px;
-  text-align: center;
-}
-
-.fixture-play-btn {
-  padding: var(--spacing-xs) var(--spacing-sm);
-  font-size: 0.7rem;
-  flex-shrink: 0;
-}
-
-@media (max-width: 480px) {
-  .fixture-round {
-    display: none;
-  }
+  background: var(--yellow);
 }
 </style>

@@ -159,7 +159,7 @@ onMounted(() => {
       <!-- Hero -->
       <div
         v-motion
-        class="page-hero"
+        class="relative px-lg py-xl rounded-xl bg-yellow-light border-2 border-black overflow-hidden mb-xl shadow-md"
         :initial="{ opacity: 0, y: -10 }"
         :enter="{ opacity: 1, y: 0, transition: { duration: 300 } }"
       >
@@ -171,23 +171,22 @@ onMounted(() => {
             Create and manage your teams for doubles tournaments.
           </p>
         </div>
-        <div class="hero-glow" />
       </div>
 
       <!-- Create team -->
       <section
         v-motion
-        class="glass-card p-xl mb-xl"
+        class="bg-surface-1 border-2 border-black rounded-lg shadow-md p-xl mb-xl"
         :initial="{ opacity: 0, y: 10 }"
         :enter="{ opacity: 1, y: 0, transition: { duration: 300, delay: 100 } }"
       >
-        <h3 class="section-title mb-lg">
+        <h3 class="text-[0.8rem] text-fg-muted uppercase tracking-wide mb-lg">
           New Team
         </h3>
         <div class="flex flex-col gap-md">
           <input
             v-model="newTeamName"
-            class="form-input"
+            class="w-full px-sm py-sm bg-surface-1 border-2 border-black rounded-md text-fg text-[0.9rem] outline-none transition-all duration-150 focus:shadow-sm placeholder:text-fg-muted"
             type="text"
             placeholder="Team name"
             maxlength="30"
@@ -201,18 +200,18 @@ onMounted(() => {
             <div
               v-for="(member, i) in newMembers"
               :key="member"
-              class="member-row"
+              class="flex items-center gap-sm px-sm py-xs bg-surface-1 rounded-md border-2 border-black"
             >
-              <span class="member-pos">{{ i + 1 }}</span>
+              <span class="w-5 h-5 rounded-full bg-surface-2 text-[0.7rem] font-bold text-fg-muted flex items-center justify-center shrink-0">{{ i + 1 }}</span>
               <PlayerAvatar v-bind="usePlayers().getAvatarProps(member)" :size="28" />
               <span class="flex-1 text-[0.85rem] text-fg truncate">{{ member }}</span>
-              <button class="order-btn" :disabled="i === 0" title="Move up" @click="moveMember(i, -1)">
+              <button class="flex items-center justify-center p-[2px] bg-transparent border-none text-fg-muted cursor-pointer rounded-sm transition-all duration-150 hover:enabled:text-fg hover:enabled:bg-surface-2 disabled:opacity-30 disabled:cursor-not-allowed" :disabled="i === 0" title="Move up" @click="moveMember(i, -1)">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6" /></svg>
               </button>
-              <button class="order-btn" :disabled="i === newMembers.length - 1" title="Move down" @click="moveMember(i, 1)">
+              <button class="flex items-center justify-center p-[2px] bg-transparent border-none text-fg-muted cursor-pointer rounded-sm transition-all duration-150 hover:enabled:text-fg hover:enabled:bg-surface-2 disabled:opacity-30 disabled:cursor-not-allowed" :disabled="i === newMembers.length - 1" title="Move down" @click="moveMember(i, 1)">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" /></svg>
               </button>
-              <button class="order-btn order-btn-danger" title="Remove" @click="removeMember(i)">
+              <button class="flex items-center justify-center p-[2px] bg-transparent border-none text-fg-muted cursor-pointer rounded-sm transition-all duration-150 hover:enabled:text-red hover:enabled:bg-red-light disabled:opacity-30 disabled:cursor-not-allowed" title="Remove" @click="removeMember(i)">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
               </button>
             </div>
@@ -223,7 +222,7 @@ onMounted(() => {
             <div class="flex-1 relative">
               <input
                 v-model="newMemberName"
-                class="form-input"
+                class="w-full px-sm py-sm bg-surface-1 border-2 border-black rounded-md text-fg text-[0.9rem] outline-none transition-all duration-150 focus:shadow-sm placeholder:text-fg-muted"
                 type="text"
                 placeholder="Add member name"
                 maxlength="20"
@@ -234,22 +233,23 @@ onMounted(() => {
                 <option v-for="p in availablePlayersForCreate" :key="p.id" :value="p.name" />
               </datalist>
             </div>
-            <button
-              class="btn btn-secondary shrink-0"
+            <Button
+              variant="secondary"
+              class="shrink-0"
               :disabled="!newMemberName.trim()"
               @click="addMember"
             >
               + Add
-            </button>
+            </Button>
           </div>
 
-          <button
-            class="btn btn-gold w-full"
+          <Button
+            class="w-full"
             :disabled="!newTeamName.trim() || newMembers.length < 2 || creating"
             @click="createTeam"
           >
             {{ creating ? 'Creating...' : 'Create Team' }}
-          </button>
+          </Button>
         </div>
       </section>
 
@@ -263,12 +263,12 @@ onMounted(() => {
           <div
             v-for="team in teams"
             :key="team.id"
-            class="glass-card p-md"
+            class="bg-surface-1 border-2 border-black rounded-lg shadow-md p-md"
           >
             <!-- View mode -->
             <div v-if="editingId !== team.id">
               <div class="flex items-center gap-md mb-sm">
-                <div class="team-icon">
+                <div class="w-10 h-10 rounded-full bg-surface-2 border-2 border-black flex items-center justify-center text-fg-muted shrink-0">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                     <circle cx="9" cy="7" r="4" />
@@ -285,13 +285,13 @@ onMounted(() => {
                   </div>
                 </div>
                 <div class="flex gap-xs shrink-0">
-                  <button class="action-btn" title="Edit" @click="startEdit(team)">
+                  <button class="flex items-center justify-center p-xs bg-transparent border-none text-fg-muted cursor-pointer rounded-sm transition-all duration-150 hover:text-fg hover:bg-surface-2" title="Edit" @click="startEdit(team)">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                       <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                     </svg>
                   </button>
-                  <button class="action-btn action-btn-danger" title="Delete" @click="deleteTarget = team">
+                  <button class="flex items-center justify-center p-xs bg-transparent border-none text-fg-muted cursor-pointer rounded-sm transition-all duration-150 hover:text-red hover:bg-red-light" title="Delete" @click="deleteTarget = team">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <polyline points="3 6 5 6 21 6" />
                       <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
@@ -301,7 +301,7 @@ onMounted(() => {
               </div>
               <!-- Member chips -->
               <div class="flex flex-wrap gap-xs">
-                <div v-for="m in team.members" :key="m.id" class="member-chip">
+                <div v-for="m in team.members" :key="m.id" class="flex items-center gap-xs py-[2px] pr-sm pl-[2px] bg-surface-2 rounded-full text-[0.75rem] text-fg-secondary border border-black">
                   <PlayerAvatar v-bind="usePlayers().getAvatarProps(m.playerName)" :size="20" />
                   <span>{{ m.playerName }}</span>
                 </div>
@@ -312,7 +312,7 @@ onMounted(() => {
             <div v-else class="flex flex-col gap-md">
               <input
                 v-model="editName"
-                class="form-input"
+                class="w-full px-sm py-sm bg-surface-1 border-2 border-black rounded-md text-fg text-[0.9rem] outline-none transition-all duration-150 focus:shadow-sm placeholder:text-fg-muted"
                 type="text"
                 placeholder="Team name"
                 maxlength="30"
@@ -325,18 +325,18 @@ onMounted(() => {
                 <div
                   v-for="(member, i) in editMembers"
                   :key="member"
-                  class="member-row"
+                  class="flex items-center gap-sm px-sm py-xs bg-surface-1 rounded-md border-2 border-black"
                 >
-                  <span class="member-pos">{{ i + 1 }}</span>
+                  <span class="w-5 h-5 rounded-full bg-surface-2 text-[0.7rem] font-bold text-fg-muted flex items-center justify-center shrink-0">{{ i + 1 }}</span>
                   <PlayerAvatar v-bind="usePlayers().getAvatarProps(member)" :size="28" />
                   <span class="flex-1 text-[0.85rem] text-fg truncate">{{ member }}</span>
-                  <button class="order-btn" :disabled="i === 0" title="Move up" @click="editMoveMember(i, -1)">
+                  <button class="flex items-center justify-center p-[2px] bg-transparent border-none text-fg-muted cursor-pointer rounded-sm transition-all duration-150 hover:enabled:text-fg hover:enabled:bg-surface-2 disabled:opacity-30 disabled:cursor-not-allowed" :disabled="i === 0" title="Move up" @click="editMoveMember(i, -1)">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6" /></svg>
                   </button>
-                  <button class="order-btn" :disabled="i === editMembers.length - 1" title="Move down" @click="editMoveMember(i, 1)">
+                  <button class="flex items-center justify-center p-[2px] bg-transparent border-none text-fg-muted cursor-pointer rounded-sm transition-all duration-150 hover:enabled:text-fg hover:enabled:bg-surface-2 disabled:opacity-30 disabled:cursor-not-allowed" :disabled="i === editMembers.length - 1" title="Move down" @click="editMoveMember(i, 1)">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" /></svg>
                   </button>
-                  <button class="order-btn order-btn-danger" title="Remove" @click="editRemoveMember(i)">
+                  <button class="flex items-center justify-center p-[2px] bg-transparent border-none text-fg-muted cursor-pointer rounded-sm transition-all duration-150 hover:enabled:text-red hover:enabled:bg-red-light disabled:opacity-30 disabled:cursor-not-allowed" title="Remove" @click="editRemoveMember(i)">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
                   </button>
                 </div>
@@ -346,7 +346,7 @@ onMounted(() => {
                 <div class="flex-1 relative">
                   <input
                     v-model="editMemberName"
-                    class="form-input"
+                    class="w-full px-sm py-sm bg-surface-1 border-2 border-black rounded-md text-fg text-[0.9rem] outline-none transition-all duration-150 focus:shadow-sm placeholder:text-fg-muted"
                     type="text"
                     placeholder="Add member name"
                     maxlength="20"
@@ -357,22 +357,23 @@ onMounted(() => {
                     <option v-for="p in availablePlayersForEdit" :key="p.id" :value="p.name" />
                   </datalist>
                 </div>
-                <button
-                  class="btn btn-secondary shrink-0"
+                <Button
+                  variant="secondary"
+                  class="shrink-0"
                   :disabled="!editMemberName.trim()"
                   @click="editAddMember"
                 >
                   + Add
-                </button>
+                </Button>
               </div>
 
               <div class="flex gap-sm justify-end">
-                <button class="btn btn-secondary" @click="cancelEdit">
+                <Button variant="secondary" @click="cancelEdit">
                   Cancel
-                </button>
-                <button class="btn btn-gold" :disabled="!editName.trim() || editMembers.length < 2 || saving" @click="saveEdit">
+                </Button>
+                <Button :disabled="!editName.trim() || editMembers.length < 2 || saving" @click="saveEdit">
                   {{ saving ? 'Saving...' : 'Save' }}
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -381,13 +382,13 @@ onMounted(() => {
 
       <!-- Delete confirmation modal -->
       <Transition name="fade">
-        <div v-if="deleteTarget" class="modal-overlay" @click.self="deleteTarget = null">
-          <div class="modal-card">
+        <div v-if="deleteTarget" class="fixed inset-0 z-100 flex items-center justify-center bg-black/70 p-lg" @click.self="deleteTarget = null">
+          <div class="bg-surface-1 border-[3px] border-black rounded-xl p-xl max-w-[400px] w-full shadow-lg">
             <h3 class="text-[1rem] font-bold text-fg mb-sm">
               Delete Team
             </h3>
             <div class="flex items-center gap-md mb-md">
-              <div class="team-icon">
+              <div class="w-10 h-10 rounded-full bg-surface-2 border-2 border-black flex items-center justify-center text-fg-muted shrink-0">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                   <circle cx="9" cy="7" r="4" />
@@ -401,12 +402,12 @@ onMounted(() => {
               This will remove the team. Tournament history will be kept.
             </p>
             <div class="flex gap-sm justify-end">
-              <button class="btn btn-secondary" @click="deleteTarget = null">
+              <Button variant="secondary" @click="deleteTarget = null">
                 Cancel
-              </button>
-              <button class="btn btn-danger" :disabled="deleting" @click="confirmDelete">
+              </Button>
+              <Button variant="destructive" :disabled="deleting" @click="confirmDelete">
                 {{ deleting ? 'Deleting...' : 'Delete' }}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -415,220 +416,3 @@ onMounted(() => {
   </AuthGate>
 </template>
 
-<style scoped>
-.page-hero {
-  position: relative;
-  padding: var(--spacing-lg) var(--spacing-xl);
-  border-radius: var(--radius-xl);
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.08), rgba(59, 130, 246, 0.08));
-  border: 1px solid var(--border-subtle);
-  overflow: hidden;
-  margin-bottom: var(--spacing-xl);
-}
-
-.hero-glow {
-  position: absolute;
-  top: -60px;
-  right: -40px;
-  width: 220px;
-  height: 220px;
-  background: radial-gradient(circle, rgba(255, 215, 0, 0.25), transparent 70%);
-  filter: blur(6px);
-}
-
-.section-title {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.form-input {
-  width: 100%;
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  color: var(--text-primary);
-  font-family: var(--font-sans);
-  font-size: 0.9rem;
-  outline: none;
-  transition: border-color var(--duration-fast);
-}
-
-.form-input:focus {
-  border-color: var(--border-strong);
-}
-
-.form-input::placeholder {
-  color: var(--text-muted);
-}
-
-.team-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-full);
-  background: var(--surface-3);
-  border: 2px solid var(--border-subtle);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-muted);
-  shrink: 0;
-}
-
-.member-row {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  background: var(--surface-2);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-subtle);
-}
-
-.member-pos {
-  width: 20px;
-  height: 20px;
-  border-radius: var(--radius-full);
-  background: var(--surface-3);
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.member-chip {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  padding: 2px var(--spacing-sm) 2px 2px;
-  background: var(--surface-2);
-  border-radius: var(--radius-full);
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-}
-
-.order-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2px;
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  border-radius: var(--radius-sm);
-  transition: all var(--duration-fast);
-}
-
-.order-btn:hover:not(:disabled) {
-  color: var(--text-primary);
-  background: var(--surface-3);
-}
-
-.order-btn:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-
-.order-btn-danger:hover:not(:disabled) {
-  color: var(--red);
-  background: rgba(239, 68, 68, 0.1);
-}
-
-.action-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--spacing-xs);
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  border-radius: var(--radius-sm);
-  transition: all var(--duration-fast);
-}
-
-.action-btn:hover {
-  color: var(--text-primary);
-  background: var(--surface-2);
-}
-
-.action-btn-danger:hover {
-  color: var(--red);
-  background: rgba(239, 68, 68, 0.1);
-}
-
-.btn-danger {
-  background: var(--red);
-  color: white;
-  border: none;
-  padding: var(--spacing-sm) var(--spacing-lg);
-  border-radius: var(--radius-md);
-  font-family: var(--font-sans);
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity var(--duration-fast);
-}
-
-.btn-danger:hover {
-  opacity: 0.9;
-}
-
-.btn-danger:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-  padding: var(--spacing-lg);
-}
-
-.modal-card {
-  background: var(--surface-1);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-xl);
-  padding: var(--spacing-xl);
-  max-width: 400px;
-  width: 100%;
-}
-
-/* List transition */
-.list-enter-active {
-  transition: all var(--duration-normal) var(--ease-out);
-}
-.list-leave-active {
-  transition: all var(--duration-fast) var(--ease-out);
-}
-.list-enter-from {
-  opacity: 0;
-  transform: translateY(-8px);
-}
-.list-leave-to {
-  opacity: 0;
-  transform: translateX(20px);
-}
-
-/* Fade transition */
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity var(--duration-fast);
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-</style>

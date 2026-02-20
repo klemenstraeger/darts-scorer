@@ -1,8 +1,12 @@
 <script lang="ts">
 import type { HTMLAttributes } from 'vue'
 import type { ChartConfig } from '.'
-import { useId } from 'reka-ui'
 import { computed, toRefs } from 'vue'
+
+let _idCounter = 0
+function _generateId(): string {
+  return `chart-${++_idCounter}`
+}
 import { cn } from '@/lib/utils'
 import { provideChartContext } from '.'
 import ChartStyle from './ChartStyle.vue'
@@ -24,8 +28,8 @@ defineSlots<{
 }>()
 
 const { config } = toRefs(props)
-const uniqueId = useId()
-const chartId = computed(() => `chart-${props.id || uniqueId.replace(/:/g, '')}`)
+const uniqueId = _generateId()
+const chartId = computed(() => `chart-${props.id || uniqueId}`)
 
 provideChartContext({
   id: uniqueId,

@@ -47,138 +47,48 @@ function formatValue(value: unknown): string {
 </script>
 
 <template>
-  <div class="training-complete-overlay">
-    <div class="complete-card">
-      <div class="complete-title">
+  <div class="fixed inset-0 bg-black/85 flex items-center justify-center z-100 p-lg">
+    <div class="flex flex-col items-center gap-lg max-w-[420px] w-full" style="animation: scale-in 0.5s var(--ease-spring);">
+      <div class="text-[2.5rem] font-black text-yellow" style="animation: scale-in 0.5s var(--ease-spring);">
         Session Complete!
       </div>
-      <div class="complete-mode">
+      <div class="text-[1rem] font-semibold text-fg-muted uppercase tracking-[1px]">
         {{ modeInfo?.name ?? state.mode }}
       </div>
 
-      <div class="complete-stats">
-        <div class="stat-row highlight">
-          <span class="stat-label">Total Darts</span>
-          <span class="stat-value">{{ stats?.totalDarts ?? state.throws.length }}</span>
+      <div class="w-full flex flex-col gap-xs bg-surface-1 border-2 border-black rounded-md p-md shadow-md">
+        <div class="flex justify-between items-center py-xs border-b-2 border-black pb-sm mb-xs">
+          <span class="text-[0.85rem] font-semibold text-fg-muted">Total Darts</span>
+          <span class="text-[1.2rem] font-bold text-yellow tabular-nums">{{ stats?.totalDarts ?? state.throws.length }}</span>
         </div>
         <div
           v-for="entry in statEntries"
           :key="entry.label"
-          class="stat-row"
+          class="flex justify-between items-center py-xs"
         >
-          <span class="stat-label">{{ entry.label }}</span>
-          <span class="stat-value">{{ entry.value }}</span>
+          <span class="text-[0.85rem] font-semibold text-fg-muted">{{ entry.label }}</span>
+          <span class="text-[1rem] font-bold text-fg tabular-nums">{{ entry.value }}</span>
         </div>
       </div>
 
-      <div class="complete-actions">
-        <button class="btn btn-gold" @click="emit('newSession')">
+      <div class="flex flex-col gap-sm w-full">
+        <Button variant="default" @click="emit('newSession')">
           Play Again
-        </button>
-        <NuxtLink to="/training" class="btn btn-secondary" @click="emit('backToMenu')">
+        </Button>
+        <NuxtLink
+          to="/training"
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap transition-all h-9 px-4 py-2 text-sm rounded-lg bg-surface-2 border-2 border-black shadow-md font-bold hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-lg active:translate-x-[2px] active:translate-y-[2px] active:shadow-none cursor-pointer"
+          @click="emit('backToMenu')"
+        >
           Back to Training
         </NuxtLink>
-        <NuxtLink to="/training/stats" class="btn btn-secondary">
+        <NuxtLink
+          to="/training/stats"
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap transition-all h-9 px-4 py-2 text-sm rounded-lg bg-surface-2 border-2 border-black shadow-md font-bold hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-lg active:translate-x-[2px] active:translate-y-[2px] active:shadow-none cursor-pointer"
+        >
           View Stats
         </NuxtLink>
       </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-.training-complete-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(8px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-  padding: var(--spacing-lg);
-}
-
-.complete-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-lg);
-  max-width: 420px;
-  width: 100%;
-  animation: scale-in 0.5s var(--ease-spring);
-}
-
-.complete-title {
-  font-size: 2.5rem;
-  font-weight: 900;
-  background: var(--gold-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: scale-in 0.5s var(--ease-spring);
-}
-
-.complete-mode {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.complete-stats {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-  background: var(--surface-glass);
-  backdrop-filter: blur(var(--blur-glass));
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  padding: var(--spacing-md);
-}
-
-.stat-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--spacing-xs) 0;
-}
-
-.stat-row.highlight {
-  border-bottom: 1px solid var(--border-subtle);
-  padding-bottom: var(--spacing-sm);
-  margin-bottom: var(--spacing-xs);
-}
-
-.stat-label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text-muted);
-}
-
-.stat-value {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  font-variant-numeric: tabular-nums;
-}
-
-.stat-row.highlight .stat-value {
-  color: var(--gold);
-  font-size: 1.2rem;
-}
-
-.complete-actions {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-  width: 100%;
-}
-
-@keyframes scale-in {
-  from { transform: scale(0.8); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
-</style>

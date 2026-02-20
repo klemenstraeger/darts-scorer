@@ -7,7 +7,7 @@ defineProps<{
 </script>
 
 <template>
-  <div class="glass-card p-lg">
+  <div class="bg-surface-1 border-2 border-black rounded-md shadow-md p-lg">
     <div class="flex items-baseline justify-between gap-md mb-md">
       <div class="flex items-baseline gap-sm">
         <h3 class="section-title !mb-0">
@@ -16,19 +16,9 @@ defineProps<{
         <span v-if="badge" class="text-[0.7rem] text-fg-muted uppercase tracking-widest">{{ badge }}</span>
       </div>
     </div>
-    <p v-if="description" class="chart-description">
+    <p v-if="description" class="text-[0.72rem] text-fg-muted max-w-[420px] leading-relaxed mb-md">
       {{ description }}
     </p>
     <slot />
   </div>
 </template>
-
-<style scoped>
-.chart-description {
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  max-width: 420px;
-  line-height: 1.5;
-  margin-bottom: var(--spacing-md);
-}
-</style>

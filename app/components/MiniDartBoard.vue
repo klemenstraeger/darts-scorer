@@ -64,7 +64,7 @@ function isHit(segment: number, ring: string): boolean {
       stroke="rgba(100,100,120,0.2)"
       stroke-width="0.5"
       :opacity="isHit(seg.segment, seg.ring) ? 0.9 : 0.15"
-      :class="{ hit: isHit(seg.segment, seg.ring) }"
+      :class="{ 'drop-shadow-[0_0_3px_rgba(255,255,255,0.3)]': isHit(seg.segment, seg.ring) }"
     />
 
     <!-- Bull -->
@@ -80,9 +80,3 @@ function isHit(segment: number, ring: string): boolean {
     />
   </svg>
 </template>
-
-<style scoped>
-.hit {
-  filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.3));
-}
-</style>

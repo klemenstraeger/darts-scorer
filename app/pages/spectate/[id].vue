@@ -12,9 +12,6 @@ definePageMeta({ layout: 'spectate' })
 const route = useRoute()
 const tournamentId = computed(() => Number(route.params.id))
 
-const colorMode = useColorMode()
-let originalMode: string | null = null
-
 const { injectPlayers } = usePlayers()
 
 // Broadcast (WebRTC viewer)
@@ -105,10 +102,6 @@ async function fetchData() {
 }
 
 onMounted(() => {
-  // Force dark mode for TV/projector
-  originalMode = colorMode.preference
-  colorMode.preference = 'dark'
-
   fetchData()
   pollTimer = setInterval(fetchData, 2000)
 })
@@ -116,9 +109,6 @@ onMounted(() => {
 onUnmounted(() => {
   if (pollTimer)
     clearInterval(pollTimer)
-  // Restore original color mode
-  if (originalMode)
-    colorMode.preference = originalMode
 })
 
 const isLive = computed(() => liveGame.value !== null)
@@ -127,14 +117,14 @@ const liveMatchId = computed(() => liveGame.value?.matchId)
 </script>
 
 <template>
-  <div class="spectate-page">
+  <div class="flex flex-col h-screen overflow-hidden bg-surface-0">
     <!-- Loading -->
-    <div v-if="loading" class="loading-state">
+    <div v-if="loading" class="flex items-center justify-center h-screen">
       <span class="text-fg-muted text-sm">Loading tournament...</span>
     </div>
 
     <!-- Error -->
-    <div v-else-if="error && !tournament" class="error-state">
+    <div v-else-if="error && !tournament" class="flex items-center justify-center h-screen">
       <p class="text-red text-lg font-bold">
         {{ error }}
       </p>
@@ -154,14 +144,14 @@ const liveMatchId = computed(() => liveGame.value?.matchId)
       />
 
       <!-- State 1: Live + Camera — quad grid -->
-      <div v-if="liveGame && broadcastActive" class="dashboard quad-panel">
-        <div class="panel panel-camera">
+      <div v-if="liveGame && broadcastActive" class="flex-1 min-h-0 p-md grid grid-cols-[3fr_2fr] grid-rows-[minmax(0,3fr)_minmax(0,2fr)] gap-md">
+        <div class="flex items-center justify-center overflow-hidden">
           <SpectatorVideoStream :stream="remoteStream" :status="viewerState" />
         </div>
-        <div class="panel panel-scores">
+        <div class="min-h-0 overflow-y-auto overflow-x-hidden">
           <SpectatorLiveGame :game-state="liveGame.state" />
         </div>
-        <div class="panel panel-tournament">
+        <div class="min-h-0 overflow-y-auto overflow-x-hidden">
           <SpectatorTournamentView
             :format="tournament.format"
             :matches="matches"
@@ -172,7 +162,7 @@ const liveMatchId = computed(() => liveGame.value?.matchId)
             compact
           />
         </div>
-        <div class="panel panel-stats">
+        <div class="min-h-0 overflow-y-auto overflow-x-hidden">
           <SpectatorPlayerStats
             :participants="participants"
             :matches="matches"
@@ -182,11 +172,11 @@ const liveMatchId = computed(() => liveGame.value?.matchId)
       </div>
 
       <!-- State 2: Live + No Camera — tri-panel -->
-      <div v-else-if="liveGame" class="dashboard tri-panel">
-        <div class="panel panel-live">
+      <div v-else-if="liveGame" class="flex-1 min-h-0 p-md grid grid-cols-[2fr_3fr_2fr] gap-md">
+        <div class="min-h-0 overflow-y-auto overflow-x-hidden">
           <SpectatorLiveGame :game-state="liveGame.state" />
         </div>
-        <div class="panel panel-tournament">
+        <div class="min-h-0 overflow-y-auto overflow-x-hidden">
           <SpectatorTournamentView
             :format="tournament.format"
             :matches="matches"
@@ -196,7 +186,7 @@ const liveMatchId = computed(() => liveGame.value?.matchId)
             :live-match-id="liveMatchId"
           />
         </div>
-        <div class="panel panel-stats">
+        <div class="min-h-0 overflow-y-auto overflow-x-hidden">
           <SpectatorPlayerStats
             :participants="participants"
             :matches="matches"
@@ -206,11 +196,11 @@ const liveMatchId = computed(() => liveGame.value?.matchId)
       </div>
 
       <!-- State 3: No Live + Camera — camera-split -->
-      <div v-else-if="broadcastActive" class="dashboard camera-split">
-        <div class="panel panel-camera">
+      <div v-else-if="broadcastActive" class="flex-1 min-h-0 p-md grid grid-cols-[3fr_2fr] gap-md">
+        <div class="flex items-center justify-center overflow-hidden">
           <SpectatorVideoStream :stream="remoteStream" :status="viewerState" />
         </div>
-        <div class="panel panel-sidebar-stack">
+        <div class="flex flex-col gap-md overflow-y-auto min-h-0">
           <SpectatorTournamentView
             :format="tournament.format"
             :matches="matches"
@@ -227,8 +217,8 @@ const liveMatchId = computed(() => liveGame.value?.matchId)
       </div>
 
       <!-- State 4: No Live + No Camera — split -->
-      <div v-else class="dashboard split">
-        <div class="main-panel">
+      <div v-else class="flex-1 min-h-0 p-md grid grid-cols-[3fr_2fr] gap-md">
+        <div class="min-h-0 overflow-hidden">
           <SpectatorTournamentView
             :format="tournament.format"
             :matches="matches"
@@ -237,7 +227,7 @@ const liveMatchId = computed(() => liveGame.value?.matchId)
             :advance-per-group="tournament.advancePerGroup"
           />
         </div>
-        <div class="side-panel side-scroll">
+        <div class="min-h-0 overflow-y-auto flex flex-col gap-md">
           <SpectatorPlayerStats
             :participants="participants"
             :matches="matches"
@@ -248,98 +238,3 @@ const liveMatchId = computed(() => liveGame.value?.matchId)
     </template>
   </div>
 </template>
-
-<style scoped>
-.spectate-page {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  overflow: hidden;
-  background: var(--surface-0);
-}
-
-.loading-state,
-.error-state {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-}
-
-.dashboard {
-  flex: 1;
-  min-height: 0;
-  padding: var(--spacing-md);
-  display: grid;
-  gap: var(--spacing-md);
-}
-
-/* ── State 1: Quad-panel (live + camera) ── */
-.dashboard.quad-panel {
-  grid-template-columns: 3fr 2fr;
-  grid-template-rows: minmax(0, 3fr) minmax(0, 2fr);
-}
-
-/* ── State 2: Tri-panel (live, no camera) ── */
-.dashboard.tri-panel {
-  grid-template-columns: 2fr 3fr 2fr;
-}
-
-/* ── State 3: Camera-split (no live, camera active) ── */
-.dashboard.camera-split {
-  grid-template-columns: 3fr 2fr;
-}
-
-/* ── State 4: Split (no live, no camera) ── */
-.dashboard.split {
-  grid-template-columns: 3fr 2fr;
-}
-
-/* ── Panel defaults ── */
-.panel {
-  min-height: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
-/* Camera panel: center video, no scroll */
-.panel-camera {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-
-.panel-camera :deep(.video-container) {
-  max-height: 100%;
-  width: auto;
-  max-width: 100%;
-}
-
-/* Sidebar stack for State 3 */
-.panel-sidebar-stack {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-  overflow-y: auto;
-  min-height: 0;
-}
-
-/* Split layout panels */
-.main-panel {
-  min-height: 0;
-  overflow: hidden;
-}
-
-.side-panel {
-  min-height: 0;
-  overflow: hidden;
-}
-
-.side-panel.side-scroll {
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-}
-</style>

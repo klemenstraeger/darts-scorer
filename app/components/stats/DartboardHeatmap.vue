@@ -30,7 +30,7 @@ function heatOpacity(segment: number, ring: string): number {
 </script>
 
 <template>
-  <div class="dartboard-heatmap flex items-center justify-center rounded-full border border-border-subtle" :style="{ width: `${size ?? 220}px`, height: `${size ?? 220}px` }">
+  <div class="flex items-center justify-center rounded-full border-2 border-black bg-[var(--surface-1)] shadow-md" :style="{ width: `${size ?? 220}px`, height: `${size ?? 220}px` }">
     <svg viewBox="0 0 400 400" class="w-[90%] h-[90%]">
       <circle :cx="CX" :cy="CY" :r="R.doubleOuter + 6" fill="var(--surface-0)" />
 
@@ -58,11 +58,3 @@ function heatOpacity(segment: number, ring: string): number {
   </div>
 </template>
 
-<style scoped>
-.dartboard-heatmap {
-  background: radial-gradient(circle at 30% 20%, rgba(255, 215, 0, 0.08), transparent 55%),
-    radial-gradient(circle at 70% 80%, rgba(59, 130, 246, 0.12), transparent 60%),
-    var(--surface-0);
-  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.6);
-}
-</style>

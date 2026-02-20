@@ -11,83 +11,35 @@ const { isAuthenticated } = useAuth()
   <template v-if="isAuthenticated">
     <slot />
   </template>
-  <div v-else class="auth-gate">
-    <div class="auth-gate-content">
-      <div class="auth-gate-icon">
+  <div v-else class="flex items-center justify-center min-h-[calc(100vh-120px)] p-xl">
+    <div class="flex flex-col items-center gap-lg max-w-[400px] text-center">
+      <div class="w-16 h-16 flex items-center justify-center rounded-lg bg-surface-1 border-2 border-black text-fg-muted shadow-sm">
         <!-- Lock icon -->
         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
           <path d="M7 11V7a5 5 0 0 1 10 0v4" />
         </svg>
       </div>
-      <h2 class="auth-gate-title">
+      <h2 class="text-2xl font-extrabold text-fg">
         {{ feature }}
       </h2>
-      <p class="auth-gate-description">
+      <p class="text-[0.9rem] text-fg-secondary leading-relaxed">
         {{ description || `Sign in to access ${feature.toLowerCase()}. It's free!` }}
       </p>
-      <div class="auth-gate-actions">
-        <NuxtLink to="/login" class="btn btn-gold auth-gate-btn">
+      <div class="flex gap-md mt-sm">
+        <NuxtLink
+          to="/login"
+          class="inline-flex items-center justify-center gap-2 px-xl py-sm text-[0.9rem] font-extrabold bg-yellow border-2 border-black rounded-md shadow-md text-black transition-all duration-100 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-lg active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
+        >
           Sign In
         </NuxtLink>
-        <NuxtLink to="/play" class="btn btn-secondary auth-gate-btn">
+        <NuxtLink
+          to="/play"
+          class="inline-flex items-center justify-center gap-2 px-xl py-sm text-[0.9rem] font-bold bg-surface-2 border-2 border-black rounded-md shadow-md text-fg-secondary transition-all duration-100 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-lg active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
+        >
           Play as Guest
         </NuxtLink>
       </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-.auth-gate {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: calc(100vh - 120px);
-  padding: var(--spacing-xl);
-}
-
-.auth-gate-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-lg);
-  max-width: 400px;
-  text-align: center;
-}
-
-.auth-gate-icon {
-  width: 64px;
-  height: 64px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-lg);
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-muted);
-}
-
-.auth-gate-title {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: var(--text-primary);
-}
-
-.auth-gate-description {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  line-height: 1.5;
-}
-
-.auth-gate-actions {
-  display: flex;
-  gap: var(--spacing-md);
-  margin-top: var(--spacing-sm);
-}
-
-.auth-gate-btn {
-  padding: var(--spacing-sm) var(--spacing-xl);
-  font-size: 0.9rem;
-}
-</style>

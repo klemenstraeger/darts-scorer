@@ -93,7 +93,7 @@ const selectorsBar = computed(() => props.type === 'grouped' ? GroupedBar.select
         :grid-line="showGridLine"
         :attributes="{
           [Axis.selectors.grid]: {
-            'stroke': 'var(--border-subtle)',
+            'stroke': '#D1D5DB',
             'stroke-dasharray': '3 3',
           },
         }"

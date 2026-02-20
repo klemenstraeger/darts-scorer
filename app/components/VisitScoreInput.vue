@@ -87,13 +87,13 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 </script>
 
 <template>
-  <div class="visit-input" :class="{ disabled }">
+  <div class="visit-score-root" :class="{ 'visit-score-disabled': disabled }">
     <!-- Quick scores -->
-    <div class="quick-grid">
+    <div class="visit-quick-grid">
       <button
         v-for="qs in QUICK_SCORES"
         :key="qs"
-        class="quick-btn"
+        class="visit-quick-btn"
         :disabled="disabled"
         @click="submitQuickScore(qs)"
       >
@@ -102,31 +102,35 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
     </div>
 
     <!-- Score display -->
-    <div class="score-display" :class="{ invalid: displayValue !== null && !isValid }">
-      <span v-if="display === ''" class="placeholder">Enter score</span>
-      <span v-else class="score-value">{{ display }}</span>
+    <div class="visit-score-display" :class="{ 'visit-score-invalid': displayValue !== null && !isValid }">
+      <span v-if="display === ''" class="text-[1.1rem] font-semibold text-fg-muted opacity-50">Enter score</span>
+      <span v-else class="visit-score-value" :class="{ 'text-red': displayValue !== null && !isValid }">{{ display }}</span>
     </div>
 
     <!-- Calculator numpad -->
-    <div class="numpad-grid">
-      <button v-for="n in [1, 2, 3, 4, 5, 6, 7, 8, 9]" :key="n" class="num-btn" :disabled="disabled" @click="appendDigit(n)">
+    <div class="visit-numpad-grid">
+      <button v-for="n in [1, 2, 3, 4, 5, 6, 7, 8, 9]" :key="n" class="visit-num-btn" :disabled="disabled" @click="appendDigit(n)">
         {{ n }}
       </button>
-      <button class="num-btn backspace" :disabled="disabled" @click="backspace">
+      <button class="visit-num-btn visit-num-backspace" :disabled="disabled" @click="backspace">
         &#x232B;
       </button>
-      <button class="num-btn" :disabled="disabled" @click="appendDigit(0)">
+      <button class="visit-num-btn" :disabled="disabled" @click="appendDigit(0)">
         0
       </button>
-      <button class="num-btn ok" :disabled="disabled || !canSubmit" @click="submit">
+      <button class="visit-num-btn visit-num-ok" :disabled="disabled || !canSubmit" @click="submit">
         OK
       </button>
     </div>
   </div>
 </template>
 
-<style scoped>
-.visit-input {
+<style>
+/* VisitScoreInput — uses non-scoped styles because of complex grid/flex layouts
+   with responsive breakpoints and pseudo-element-like disabled states.
+   All classes prefixed with visit- to namespace. */
+
+.visit-score-root {
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -136,76 +140,75 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 }
 
 @media (min-width: 768px) {
-  .visit-input {
+  .visit-score-root {
     gap: var(--spacing-sm);
   }
 }
 
-.visit-input.disabled {
+.visit-score-root.visit-score-disabled {
   opacity: 0.4;
   pointer-events: none;
 }
 
-/* ── Quick scores ─────────────────────────────────────────────── */
-.quick-grid {
+/* Quick scores */
+.visit-quick-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: var(--spacing-xs);
   flex-shrink: 0;
 }
 
-.quick-btn {
+.visit-quick-btn {
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 8px 0;
-  background: var(--surface-glass);
-  backdrop-filter: blur(var(--blur-glass));
-  -webkit-backdrop-filter: blur(var(--blur-glass));
-  border: 1px solid var(--surface-glass-border);
+  background: var(--surface-1);
+  border: 2px solid black;
   border-radius: var(--radius-md);
-  color: var(--gold);
+  color: var(--yellow);
   font-family: var(--font-sans);
   font-size: 0.85rem;
   font-weight: 800;
   cursor: pointer;
+  box-shadow: 2px 2px 0 black;
   transition:
     transform 50ms var(--ease-out),
     background var(--duration-fast),
-    border-color var(--duration-fast),
     box-shadow var(--duration-fast);
 }
 
 @media (min-width: 768px) {
-  .quick-btn {
+  .visit-quick-btn {
     padding: var(--spacing-sm) 0;
     font-size: 0.95rem;
   }
 }
 
-.quick-btn:hover:not(:disabled) {
-  border-color: var(--border-gold);
-  box-shadow: 0 0 12px var(--gold-glow);
-  transform: translateY(-1px);
+.visit-quick-btn:hover:not(:disabled) {
+  border-color: var(--yellow);
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 black;
 }
 
-.quick-btn:active:not(:disabled) {
-  transform: scale(0.95);
+.visit-quick-btn:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: none;
 }
 
-.quick-btn:disabled {
+.visit-quick-btn:disabled {
   opacity: 0.3;
   cursor: not-allowed;
 }
 
-/* ── Score display ────────────────────────────────────────────── */
-.score-display {
+/* Score display */
+.visit-score-display {
   display: flex;
   align-items: center;
   justify-content: center;
   padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--surface-2);
-  border: 2px solid var(--border-subtle);
+  background: var(--surface-1);
+  border: 2px solid black;
   border-radius: var(--radius-md);
   min-height: 48px;
   flex-shrink: 0;
@@ -213,36 +216,24 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 }
 
 @media (min-width: 768px) {
-  .score-display {
+  .visit-score-display {
     min-height: 56px;
   }
 }
 
-.score-display.invalid {
+.visit-score-display.visit-score-invalid {
   border-color: var(--red);
-  box-shadow: 0 0 12px var(--red-glow);
 }
 
-.placeholder {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  opacity: 0.5;
-}
-
-.score-value {
+.visit-score-value {
   font-size: 2rem;
   font-weight: 900;
-  color: var(--text-primary);
+  color: var(--fg);
   font-variant-numeric: tabular-nums;
 }
 
-.score-display.invalid .score-value {
-  color: var(--red);
-}
-
-/* ── Calculator numpad ────────────────────────────────────────── */
-.numpad-grid {
+/* Calculator numpad */
+.visit-numpad-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: var(--spacing-xs);
@@ -250,72 +241,68 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   min-height: 0;
 }
 
-.num-btn {
+.visit-num-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--surface-glass);
-  backdrop-filter: blur(var(--blur-glass));
-  -webkit-backdrop-filter: blur(var(--blur-glass));
-  border: 1px solid var(--surface-glass-border);
+  background: var(--surface-1);
+  border: 2px solid black;
   border-radius: var(--radius-lg);
-  color: var(--text-primary);
+  color: var(--fg);
   font-family: var(--font-sans);
   font-size: 1.4rem;
   font-weight: 800;
   cursor: pointer;
+  box-shadow: 2px 2px 0 black;
   transition:
     transform 50ms var(--ease-out),
     background var(--duration-fast),
-    border-color var(--duration-fast),
     box-shadow var(--duration-fast);
 }
 
 @media (min-width: 768px) {
-  .num-btn {
+  .visit-num-btn {
     min-height: 56px;
     font-size: 1.5rem;
   }
 }
 
-.num-btn:hover:not(:disabled) {
-  background: var(--surface-glass-hover);
-  border-color: var(--border-default);
-  transform: translateY(-1px);
-  box-shadow: 0 0 16px rgba(255, 255, 255, 0.06);
+.visit-num-btn:hover:not(:disabled) {
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 black;
 }
 
-.num-btn:active:not(:disabled) {
-  transform: scale(0.95);
+.visit-num-btn:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: none;
 }
 
-.num-btn:disabled {
+.visit-num-btn:disabled {
   opacity: 0.3;
   cursor: not-allowed;
 }
 
-.num-btn.backspace {
+.visit-num-backspace {
   font-size: 1.5rem;
-  color: var(--text-secondary);
+  color: var(--fg-secondary);
 }
 
-.num-btn.ok {
-  background: var(--gold-gradient);
-  color: var(--text-inverse);
-  border-color: transparent;
+.visit-num-ok {
+  background: var(--yellow);
+  color: var(--fg-inverse);
+  border-color: black;
   font-size: 1.1rem;
   letter-spacing: 1px;
 }
 
-.num-btn.ok:hover:not(:disabled) {
-  box-shadow: 0 0 20px var(--gold-glow);
-  border-color: transparent;
-  transform: translateY(-1px);
+.visit-num-ok:hover:not(:disabled) {
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 black;
 }
 
-.num-btn.ok:disabled {
+.visit-num-ok:disabled {
   opacity: 0.3;
   background: var(--surface-3);
-  color: var(--text-muted);
+  color: var(--fg-muted);
 }
 </style>

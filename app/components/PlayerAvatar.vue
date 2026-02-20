@@ -21,7 +21,7 @@ watch(() => [props.name, props.avatarSeed, props.avatarStyle], () => {
 
 <template>
   <div
-    class="player-avatar"
+    class="inline-flex items-center justify-center rounded-full overflow-hidden bg-surface-3 border-2 border-black shrink-0"
     :style="{ width: `${size}px`, height: `${size}px`, fontSize: `${Math.round(size * 0.4)}px` }"
   >
     <img
@@ -31,32 +31,9 @@ watch(() => [props.name, props.avatarSeed, props.avatarStyle], () => {
       :width="size"
       :height="size"
       loading="lazy"
+      class="w-full h-full object-cover"
       @error="failed = true"
     >
-    <span v-else class="avatar-fallback">{{ initial }}</span>
+    <span v-else class="font-bold text-fg-muted leading-none">{{ initial }}</span>
   </div>
 </template>
-
-<style scoped>
-.player-avatar {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-full);
-  overflow: hidden;
-  background: var(--surface-3);
-  flex-shrink: 0;
-}
-
-.player-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.avatar-fallback {
-  font-weight: 700;
-  color: var(--text-muted);
-  line-height: 1;
-}
-</style>

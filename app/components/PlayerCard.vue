@@ -59,10 +59,16 @@ watch(
 
 <template>
   <div
-    class="player-card glass-card flex-1 min-w-0 text-center"
-    :class="{ active: isActive, flash: scoreFlash }"
+    class="player-card bg-surface-1 rounded-lg flex-1 min-w-0 text-center p-lg px-xl max-xs:p-md max-xs:px-lg border-2 border-black shadow-sm transition-all duration-150 ease-out"
+    :class="{
+      'border-yellow bg-yellow-light shadow-md': isActive,
+      'shadow-lg': scoreFlash,
+    }"
   >
-    <div class="player-name text-[0.85rem] font-semibold text-fg-muted mb-xs uppercase tracking-[1px]">
+    <div
+      class="text-[0.85rem] font-semibold text-fg-muted mb-xs uppercase tracking-[1px]"
+      :class="{ 'text-yellow': isActive }"
+    >
       {{ player.name }}
     </div>
     <div class="text-[3.5rem] max-xs:text-[2.2rem] font-black text-fg leading-none my-sm tabular-nums">
@@ -84,34 +90,3 @@ watch(
     </div>
   </div>
 </template>
-
-<style scoped>
-.player-card {
-  padding: var(--spacing-lg) var(--spacing-xl);
-  border: 2px solid transparent;
-  transition:
-    border-color var(--duration-normal) var(--ease-out),
-    box-shadow var(--duration-normal) var(--ease-out);
-}
-
-@media (max-width: 480px) {
-  .player-card {
-    padding: var(--spacing-md) var(--spacing-lg);
-  }
-}
-
-.player-card.active {
-  border-color: var(--gold);
-  box-shadow: var(--shadow-glow-gold);
-}
-
-.player-card.flash {
-  box-shadow:
-    var(--shadow-glow-gold),
-    0 0 30px rgba(255, 215, 0, 0.3);
-}
-
-.active .player-name {
-  color: var(--gold);
-}
-</style>
