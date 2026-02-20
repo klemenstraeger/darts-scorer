@@ -357,168 +357,170 @@ const turnProgress = computed(() => {
 </script>
 
 <template>
-  <div class="px-lg py-xl max-w-[900px] mx-auto w-full">
-    <!-- Loading state -->
-    <div v-if="status === 'pending'" class="text-center text-fg-muted p-2xl">
-      Loading replay...
-    </div>
-
-    <!-- Error state -->
-    <div v-else-if="error" class="text-center p-2xl">
-      <p class="text-red text-[1rem] mb-md">
-        {{ error.data?.message || 'Failed to load replay' }}
-      </p>
-      <NuxtLink to="/stats" class="btn btn-secondary">
-        Back to Stats
-      </NuxtLink>
-    </div>
-
-    <!-- Replay content -->
-    <template v-else-if="replayData">
-      <!-- Header -->
-      <div class="replay-header mb-xl">
-        <div class="flex items-center gap-md mb-sm">
-          <NuxtLink to="/stats" class="back-link">
-            &larr; Stats
-          </NuxtLink>
-          <span class="text-[0.75rem] font-bold text-gold bg-gold-tint px-[8px] py-[2px] rounded-sm">
-            {{ replayData.game.mode }}
-          </span>
-        </div>
-        <h2 class="text-[1.5rem] font-extrabold text-fg mb-xs">
-          Game Replay
-        </h2>
-        <p class="text-[0.85rem] text-fg-muted">
-          {{ replayData.players.map(p => p.playerName).join(' vs ') }}
-          <template v-if="replayData.game.winnerName">
-            &mdash; Winner: <span class="text-gold font-semibold">{{ replayData.game.winnerName }}</span>
-          </template>
-          &nbsp;&bull;&nbsp;
-          {{ formatDate(replayData.game.createdAt) }}
-        </p>
+  <AuthGate feature="Game Replay" description="Sign in to watch replays of your past games throw by throw.">
+    <div class="px-lg py-xl max-w-[900px] mx-auto w-full">
+      <!-- Loading state -->
+      <div v-if="status === 'pending'" class="text-center text-fg-muted p-2xl">
+        Loading replay...
       </div>
 
-      <div class="replay-layout">
-        <!-- Left column: Dartboard -->
-        <div class="board-column">
-          <DartBoard
-            :disabled="true"
-            :highlight-segments="dartMarkers"
-          />
+      <!-- Error state -->
+      <div v-else-if="error" class="text-center p-2xl">
+        <p class="text-red text-[1rem] mb-md">
+          {{ error.data?.message || 'Failed to load replay' }}
+        </p>
+        <NuxtLink to="/stats" class="btn btn-secondary">
+          Back to Stats
+        </NuxtLink>
+      </div>
 
-          <!-- Current throw labels under the board -->
-          <div v-if="currentTurnInfo" class="dart-labels">
-            <div
-              v-for="(t, i) in currentTurnInfo.throws"
-              :key="i"
-              class="dart-label"
-              :class="{ 'dart-miss': t.segment === 0 }"
-            >
-              {{ formatThrowLabel(t) }}
-              <span class="dart-points">{{ t.points }}</span>
-            </div>
-            <div
-              v-if="currentTurnInfo.busted"
-              class="dart-label dart-bust"
-            >
-              BUST
-            </div>
+      <!-- Replay content -->
+      <template v-else-if="replayData">
+        <!-- Header -->
+        <div class="replay-header mb-xl">
+          <div class="flex items-center gap-md mb-sm">
+            <NuxtLink to="/stats" class="back-link">
+              &larr; Stats
+            </NuxtLink>
+            <span class="text-[0.75rem] font-bold text-gold bg-gold-tint px-[8px] py-[2px] rounded-sm">
+              {{ replayData.game.mode }}
+            </span>
           </div>
+          <h2 class="text-[1.5rem] font-extrabold text-fg mb-xs">
+            Game Replay
+          </h2>
+          <p class="text-[0.85rem] text-fg-muted">
+            {{ replayData.players.map(p => p.playerName).join(' vs ') }}
+            <template v-if="replayData.game.winnerName">
+              &mdash; Winner: <span class="text-gold font-semibold">{{ replayData.game.winnerName }}</span>
+            </template>
+            &nbsp;&bull;&nbsp;
+            {{ formatDate(replayData.game.createdAt) }}
+          </p>
         </div>
 
-        <!-- Right column: Scores + Turn info -->
-        <div class="info-column">
-          <!-- Player scores -->
-          <div class="scores-panel glass-card p-lg">
-            <h3 class="panel-title">
-              Scores
-            </h3>
-            <div class="player-scores">
-              <div
-                v-for="player in replayData.players"
-                :key="player.playerName"
-                class="player-score-row"
-                :class="{
-                  'active-player': player.playerName === activePlayerName,
-                  'is-winner': replayData.game.winnerName === player.playerName && currentPosition >= totalPositions,
-                }"
-              >
-                <span class="player-name">{{ player.playerName }}</span>
-                <span class="player-score tabular-nums">
-                  {{ playerScores.get(player.playerName) ?? startingScore }}
-                </span>
-              </div>
-            </div>
-          </div>
+        <div class="replay-layout">
+          <!-- Left column: Dartboard -->
+          <div class="board-column">
+            <DartBoard
+              :disabled="true"
+              :highlight-segments="dartMarkers"
+            />
 
-          <!-- Current turn info -->
-          <div class="turn-panel glass-card p-lg">
-            <h3 class="panel-title">
-              Current Turn
-            </h3>
-            <div v-if="currentTurnInfo" class="turn-info">
-              <div class="turn-meta">
-                <span class="turn-player">{{ currentTurnInfo.playerName }}</span>
-                <span class="turn-number">Turn {{ currentTurnInfo.turnNumber }}</span>
+            <!-- Current throw labels under the board -->
+            <div v-if="currentTurnInfo" class="dart-labels">
+              <div
+                v-for="(t, i) in currentTurnInfo.throws"
+                :key="i"
+                class="dart-label"
+                :class="{ 'dart-miss': t.segment === 0 }"
+              >
+                {{ formatThrowLabel(t) }}
+                <span class="dart-points">{{ t.points }}</span>
               </div>
-              <div class="turn-score-row">
-                <span class="turn-points tabular-nums">{{ currentTurnInfo.totalVisiblePoints }}</span>
-                <span class="turn-darts-count">{{ turnProgress }} darts</span>
-              </div>
-              <div v-if="currentTurnInfo.busted" class="bust-badge">
+              <div
+                v-if="currentTurnInfo.busted"
+                class="dart-label dart-bust"
+              >
                 BUST
               </div>
             </div>
-            <div v-else class="text-fg-muted text-[0.85rem]">
-              {{ currentPosition === 0 ? 'Press play to start' : 'Game complete' }}
-            </div>
           </div>
 
-          <!-- Game summary (shown at end) -->
-          <div
-            v-if="currentPosition >= totalPositions && replayData.game.winnerName"
-            class="summary-panel glass-card p-lg"
-          >
-            <h3 class="panel-title">
-              Result
-            </h3>
-            <div class="text-center">
-              <div class="text-[1.2rem] font-extrabold text-gold mb-xs">
-                {{ replayData.game.winnerName }} wins!
+          <!-- Right column: Scores + Turn info -->
+          <div class="info-column">
+            <!-- Player scores -->
+            <div class="scores-panel glass-card p-lg">
+              <h3 class="panel-title">
+                Scores
+              </h3>
+              <div class="player-scores">
+                <div
+                  v-for="player in replayData.players"
+                  :key="player.playerName"
+                  class="player-score-row"
+                  :class="{
+                    'active-player': player.playerName === activePlayerName,
+                    'is-winner': replayData.game.winnerName === player.playerName && currentPosition >= totalPositions,
+                  }"
+                >
+                  <span class="player-name">{{ player.playerName }}</span>
+                  <span class="player-score tabular-nums">
+                    {{ playerScores.get(player.playerName) ?? startingScore }}
+                  </span>
+                </div>
               </div>
-              <div class="text-[0.8rem] text-fg-muted">
-                {{ replayData.game.totalTurns }} turns played
+            </div>
+
+            <!-- Current turn info -->
+            <div class="turn-panel glass-card p-lg">
+              <h3 class="panel-title">
+                Current Turn
+              </h3>
+              <div v-if="currentTurnInfo" class="turn-info">
+                <div class="turn-meta">
+                  <span class="turn-player">{{ currentTurnInfo.playerName }}</span>
+                  <span class="turn-number">Turn {{ currentTurnInfo.turnNumber }}</span>
+                </div>
+                <div class="turn-score-row">
+                  <span class="turn-points tabular-nums">{{ currentTurnInfo.totalVisiblePoints }}</span>
+                  <span class="turn-darts-count">{{ turnProgress }} darts</span>
+                </div>
+                <div v-if="currentTurnInfo.busted" class="bust-badge">
+                  BUST
+                </div>
+              </div>
+              <div v-else class="text-fg-muted text-[0.85rem]">
+                {{ currentPosition === 0 ? 'Press play to start' : 'Game complete' }}
+              </div>
+            </div>
+
+            <!-- Game summary (shown at end) -->
+            <div
+              v-if="currentPosition >= totalPositions && replayData.game.winnerName"
+              class="summary-panel glass-card p-lg"
+            >
+              <h3 class="panel-title">
+                Result
+              </h3>
+              <div class="text-center">
+                <div class="text-[1.2rem] font-extrabold text-gold mb-xs">
+                  {{ replayData.game.winnerName }} wins!
+                </div>
+                <div class="text-[0.8rem] text-fg-muted">
+                  {{ replayData.game.totalTurns }} turns played
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Controls -->
-      <div class="mt-lg">
-        <ReplayControls
-          :is-playing="isPlaying"
-          :speed="speed"
-          :current-position="currentPosition"
-          :total-positions="totalPositions"
-          :can-step-back="currentPosition > 0"
-          :can-step-forward="currentPosition < totalPositions"
-          @toggle-play="togglePlay"
-          @step-forward="stepForward"
-          @step-back="stepBack"
-          @go-to-start="goToStart"
-          @go-to-end="goToEnd"
-          @set-speed="setSpeed"
-          @seek="seek"
-        />
-      </div>
+        <!-- Controls -->
+        <div class="mt-lg">
+          <ReplayControls
+            :is-playing="isPlaying"
+            :speed="speed"
+            :current-position="currentPosition"
+            :total-positions="totalPositions"
+            :can-step-back="currentPosition > 0"
+            :can-step-forward="currentPosition < totalPositions"
+            @toggle-play="togglePlay"
+            @step-forward="stepForward"
+            @step-back="stepBack"
+            @go-to-start="goToStart"
+            @go-to-end="goToEnd"
+            @set-speed="setSpeed"
+            @seek="seek"
+          />
+        </div>
 
-      <!-- Keyboard hint -->
-      <div class="keyboard-hint">
-        Space: play/pause &bull; Arrow keys: step &bull; Home/End: jump
-      </div>
-    </template>
-  </div>
+        <!-- Keyboard hint -->
+        <div class="keyboard-hint">
+          Space: play/pause &bull; Arrow keys: step &bull; Home/End: jump
+        </div>
+      </template>
+    </div>
+  </AuthGate>
 </template>
 
 <style scoped>

@@ -7,6 +7,7 @@ const { dartboardThemeId, setDartboardThemeId, inputMode, setInputMode } = useSe
 const { audioEnabled, toggle: toggleAudio } = useAudio()
 const { enabled: announcerEnabled, toggle: toggleAnnouncer } = useAnnouncer()
 const { profile, logout } = useProfile()
+const { isAuthenticated } = useAuth()
 
 function selectTheme(theme: DartboardTheme) {
   setDartboardThemeId(theme.id)
@@ -141,12 +142,12 @@ const inputModes: { id: InputMode, label: string, description: string, icon: str
     </div>
 
     <!-- Account Section -->
-    <div v-if="profile" class="w-full flex flex-col gap-lg">
+    <div class="w-full flex flex-col gap-lg">
       <h3 class="text-[1.1rem] font-bold text-fg">
         Account
       </h3>
 
-      <div class="flex items-center justify-between p-md bg-surface-2 border border-border-subtle rounded-md">
+      <div v-if="profile" class="flex items-center justify-between p-md bg-surface-2 border border-border-subtle rounded-md">
         <div class="flex flex-col gap-[2px]">
           <span class="text-[0.85rem] font-semibold text-fg">{{ profile.displayName }}</span>
           <span class="text-[0.75rem] text-fg-muted">Logged in</span>
@@ -159,6 +160,15 @@ const inputModes: { id: InputMode, label: string, description: string, icon: str
           </svg>
           Log out
         </button>
+      </div>
+      <div v-else-if="!isAuthenticated" class="flex items-center justify-between p-md bg-surface-2 border border-border-subtle rounded-md">
+        <div class="flex flex-col gap-[2px]">
+          <span class="text-[0.85rem] font-semibold text-fg">Not signed in</span>
+          <span class="text-[0.75rem] text-fg-muted">Sign in to save preferences across devices</span>
+        </div>
+        <NuxtLink to="/login" class="signin-btn">
+          Sign In
+        </NuxtLink>
       </div>
     </div>
   </div>
@@ -285,6 +295,27 @@ const inputModes: { id: InputMode, label: string, description: string, icon: str
 .toggle-switch.active::after {
   transform: translateX(20px);
   background: var(--gold);
+}
+
+/* ── Sign in button ── */
+.signin-btn {
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: transparent;
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-sm);
+  color: var(--gold);
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.signin-btn:hover {
+  background: rgba(255, 215, 0, 0.1);
 }
 
 /* ── Logout button ── */

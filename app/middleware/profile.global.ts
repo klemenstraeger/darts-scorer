@@ -5,8 +5,8 @@
  */
 export default defineNuxtRouteMiddleware(async (to) => {
   // Skip for auth-related pages
-  const skipPaths = ['/', '/login', '/confirm', '/profile-setup']
-  if (skipPaths.includes(to.path) || to.path.startsWith('/spectate') || to.path.startsWith('/camera'))
+  const skipPaths = ['/', '/login', '/confirm', '/profile-setup', '/play', '/game', '/settings']
+  if (skipPaths.includes(to.path) || to.path.startsWith('/spectate') || to.path.startsWith('/camera') || to.path.startsWith('/training'))
     return
 
   const user = useSupabaseUser()

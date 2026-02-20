@@ -117,64 +117,65 @@ const actionCards = [
 </script>
 
 <template>
-  <div class="dashboard-page px-lg py-xl max-w-[600px] mx-auto w-full max-sm:px-md max-sm:py-lg">
-    <!-- Hero -->
-    <div
-      v-motion
-      class="hero-section text-center mb-lg"
-      :initial="{ opacity: 0, y: -20 }"
-      :enter="{ opacity: 1, y: 0, transition: { duration: 400, ease: 'easeOut' } }"
-    >
-      <div class="flex items-center justify-center gap-sm mb-sm">
-        <DartsLogo :size="28" />
-        <h1 class="text-[1.8rem] font-black leading-tight max-sm:text-[1.5rem]">
-          <span class="text-fg">Darts </span>
-          <span class="text-gradient-gold">Scorer</span>
-        </h1>
+  <AuthGate feature="Dashboard" description="Sign in to see your dashboard with recent games, active tournaments, and quick stats.">
+    <div class="dashboard-page px-lg py-xl max-w-[600px] mx-auto w-full max-sm:px-md max-sm:py-lg">
+      <!-- Hero -->
+      <div
+        v-motion
+        class="hero-section text-center mb-lg"
+        :initial="{ opacity: 0, y: -20 }"
+        :enter="{ opacity: 1, y: 0, transition: { duration: 400, ease: 'easeOut' } }"
+      >
+        <div class="flex items-center justify-center gap-sm mb-sm">
+          <DartsLogo :size="28" />
+          <h1 class="text-[1.8rem] font-black leading-tight max-sm:text-[1.5rem]">
+            <span class="text-fg">Darts </span>
+            <span class="text-gradient-gold">Scorer</span>
+          </h1>
+        </div>
       </div>
-    </div>
 
-    <!-- Tab bar -->
-    <div
-      v-motion
-      role="tablist"
-      class="flex justify-center gap-sm mb-lg"
-      :initial="{ opacity: 0 }"
-      :enter="{ opacity: 1, transition: { duration: 300, delay: 50 } }"
-    >
-      <button
-        role="tab"
-        :aria-selected="dashboardTab === 'home'"
-        aria-controls="home-panel"
-        class="tab-btn"
-        :class="{ active: dashboardTab === 'home' }"
-        @click="dashboardTab = 'home'"
+      <!-- Tab bar -->
+      <div
+        v-motion
+        role="tablist"
+        class="flex justify-center gap-sm mb-lg"
+        :initial="{ opacity: 0 }"
+        :enter="{ opacity: 1, transition: { duration: 300, delay: 50 } }"
       >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block mr-xs -mt-[1px]">
-          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-          <polyline points="9 22 9 12 15 12 15 22" />
-        </svg>
-        Home
-      </button>
-      <button
-        role="tab"
-        :aria-selected="dashboardTab === 'training'"
-        aria-controls="training-panel"
-        class="tab-btn"
-        :class="{ active: dashboardTab === 'training' }"
-        @click="dashboardTab = 'training'"
-      >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block mr-xs -mt-[1px]">
-          <circle cx="12" cy="12" r="10" />
-          <circle cx="12" cy="12" r="6" />
-          <circle cx="12" cy="12" r="2" />
-        </svg>
-        Training
-      </button>
-    </div>
+        <button
+          role="tab"
+          :aria-selected="dashboardTab === 'home'"
+          aria-controls="home-panel"
+          class="tab-btn"
+          :class="{ active: dashboardTab === 'home' }"
+          @click="dashboardTab = 'home'"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block mr-xs -mt-[1px]">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+            <polyline points="9 22 9 12 15 12 15 22" />
+          </svg>
+          Home
+        </button>
+        <button
+          role="tab"
+          :aria-selected="dashboardTab === 'training'"
+          aria-controls="training-panel"
+          class="tab-btn"
+          :class="{ active: dashboardTab === 'training' }"
+          @click="dashboardTab = 'training'"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block mr-xs -mt-[1px]">
+            <circle cx="12" cy="12" r="10" />
+            <circle cx="12" cy="12" r="6" />
+            <circle cx="12" cy="12" r="2" />
+          </svg>
+          Training
+        </button>
+      </div>
 
-    <!-- Home tab -->
-    <div v-if="dashboardTab === 'home'" id="home-panel" role="tabpanel">
+      <!-- Home tab -->
+      <div v-if="dashboardTab === 'home'" id="home-panel" role="tabpanel">
       <!-- Quick Start -->
       <div
         v-motion
@@ -276,35 +277,36 @@ const actionCards = [
           <span class="action-subtitle">{{ card.subtitle }}</span>
         </NuxtLink>
       </div>
-    </div>
+      </div>
 
-    <!-- Training tab -->
-    <div v-if="dashboardTab === 'training'" id="training-panel" role="tabpanel">
-      <TrainingPicker :show-header="false" />
-    </div>
+      <!-- Training tab -->
+      <div v-if="dashboardTab === 'training'" id="training-panel" role="tabpanel">
+        <TrainingPicker :show-header="false" />
+      </div>
 
-    <!-- Abandon confirm modal -->
-    <Teleport to="body">
-      <div v-if="showAbandonConfirm" class="modal-overlay" @click.self="showAbandonConfirm = false">
-        <div class="glass-card-heavy w-full max-w-[380px] p-2xl flex flex-col gap-lg">
-          <h3 class="text-[1.1rem] font-bold text-fg">
-            Abandon Current Game?
-          </h3>
-          <p class="text-fg-secondary text-[0.9rem] leading-relaxed">
-            Starting a new game will end your current game in progress.
-          </p>
-          <div class="flex gap-md justify-end">
-            <button class="btn btn-secondary" @click="showAbandonConfirm = false">
-              Cancel
-            </button>
-            <button class="btn btn-danger" @click="doQuickStart">
-              Start New Game
-            </button>
+      <!-- Abandon confirm modal -->
+      <Teleport to="body">
+        <div v-if="showAbandonConfirm" class="modal-overlay" @click.self="showAbandonConfirm = false">
+          <div class="glass-card-heavy w-full max-w-[380px] p-2xl flex flex-col gap-lg">
+            <h3 class="text-[1.1rem] font-bold text-fg">
+              Abandon Current Game?
+            </h3>
+            <p class="text-fg-secondary text-[0.9rem] leading-relaxed">
+              Starting a new game will end your current game in progress.
+            </p>
+            <div class="flex gap-md justify-end">
+              <button class="btn btn-secondary" @click="showAbandonConfirm = false">
+                Cancel
+              </button>
+              <button class="btn btn-danger" @click="doQuickStart">
+                Start New Game
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    </Teleport>
-  </div>
+      </Teleport>
+    </div>
+  </AuthGate>
 </template>
 
 <style scoped>

@@ -26,11 +26,13 @@ const { isTournamentMatch, tournamentId, clear: clearTournamentContext } = useTo
 const { ensureLoaded: ensurePlayers, getAvatarProps } = usePlayers()
 const { dartboardTheme, inputMode } = useSettings()
 const { shouldShowTour, startTour } = useOnboarding()
+const { isAuthenticated } = useAuth()
 
 // Load game state from localStorage on mount (handles resume + tournament match transitions)
 onMounted(() => {
   loadState()
-  ensurePlayers()
+  if (isAuthenticated.value)
+    ensurePlayers()
 
   if (shouldShowTour('game')) {
     setTimeout(() => {
@@ -241,7 +243,7 @@ function dismissGameOver() {
 // Redirect to home if no game is active (but not during game over)
 watch(hasGame, (active) => {
   if (!active && !gameOverFlash.value) {
-    navigateTo('/dashboard')
+    navigateTo(isAuthenticated.value ? '/dashboard' : '/play')
   }
 })
 </script>

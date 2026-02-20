@@ -34,7 +34,7 @@ export default defineNuxtConfig({
     redirectOptions: {
       login: '/login',
       callback: '/confirm',
-      exclude: ['/', '/login', '/confirm', '/spectate/*', '/camera/*'],
+      exclude: ['/', '/login', '/confirm', '/spectate/*', '/camera/*', '/play', '/game', '/game/*', '/training', '/training/*', '/settings', '/dashboard', '/players', '/teams', '/teams/*', '/tournaments', '/tournaments/*', '/stats', '/stats/*', '/new-game', '/quick-start'],
     },
   },
 
@@ -54,6 +54,7 @@ export default defineNuxtConfig({
     '/login': { ssr: false },
     '/new-game': { ssr: false },
     '/quick-start': { ssr: false },
+    '/play': { ssr: false },
     '/training/**': { ssr: false },
     '/training': { ssr: false },
   },

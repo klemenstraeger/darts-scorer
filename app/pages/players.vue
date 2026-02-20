@@ -115,230 +115,232 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="px-lg py-xl max-w-[700px] mx-auto w-full">
-    <!-- Hero -->
-    <div
-      v-motion
-      class="page-hero"
-      :initial="{ opacity: 0, y: -10 }"
-      :enter="{ opacity: 1, y: 0, transition: { duration: 300 } }"
-    >
-      <div>
-        <h2 class="text-[2rem] font-extrabold text-fg mb-xs">
-          Players
-        </h2>
-        <p class="text-[0.9rem] text-fg-secondary">
-          Manage your players and their avatars.
-        </p>
-      </div>
-      <div class="hero-glow" />
-    </div>
-
-    <!-- Create player -->
-    <section
-      v-motion
-      class="glass-card p-xl mb-xl"
-      :initial="{ opacity: 0, y: 10 }"
-      :enter="{ opacity: 1, y: 0, transition: { duration: 300, delay: 100 } }"
-    >
-      <h3 class="section-title mb-lg">
-        New Player
-      </h3>
-      <div class="flex gap-lg items-start max-sm:flex-col">
-        <!-- Avatar preview -->
-        <div class="flex flex-col items-center gap-sm shrink-0">
-          <div class="avatar-preview">
-            <img :src="previewUrl" alt="Avatar preview" width="96" height="96">
-          </div>
-          <button class="btn btn-secondary text-[0.75rem] px-md py-xs" @click="rerollSeed">
-            Re-roll
-          </button>
+  <AuthGate feature="Players" description="Sign in to manage your player roster with avatars, nicknames, and Elo ratings.">
+    <div class="px-lg py-xl max-w-[700px] mx-auto w-full">
+      <!-- Hero -->
+      <div
+        v-motion
+        class="page-hero"
+        :initial="{ opacity: 0, y: -10 }"
+        :enter="{ opacity: 1, y: 0, transition: { duration: 300 } }"
+      >
+        <div>
+          <h2 class="text-[2rem] font-extrabold text-fg mb-xs">
+            Players
+          </h2>
+          <p class="text-[0.9rem] text-fg-secondary">
+            Manage your players and their avatars.
+          </p>
         </div>
+        <div class="hero-glow" />
+      </div>
 
-        <!-- Form -->
-        <div class="flex-1 flex flex-col gap-md w-full">
-          <input
-            v-model="newName"
-            class="form-input"
-            type="text"
-            placeholder="Player name"
-            maxlength="20"
-            @keyup.enter="createPlayer"
-          >
-
-          <!-- Style picker -->
-          <div class="flex flex-wrap gap-sm">
-            <button
-              v-for="style in AVATAR_STYLES"
-              :key="style"
-              class="style-thumb"
-              :class="{ active: newStyle === style }"
-              :title="style"
-              @click="newStyle = style"
-            >
-              <img
-                :src="getAvatarUrl(newName || 'Preview', newSeed || undefined, style, 40)"
-                :alt="style"
-                width="32"
-                height="32"
-                loading="lazy"
-              >
+      <!-- Create player -->
+      <section
+        v-motion
+        class="glass-card p-xl mb-xl"
+        :initial="{ opacity: 0, y: 10 }"
+        :enter="{ opacity: 1, y: 0, transition: { duration: 300, delay: 100 } }"
+      >
+        <h3 class="section-title mb-lg">
+          New Player
+        </h3>
+        <div class="flex gap-lg items-start max-sm:flex-col">
+          <!-- Avatar preview -->
+          <div class="flex flex-col items-center gap-sm shrink-0">
+            <div class="avatar-preview">
+              <img :src="previewUrl" alt="Avatar preview" width="96" height="96">
+            </div>
+            <button class="btn btn-secondary text-[0.75rem] px-md py-xs" @click="rerollSeed">
+              Re-roll
             </button>
           </div>
 
-          <button
-            class="btn btn-gold w-full"
-            :disabled="!newName.trim() || creating"
-            @click="createPlayer"
-          >
-            {{ creating ? 'Creating...' : 'Create Player' }}
-          </button>
-        </div>
-      </div>
-    </section>
+          <!-- Form -->
+          <div class="flex-1 flex flex-col gap-md w-full">
+            <input
+              v-model="newName"
+              class="form-input"
+              type="text"
+              placeholder="Player name"
+              maxlength="20"
+              @keyup.enter="createPlayer"
+            >
 
-    <!-- Player list -->
-    <section>
-      <div v-if="players.length === 0" class="text-center text-fg-muted p-2xl text-[0.95rem]">
-        No players yet. Create one above!
-      </div>
-
-      <TransitionGroup name="list" tag="div" class="flex flex-col gap-sm">
-        <div
-          v-for="player in players"
-          :key="player.id"
-          class="glass-card p-md"
-        >
-          <!-- View mode -->
-          <div v-if="editingId !== player.id" class="flex items-center gap-md">
-            <PlayerAvatar
-              :name="player.name"
-              :avatar-seed="player.avatarSeed"
-              :avatar-style="player.avatarStyle"
-              :size="48"
-            />
-            <div class="flex-1 min-w-0">
-              <div class="text-[0.95rem] font-bold text-fg truncate">
-                {{ player.name }}
-              </div>
-              <div class="text-[0.7rem] text-fg-muted capitalize">
-                {{ player.avatarStyle || 'bottts' }}
-              </div>
-            </div>
-            <div class="flex gap-xs shrink-0">
-              <NuxtLink
-                :to="`/stats?player=${encodeURIComponent(player.name)}`"
-                class="action-btn"
-                title="View stats"
+            <!-- Style picker -->
+            <div class="flex flex-wrap gap-sm">
+              <button
+                v-for="style in AVATAR_STYLES"
+                :key="style"
+                class="style-thumb"
+                :class="{ active: newStyle === style }"
+                :title="style"
+                @click="newStyle = style"
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M18 20V10" /><path d="M12 20V4" /><path d="M6 20v-6" />
-                </svg>
-              </NuxtLink>
-              <button class="action-btn" title="Edit" @click="startEdit(player)">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                </svg>
-              </button>
-              <button class="action-btn action-btn-danger" title="Delete" @click="deleteTarget = player">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="3 6 5 6 21 6" />
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                </svg>
+                <img
+                  :src="getAvatarUrl(newName || 'Preview', newSeed || undefined, style, 40)"
+                  :alt="style"
+                  width="32"
+                  height="32"
+                  loading="lazy"
+                >
               </button>
             </div>
-          </div>
 
-          <!-- Edit mode -->
-          <div v-else class="flex flex-col gap-md">
-            <div class="flex gap-md items-start max-sm:flex-col">
-              <div class="flex flex-col items-center gap-sm shrink-0">
-                <div class="avatar-preview small">
-                  <img
-                    :src="getAvatarUrl(editName || player.name, editSeed || undefined, editStyle, 80)"
-                    alt="Edit preview"
-                    width="64"
-                    height="64"
-                  >
+            <button
+              class="btn btn-gold w-full"
+              :disabled="!newName.trim() || creating"
+              @click="createPlayer"
+            >
+              {{ creating ? 'Creating...' : 'Create Player' }}
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Player list -->
+      <section>
+        <div v-if="players.length === 0" class="text-center text-fg-muted p-2xl text-[0.95rem]">
+          No players yet. Create one above!
+        </div>
+
+        <TransitionGroup name="list" tag="div" class="flex flex-col gap-sm">
+          <div
+            v-for="player in players"
+            :key="player.id"
+            class="glass-card p-md"
+          >
+            <!-- View mode -->
+            <div v-if="editingId !== player.id" class="flex items-center gap-md">
+              <PlayerAvatar
+                :name="player.name"
+                :avatar-seed="player.avatarSeed"
+                :avatar-style="player.avatarStyle"
+                :size="48"
+              />
+              <div class="flex-1 min-w-0">
+                <div class="text-[0.95rem] font-bold text-fg truncate">
+                  {{ player.name }}
                 </div>
-                <button class="btn btn-secondary text-[0.7rem] px-sm py-xs" @click="editReroll">
-                  Re-roll
+                <div class="text-[0.7rem] text-fg-muted capitalize">
+                  {{ player.avatarStyle || 'bottts' }}
+                </div>
+              </div>
+              <div class="flex gap-xs shrink-0">
+                <NuxtLink
+                  :to="`/stats?player=${encodeURIComponent(player.name)}`"
+                  class="action-btn"
+                  title="View stats"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 20V10" /><path d="M12 20V4" /><path d="M6 20v-6" />
+                  </svg>
+                </NuxtLink>
+                <button class="action-btn" title="Edit" @click="startEdit(player)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                  </svg>
+                </button>
+                <button class="action-btn action-btn-danger" title="Delete" @click="deleteTarget = player">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                  </svg>
                 </button>
               </div>
-              <div class="flex-1 flex flex-col gap-sm w-full">
-                <input
-                  v-model="editName"
-                  class="form-input"
-                  type="text"
-                  placeholder="Player name"
-                  maxlength="20"
-                  @keyup.enter="saveEdit"
-                >
-                <div class="flex flex-wrap gap-xs">
-                  <button
-                    v-for="style in AVATAR_STYLES"
-                    :key="style"
-                    class="style-thumb small"
-                    :class="{ active: editStyle === style }"
-                    :title="style"
-                    @click="editStyle = style"
-                  >
+            </div>
+
+            <!-- Edit mode -->
+            <div v-else class="flex flex-col gap-md">
+              <div class="flex gap-md items-start max-sm:flex-col">
+                <div class="flex flex-col items-center gap-sm shrink-0">
+                  <div class="avatar-preview small">
                     <img
-                      :src="getAvatarUrl(editName || player.name, editSeed || undefined, style, 32)"
-                      :alt="style"
-                      width="24"
-                      height="24"
-                      loading="lazy"
+                      :src="getAvatarUrl(editName || player.name, editSeed || undefined, editStyle, 80)"
+                      alt="Edit preview"
+                      width="64"
+                      height="64"
                     >
+                  </div>
+                  <button class="btn btn-secondary text-[0.7rem] px-sm py-xs" @click="editReroll">
+                    Re-roll
                   </button>
                 </div>
+                <div class="flex-1 flex flex-col gap-sm w-full">
+                  <input
+                    v-model="editName"
+                    class="form-input"
+                    type="text"
+                    placeholder="Player name"
+                    maxlength="20"
+                    @keyup.enter="saveEdit"
+                  >
+                  <div class="flex flex-wrap gap-xs">
+                    <button
+                      v-for="style in AVATAR_STYLES"
+                      :key="style"
+                      class="style-thumb small"
+                      :class="{ active: editStyle === style }"
+                      :title="style"
+                      @click="editStyle = style"
+                    >
+                      <img
+                        :src="getAvatarUrl(editName || player.name, editSeed || undefined, style, 32)"
+                        :alt="style"
+                        width="24"
+                        height="24"
+                        loading="lazy"
+                      >
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="flex gap-sm justify-end">
+                <button class="btn btn-secondary" @click="cancelEdit">
+                  Cancel
+                </button>
+                <button class="btn btn-gold" :disabled="!editName.trim() || saving" @click="saveEdit">
+                  {{ saving ? 'Saving...' : 'Save' }}
+                </button>
               </div>
             </div>
+          </div>
+        </TransitionGroup>
+      </section>
+
+      <!-- Delete confirmation modal -->
+      <Transition name="fade">
+        <div v-if="deleteTarget" class="modal-overlay" @click.self="deleteTarget = null">
+          <div class="modal-card">
+            <h3 class="text-[1rem] font-bold text-fg mb-sm">
+              Delete Player
+            </h3>
+            <div class="flex items-center gap-md mb-md">
+              <PlayerAvatar
+                :name="deleteTarget.name"
+                :avatar-seed="deleteTarget.avatarSeed"
+                :avatar-style="deleteTarget.avatarStyle"
+                :size="40"
+              />
+              <span class="text-[0.9rem] text-fg-secondary">{{ deleteTarget.name }}</span>
+            </div>
+            <p class="text-[0.85rem] text-fg-muted mb-lg">
+              This will remove the player from your list. Game history data will be kept.
+            </p>
             <div class="flex gap-sm justify-end">
-              <button class="btn btn-secondary" @click="cancelEdit">
+              <button class="btn btn-secondary" @click="deleteTarget = null">
                 Cancel
               </button>
-              <button class="btn btn-gold" :disabled="!editName.trim() || saving" @click="saveEdit">
-                {{ saving ? 'Saving...' : 'Save' }}
+              <button class="btn btn-danger" :disabled="deleting" @click="confirmDelete">
+                {{ deleting ? 'Deleting...' : 'Delete' }}
               </button>
             </div>
           </div>
         </div>
-      </TransitionGroup>
-    </section>
-
-    <!-- Delete confirmation modal -->
-    <Transition name="fade">
-      <div v-if="deleteTarget" class="modal-overlay" @click.self="deleteTarget = null">
-        <div class="modal-card">
-          <h3 class="text-[1rem] font-bold text-fg mb-sm">
-            Delete Player
-          </h3>
-          <div class="flex items-center gap-md mb-md">
-            <PlayerAvatar
-              :name="deleteTarget.name"
-              :avatar-seed="deleteTarget.avatarSeed"
-              :avatar-style="deleteTarget.avatarStyle"
-              :size="40"
-            />
-            <span class="text-[0.9rem] text-fg-secondary">{{ deleteTarget.name }}</span>
-          </div>
-          <p class="text-[0.85rem] text-fg-muted mb-lg">
-            This will remove the player from your list. Game history data will be kept.
-          </p>
-          <div class="flex gap-sm justify-end">
-            <button class="btn btn-secondary" @click="deleteTarget = null">
-              Cancel
-            </button>
-            <button class="btn btn-danger" :disabled="deleting" @click="confirmDelete">
-              {{ deleting ? 'Deleting...' : 'Delete' }}
-            </button>
-          </div>
-        </div>
-      </div>
-    </Transition>
-  </div>
+      </Transition>
+    </div>
+  </AuthGate>
 </template>
 
 <style scoped>

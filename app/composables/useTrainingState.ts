@@ -44,6 +44,7 @@ function readStorage(): PersistedTraining | null {
 export function useTrainingState() {
   const store = useTrainingStore()
   const { play, vibrate } = useAudio()
+  const { isAuthenticated } = useAuth()
 
   function syncToStore() {
     if (!engine?.state)
@@ -77,18 +78,20 @@ export function useTrainingState() {
 
     if (engine.state.isComplete) {
       store.sessionComplete = true
-      // Save completed session to server
-      const stats = engine.getStats()
-      $fetch('/api/training/save', {
-        method: 'POST',
-        body: {
-          session: JSON.parse(JSON.stringify(engine.state)),
-          throws: engine.state.throws,
-          stats,
-        },
-      }).catch((err) => {
-        console.warn('Failed to save training session:', err)
-      })
+      // Save completed session to server (only for authenticated users)
+      if (isAuthenticated.value) {
+        const stats = engine.getStats()
+        $fetch('/api/training/save', {
+          method: 'POST',
+          body: {
+            session: JSON.parse(JSON.stringify(engine.state)),
+            throws: engine.state.throws,
+            stats,
+          },
+        }).catch((err) => {
+          console.warn('Failed to save training session:', err)
+        })
+      }
       clearStorage()
     }
     else {

@@ -15,6 +15,7 @@ defineEmits<{
 }>()
 
 const { getAvatarProps } = usePlayers()
+const { isAuthenticated } = useAuth()
 
 const isMatch = computed(() => props.state.legs_to_win > 1 || props.state.sets_to_win > 1)
 const hasSets = computed(() => props.state.sets_to_win > 1)
@@ -90,6 +91,9 @@ const winnerName = computed(() => {
         </div>
       </div>
 
+      <!-- Signup prompt for anonymous users -->
+      <SignupPrompt v-if="!isAuthenticated" />
+
       <!-- Action buttons -->
       <div class="gameover-actions">
         <NuxtLink
@@ -104,7 +108,7 @@ const winnerName = computed(() => {
           <button class="btn btn-gold" @click="$emit('dismiss')">
             Continue
           </button>
-          <NuxtLink to="/" class="btn btn-secondary">
+          <NuxtLink :to="isAuthenticated ? '/dashboard' : '/play'" class="btn btn-secondary">
             New Game
           </NuxtLink>
         </template>

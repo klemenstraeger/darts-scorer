@@ -121,212 +121,214 @@ const recentForm = computed(() => {
 </script>
 
 <template>
-  <div class="px-lg py-xl max-w-[800px] mx-auto w-full">
-    <!-- Header -->
-    <div class="h2h-hero mb-xl">
-      <div class="flex-1">
-        <h2 class="text-[1.8rem] font-extrabold text-fg mb-xs">
-          Head-to-Head
-        </h2>
-        <p class="text-[0.85rem] text-fg-secondary">
-          Compare two players side by side.
-        </p>
-      </div>
-      <NuxtLink to="/stats" class="back-link">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="15 18 9 12 15 6" />
-        </svg>
-        Stats
-      </NuxtLink>
-    </div>
-
-    <!-- Player selectors -->
-    <div class="selector-row mb-xl">
-      <div class="selector-group">
-        <label class="selector-label">Player 1</label>
-        <select v-model="player1" class="selector-input">
-          <option value="" disabled>
-            Select player
-          </option>
-          <option v-for="p in players" :key="p.id" :value="p.name">
-            {{ p.name }}
-          </option>
-        </select>
-      </div>
-
-      <div class="vs-badge">
-        VS
-      </div>
-
-      <div class="selector-group">
-        <label class="selector-label">Player 2</label>
-        <select v-model="player2" class="selector-input">
-          <option value="" disabled>
-            Select player
-          </option>
-          <option v-for="p in player2Options" :key="p.id" :value="p.name">
-            {{ p.name }}
-          </option>
-        </select>
-      </div>
-    </div>
-
-    <!-- Error -->
-    <div v-if="error" class="text-center text-red text-[0.85rem] mb-lg">
-      {{ error }}
-    </div>
-
-    <!-- Loading -->
-    <div v-if="loading" class="text-center text-fg-muted p-2xl">
-      Loading comparison...
-    </div>
-
-    <!-- No games -->
-    <div v-if="stats && stats.total_games === 0 && !loading" class="text-center text-fg-muted p-2xl text-[0.9rem]">
-      No head-to-head games found between these players.
-    </div>
-
-    <!-- Stats content -->
-    <div v-if="stats && stats.total_games > 0 && !loading" class="flex flex-col gap-xl">
-      <!-- Win record with avatars -->
-      <section class="glass-card p-xl">
-        <div class="win-record">
-          <div class="win-record-player">
-            <PlayerAvatar v-bind="getAvatarProps(stats.player1)" :size="56" />
-            <div class="win-record-name">
-              {{ stats.player1 }}
-            </div>
-            <div class="win-record-wins" :class="{ leading: stats.player1_wins > stats.player2_wins }">
-              {{ stats.player1_wins }}
-            </div>
-          </div>
-
-          <div class="win-record-center">
-            <div class="win-record-total">
-              {{ stats.total_games }} game{{ stats.total_games !== 1 ? 's' : '' }}
-            </div>
-            <div class="win-record-bar">
-              <div
-                class="win-record-bar-p1"
-                :style="{ width: `${stats.total_games > 0 ? (stats.player1_wins / stats.total_games) * 100 : 50}%` }"
-              />
-              <div
-                v-if="stats.draws > 0"
-                class="win-record-bar-draw"
-                :style="{ width: `${(stats.draws / stats.total_games) * 100}%` }"
-              />
-              <div
-                class="win-record-bar-p2"
-                :style="{ width: `${stats.total_games > 0 ? (stats.player2_wins / stats.total_games) * 100 : 50}%` }"
-              />
-            </div>
-            <!-- Recent form dots -->
-            <div v-if="recentForm.length > 0" class="flex items-center gap-[4px] mt-sm">
-              <span
-                v-for="(result, i) in recentForm"
-                :key="i"
-                class="form-dot"
-                :class="result.draw ? 'form-draw' : result.won ? 'form-win' : 'form-loss'"
-              />
-              <span class="text-[0.65rem] text-fg-muted ml-xs">recent</span>
-            </div>
-          </div>
-
-          <div class="win-record-player">
-            <PlayerAvatar v-bind="getAvatarProps(stats.player2)" :size="56" />
-            <div class="win-record-name">
-              {{ stats.player2 }}
-            </div>
-            <div class="win-record-wins" :class="{ leading: stats.player2_wins > stats.player1_wins }">
-              {{ stats.player2_wins }}
-            </div>
-          </div>
+  <AuthGate feature="Head-to-Head" description="Sign in to compare player rivalries, win rates, and match history.">
+    <div class="px-lg py-xl max-w-[800px] mx-auto w-full">
+      <!-- Header -->
+      <div class="h2h-hero mb-xl">
+        <div class="flex-1">
+          <h2 class="text-[1.8rem] font-extrabold text-fg mb-xs">
+            Head-to-Head
+          </h2>
+          <p class="text-[0.85rem] text-fg-secondary">
+            Compare two players side by side.
+          </p>
         </div>
-      </section>
+        <NuxtLink to="/stats" class="back-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+          Stats
+        </NuxtLink>
+      </div>
 
-      <!-- Stats comparison bars -->
-      <section class="glass-card p-lg">
-        <h3 class="section-title">
-          Comparison
-        </h3>
-        <div class="flex flex-col gap-sm">
-          <StatsComparisonBar
-            label="Wins"
-            :left-value="stats.player1_wins"
-            :right-value="stats.player2_wins"
-            format="number"
-          />
-          <StatsComparisonBar
-            label="Win %"
-            :left-value="winPctPlayer1"
-            :right-value="winPctPlayer2"
-            format="decimal"
-          />
-          <StatsComparisonBar
-            label="3-Dart Avg"
-            :left-value="stats.player1_avg"
-            :right-value="stats.player2_avg"
-            format="decimal"
-          />
+      <!-- Player selectors -->
+      <div class="selector-row mb-xl">
+        <div class="selector-group">
+          <label class="selector-label">Player 1</label>
+          <select v-model="player1" class="selector-input">
+            <option value="" disabled>
+              Select player
+            </option>
+            <option v-for="p in players" :key="p.id" :value="p.name">
+              {{ p.name }}
+            </option>
+          </select>
         </div>
-      </section>
 
-      <!-- Recent H2H games -->
-      <section v-if="stats.recent_games.length > 0" class="flex flex-col gap-md">
-        <h3 class="section-title">
-          Recent Matches
-        </h3>
-        <div class="flex flex-col gap-sm">
-          <div
-            v-for="game in stats.recent_games"
-            :key="game.game_id"
-            class="glass-card p-md recent-game"
-          >
-            <div class="recent-game-header">
-              <span class="text-[0.7rem] font-bold text-gold bg-gold-tint px-[8px] py-[2px] rounded-sm">
-                {{ game.mode }}
-              </span>
-              <span class="text-[0.7rem] text-fg-muted">{{ formatDate(game.created_at) }}</span>
+        <div class="vs-badge">
+          VS
+        </div>
+
+        <div class="selector-group">
+          <label class="selector-label">Player 2</label>
+          <select v-model="player2" class="selector-input">
+            <option value="" disabled>
+              Select player
+            </option>
+            <option v-for="p in player2Options" :key="p.id" :value="p.name">
+              {{ p.name }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Error -->
+      <div v-if="error" class="text-center text-red text-[0.85rem] mb-lg">
+        {{ error }}
+      </div>
+
+      <!-- Loading -->
+      <div v-if="loading" class="text-center text-fg-muted p-2xl">
+        Loading comparison...
+      </div>
+
+      <!-- No games -->
+      <div v-if="stats && stats.total_games === 0 && !loading" class="text-center text-fg-muted p-2xl text-[0.9rem]">
+        No head-to-head games found between these players.
+      </div>
+
+      <!-- Stats content -->
+      <div v-if="stats && stats.total_games > 0 && !loading" class="flex flex-col gap-xl">
+        <!-- Win record with avatars -->
+        <section class="glass-card p-xl">
+          <div class="win-record">
+            <div class="win-record-player">
+              <PlayerAvatar v-bind="getAvatarProps(stats.player1)" :size="56" />
+              <div class="win-record-name">
+                {{ stats.player1 }}
+              </div>
+              <div class="win-record-wins" :class="{ leading: stats.player1_wins > stats.player2_wins }">
+                {{ stats.player1_wins }}
+              </div>
             </div>
-            <div class="recent-game-result">
-              <div class="recent-game-player left">
-                <PlayerAvatar v-bind="getAvatarProps(stats.player1)" :size="28" />
+
+            <div class="win-record-center">
+              <div class="win-record-total">
+                {{ stats.total_games }} game{{ stats.total_games !== 1 ? 's' : '' }}
+              </div>
+              <div class="win-record-bar">
+                <div
+                  class="win-record-bar-p1"
+                  :style="{ width: `${stats.total_games > 0 ? (stats.player1_wins / stats.total_games) * 100 : 50}%` }"
+                />
+                <div
+                  v-if="stats.draws > 0"
+                  class="win-record-bar-draw"
+                  :style="{ width: `${(stats.draws / stats.total_games) * 100}%` }"
+                />
+                <div
+                  class="win-record-bar-p2"
+                  :style="{ width: `${stats.total_games > 0 ? (stats.player2_wins / stats.total_games) * 100 : 50}%` }"
+                />
+              </div>
+              <!-- Recent form dots -->
+              <div v-if="recentForm.length > 0" class="flex items-center gap-[4px] mt-sm">
                 <span
-                  class="recent-game-name"
-                  :class="{ winner: game.winner_name === stats.player1 }"
-                >{{ stats.player1 }}</span>
-              </div>
-              <div class="recent-game-score">
-                <span :class="{ 'text-gold': game.winner_name === stats.player1 }">{{ game.player1_score }}</span>
-                <span class="text-fg-muted mx-xs">-</span>
-                <span :class="{ 'text-gold': game.winner_name === stats.player2 }">{{ game.player2_score }}</span>
-              </div>
-              <div class="recent-game-player right">
-                <span
-                  class="recent-game-name"
-                  :class="{ winner: game.winner_name === stats.player2 }"
-                >{{ stats.player2 }}</span>
-                <PlayerAvatar v-bind="getAvatarProps(stats.player2)" :size="28" />
+                  v-for="(result, i) in recentForm"
+                  :key="i"
+                  class="form-dot"
+                  :class="result.draw ? 'form-draw' : result.won ? 'form-win' : 'form-loss'"
+                />
+                <span class="text-[0.65rem] text-fg-muted ml-xs">recent</span>
               </div>
             </div>
-            <div v-if="game.player1_avg != null || game.player2_avg != null" class="recent-game-avgs">
-              <span class="text-[0.7rem] tabular-nums text-fg-secondary">
-                {{ game.player1_avg != null ? `avg ${game.player1_avg}` : '' }}
-              </span>
-              <span class="text-[0.7rem] tabular-nums text-fg-secondary">
-                {{ game.player2_avg != null ? `avg ${game.player2_avg}` : '' }}
-              </span>
+
+            <div class="win-record-player">
+              <PlayerAvatar v-bind="getAvatarProps(stats.player2)" :size="56" />
+              <div class="win-record-name">
+                {{ stats.player2 }}
+              </div>
+              <div class="win-record-wins" :class="{ leading: stats.player2_wins > stats.player1_wins }">
+                {{ stats.player2_wins }}
+              </div>
             </div>
           </div>
-        </div>
-      </section>
-    </div>
+        </section>
 
-    <!-- Empty state -->
-    <div v-if="!player1 && !player2 && !loading" class="text-center text-fg-muted p-2xl text-[0.9rem]">
-      Select two players to compare their rivalry.
+        <!-- Stats comparison bars -->
+        <section class="glass-card p-lg">
+          <h3 class="section-title">
+            Comparison
+          </h3>
+          <div class="flex flex-col gap-sm">
+            <StatsComparisonBar
+              label="Wins"
+              :left-value="stats.player1_wins"
+              :right-value="stats.player2_wins"
+              format="number"
+            />
+            <StatsComparisonBar
+              label="Win %"
+              :left-value="winPctPlayer1"
+              :right-value="winPctPlayer2"
+              format="decimal"
+            />
+            <StatsComparisonBar
+              label="3-Dart Avg"
+              :left-value="stats.player1_avg"
+              :right-value="stats.player2_avg"
+              format="decimal"
+            />
+          </div>
+        </section>
+
+        <!-- Recent H2H games -->
+        <section v-if="stats.recent_games.length > 0" class="flex flex-col gap-md">
+          <h3 class="section-title">
+            Recent Matches
+          </h3>
+          <div class="flex flex-col gap-sm">
+            <div
+              v-for="game in stats.recent_games"
+              :key="game.game_id"
+              class="glass-card p-md recent-game"
+            >
+              <div class="recent-game-header">
+                <span class="text-[0.7rem] font-bold text-gold bg-gold-tint px-[8px] py-[2px] rounded-sm">
+                  {{ game.mode }}
+                </span>
+                <span class="text-[0.7rem] text-fg-muted">{{ formatDate(game.created_at) }}</span>
+              </div>
+              <div class="recent-game-result">
+                <div class="recent-game-player left">
+                  <PlayerAvatar v-bind="getAvatarProps(stats.player1)" :size="28" />
+                  <span
+                    class="recent-game-name"
+                    :class="{ winner: game.winner_name === stats.player1 }"
+                  >{{ stats.player1 }}</span>
+                </div>
+                <div class="recent-game-score">
+                  <span :class="{ 'text-gold': game.winner_name === stats.player1 }">{{ game.player1_score }}</span>
+                  <span class="text-fg-muted mx-xs">-</span>
+                  <span :class="{ 'text-gold': game.winner_name === stats.player2 }">{{ game.player2_score }}</span>
+                </div>
+                <div class="recent-game-player right">
+                  <span
+                    class="recent-game-name"
+                    :class="{ winner: game.winner_name === stats.player2 }"
+                  >{{ stats.player2 }}</span>
+                  <PlayerAvatar v-bind="getAvatarProps(stats.player2)" :size="28" />
+                </div>
+              </div>
+              <div v-if="game.player1_avg != null || game.player2_avg != null" class="recent-game-avgs">
+                <span class="text-[0.7rem] tabular-nums text-fg-secondary">
+                  {{ game.player1_avg != null ? `avg ${game.player1_avg}` : '' }}
+                </span>
+                <span class="text-[0.7rem] tabular-nums text-fg-secondary">
+                  {{ game.player2_avg != null ? `avg ${game.player2_avg}` : '' }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Empty state -->
+      <div v-if="!player1 && !player2 && !loading" class="text-center text-fg-muted p-2xl text-[0.9rem]">
+        Select two players to compare their rivalry.
+      </div>
     </div>
-  </div>
+  </AuthGate>
 </template>
 
 <style scoped>

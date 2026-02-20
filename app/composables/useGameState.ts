@@ -111,6 +111,7 @@ function clearDatabaseState() {
 export function useGameState() {
   const store = useGameStore()
   const { play, vibrate } = useAudio()
+  const { isAuthenticated } = useAuth()
   const {
     setContext,
     clear: clearTournamentContext,
@@ -158,7 +159,8 @@ export function useGameState() {
     )
     syncToStore()
     persistToStorage()
-    scheduleDatabaseSync()
+    if (isAuthenticated.value)
+      scheduleDatabaseSync()
     hasActiveGame.value = true
     lastCheckoutAnnouncement = null
     announcer.announceGameStart()
@@ -192,23 +194,26 @@ export function useGameState() {
       : ''
     announcer.announceMatchWon(matchWinner)
 
-    // Save finished game to server
-    const ctx = getTournamentContext()
-    $fetch<{ gameId: number, newAchievements: UnlockedAchievement[] }>('/api/game/save', {
-      method: 'POST',
-      body: {
-        state: JSON.parse(JSON.stringify(engine.state)),
-        tournamentMatchId: ctx.matchId ?? undefined,
-      },
-    }).then((result) => {
-      if (result.newAchievements && result.newAchievements.length > 0) {
-        recentAchievements.value = result.newAchievements
-      }
-    }).catch((err) => {
-      console.warn('Failed to save finished game:', err)
-    })
+    // Save finished game to server (only for authenticated users)
+    if (isAuthenticated.value) {
+      const ctx = getTournamentContext()
+      $fetch<{ gameId: number, newAchievements: UnlockedAchievement[] }>('/api/game/save', {
+        method: 'POST',
+        body: {
+          state: JSON.parse(JSON.stringify(engine.state)),
+          tournamentMatchId: ctx.matchId ?? undefined,
+        },
+      }).then((result) => {
+        if (result.newAchievements && result.newAchievements.length > 0) {
+          recentAchievements.value = result.newAchievements
+        }
+      }).catch((err) => {
+        console.warn('Failed to save finished game:', err)
+      })
+    }
     clearStorage()
-    clearDatabaseState()
+    if (isAuthenticated.value)
+      clearDatabaseState()
   }
 
   function confirmGameOver() {
@@ -227,7 +232,8 @@ export function useGameState() {
     syncToStore()
     const ctx = getTournamentContext()
     persistToStorage(ctx.matchId, ctx.tournamentId)
-    scheduleDatabaseSync()
+    if (isAuthenticated.value)
+      scheduleDatabaseSync()
   }
 
   /** Shared post-action logic: event detection, sounds, announcements, persistence. */
@@ -317,7 +323,8 @@ export function useGameState() {
     if (!engine.state.is_finished) {
       const ctx = getTournamentContext()
       persistToStorage(ctx.matchId, ctx.tournamentId)
-      scheduleDatabaseSync()
+      if (isAuthenticated.value)
+        scheduleDatabaseSync()
     }
   }
 
@@ -360,7 +367,8 @@ export function useGameState() {
     syncToStore()
     const ctx = getTournamentContext()
     persistToStorage(ctx.matchId, ctx.tournamentId)
-    scheduleDatabaseSync()
+    if (isAuthenticated.value)
+      scheduleDatabaseSync()
   }
 
   function loadState() {
@@ -390,23 +398,26 @@ export function useGameState() {
     store.resetFlashes()
 
     // If tournament match, reset it on server
-    const ctx = getTournamentContext()
-    if (ctx.matchId && ctx.tournamentId) {
-      try {
-        await $fetch(`/api/tournament/${ctx.tournamentId}/match/${ctx.matchId}/stop`, {
-          method: 'POST',
-        })
+    if (isAuthenticated.value) {
+      const ctx = getTournamentContext()
+      if (ctx.matchId && ctx.tournamentId) {
+        try {
+          await $fetch(`/api/tournament/${ctx.tournamentId}/match/${ctx.matchId}/stop`, {
+            method: 'POST',
+          })
+        }
+        catch (err) {
+          console.warn('Failed to stop tournament match:', err)
+        }
+        clearTournamentContext()
       }
-      catch (err) {
-        console.warn('Failed to stop tournament match:', err)
-      }
-      clearTournamentContext()
     }
 
     engine = null
     store.resetState()
     clearStorage()
-    clearDatabaseState()
+    if (isAuthenticated.value)
+      clearDatabaseState()
     hasActiveGame.value = false
   }
 
