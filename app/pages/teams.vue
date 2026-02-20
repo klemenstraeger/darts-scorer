@@ -154,119 +154,239 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="px-lg py-xl max-w-[700px] mx-auto w-full">
-    <!-- Hero -->
-    <div
-      v-motion
-      class="page-hero"
-      :initial="{ opacity: 0, y: -10 }"
-      :enter="{ opacity: 1, y: 0, transition: { duration: 300 } }"
-    >
-      <div>
-        <h2 class="text-[2rem] font-extrabold text-fg mb-xs">
-          Teams
-        </h2>
-        <p class="text-[0.9rem] text-fg-secondary">
-          Create and manage your teams for doubles tournaments.
-        </p>
-      </div>
-      <div class="hero-glow" />
-    </div>
-
-    <!-- Create team -->
-    <section
-      v-motion
-      class="glass-card p-xl mb-xl"
-      :initial="{ opacity: 0, y: 10 }"
-      :enter="{ opacity: 1, y: 0, transition: { duration: 300, delay: 100 } }"
-    >
-      <h3 class="section-title mb-lg">
-        New Team
-      </h3>
-      <div class="flex flex-col gap-md">
-        <input
-          v-model="newTeamName"
-          class="form-input"
-          type="text"
-          placeholder="Team name"
-          maxlength="30"
-        >
-
-        <!-- Member list -->
-        <div v-if="newMembers.length > 0" class="flex flex-col gap-xs">
-          <div class="text-[0.75rem] text-fg-muted uppercase tracking-wide">
-            Members (throw order)
-          </div>
-          <div
-            v-for="(member, i) in newMembers"
-            :key="member"
-            class="member-row"
-          >
-            <span class="member-pos">{{ i + 1 }}</span>
-            <PlayerAvatar v-bind="usePlayers().getAvatarProps(member)" :size="28" />
-            <span class="flex-1 text-[0.85rem] text-fg truncate">{{ member }}</span>
-            <button class="order-btn" :disabled="i === 0" title="Move up" @click="moveMember(i, -1)">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6" /></svg>
-            </button>
-            <button class="order-btn" :disabled="i === newMembers.length - 1" title="Move down" @click="moveMember(i, 1)">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" /></svg>
-            </button>
-            <button class="order-btn order-btn-danger" title="Remove" @click="removeMember(i)">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
-            </button>
-          </div>
+  <AuthGate feature="Teams" description="Sign in to create and manage teams for doubles tournaments.">
+    <div class="px-lg py-xl max-w-[700px] mx-auto w-full">
+      <!-- Hero -->
+      <div
+        v-motion
+        class="page-hero"
+        :initial="{ opacity: 0, y: -10 }"
+        :enter="{ opacity: 1, y: 0, transition: { duration: 300 } }"
+      >
+        <div>
+          <h2 class="text-[2rem] font-extrabold text-fg mb-xs">
+            Teams
+          </h2>
+          <p class="text-[0.9rem] text-fg-secondary">
+            Create and manage your teams for doubles tournaments.
+          </p>
         </div>
+        <div class="hero-glow" />
+      </div>
 
-        <!-- Add member -->
-        <div class="flex gap-sm">
-          <div class="flex-1 relative">
-            <input
-              v-model="newMemberName"
-              class="form-input"
-              type="text"
-              placeholder="Add member name"
-              maxlength="20"
-              list="create-player-list"
-              @keyup.enter="addMember"
-            >
-            <datalist id="create-player-list">
-              <option v-for="p in availablePlayersForCreate" :key="p.id" :value="p.name" />
-            </datalist>
-          </div>
-          <button
-            class="btn btn-secondary shrink-0"
-            :disabled="!newMemberName.trim()"
-            @click="addMember"
+      <!-- Create team -->
+      <section
+        v-motion
+        class="glass-card p-xl mb-xl"
+        :initial="{ opacity: 0, y: 10 }"
+        :enter="{ opacity: 1, y: 0, transition: { duration: 300, delay: 100 } }"
+      >
+        <h3 class="section-title mb-lg">
+          New Team
+        </h3>
+        <div class="flex flex-col gap-md">
+          <input
+            v-model="newTeamName"
+            class="form-input"
+            type="text"
+            placeholder="Team name"
+            maxlength="30"
           >
-            + Add
+
+          <!-- Member list -->
+          <div v-if="newMembers.length > 0" class="flex flex-col gap-xs">
+            <div class="text-[0.75rem] text-fg-muted uppercase tracking-wide">
+              Members (throw order)
+            </div>
+            <div
+              v-for="(member, i) in newMembers"
+              :key="member"
+              class="member-row"
+            >
+              <span class="member-pos">{{ i + 1 }}</span>
+              <PlayerAvatar v-bind="usePlayers().getAvatarProps(member)" :size="28" />
+              <span class="flex-1 text-[0.85rem] text-fg truncate">{{ member }}</span>
+              <button class="order-btn" :disabled="i === 0" title="Move up" @click="moveMember(i, -1)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6" /></svg>
+              </button>
+              <button class="order-btn" :disabled="i === newMembers.length - 1" title="Move down" @click="moveMember(i, 1)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" /></svg>
+              </button>
+              <button class="order-btn order-btn-danger" title="Remove" @click="removeMember(i)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Add member -->
+          <div class="flex gap-sm">
+            <div class="flex-1 relative">
+              <input
+                v-model="newMemberName"
+                class="form-input"
+                type="text"
+                placeholder="Add member name"
+                maxlength="20"
+                list="create-player-list"
+                @keyup.enter="addMember"
+              >
+              <datalist id="create-player-list">
+                <option v-for="p in availablePlayersForCreate" :key="p.id" :value="p.name" />
+              </datalist>
+            </div>
+            <button
+              class="btn btn-secondary shrink-0"
+              :disabled="!newMemberName.trim()"
+              @click="addMember"
+            >
+              + Add
+            </button>
+          </div>
+
+          <button
+            class="btn btn-gold w-full"
+            :disabled="!newTeamName.trim() || newMembers.length < 2 || creating"
+            @click="createTeam"
+          >
+            {{ creating ? 'Creating...' : 'Create Team' }}
           </button>
         </div>
+      </section>
 
-        <button
-          class="btn btn-gold w-full"
-          :disabled="!newTeamName.trim() || newMembers.length < 2 || creating"
-          @click="createTeam"
-        >
-          {{ creating ? 'Creating...' : 'Create Team' }}
-        </button>
-      </div>
-    </section>
+      <!-- Team list -->
+      <section>
+        <div v-if="teams.length === 0" class="text-center text-fg-muted p-2xl text-[0.95rem]">
+          No teams yet. Create one above!
+        </div>
 
-    <!-- Team list -->
-    <section>
-      <div v-if="teams.length === 0" class="text-center text-fg-muted p-2xl text-[0.95rem]">
-        No teams yet. Create one above!
-      </div>
+        <TransitionGroup name="list" tag="div" class="flex flex-col gap-sm">
+          <div
+            v-for="team in teams"
+            :key="team.id"
+            class="glass-card p-md"
+          >
+            <!-- View mode -->
+            <div v-if="editingId !== team.id">
+              <div class="flex items-center gap-md mb-sm">
+                <div class="team-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                  </svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="text-[0.95rem] font-bold text-fg truncate">
+                    {{ team.name }}
+                  </div>
+                  <div class="text-[0.7rem] text-fg-muted">
+                    {{ team.members.length }} members
+                  </div>
+                </div>
+                <div class="flex gap-xs shrink-0">
+                  <button class="action-btn" title="Edit" @click="startEdit(team)">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                    </svg>
+                  </button>
+                  <button class="action-btn action-btn-danger" title="Delete" @click="deleteTarget = team">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="3 6 5 6 21 6" />
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <!-- Member chips -->
+              <div class="flex flex-wrap gap-xs">
+                <div v-for="m in team.members" :key="m.id" class="member-chip">
+                  <PlayerAvatar v-bind="usePlayers().getAvatarProps(m.playerName)" :size="20" />
+                  <span>{{ m.playerName }}</span>
+                </div>
+              </div>
+            </div>
 
-      <TransitionGroup name="list" tag="div" class="flex flex-col gap-sm">
-        <div
-          v-for="team in teams"
-          :key="team.id"
-          class="glass-card p-md"
-        >
-          <!-- View mode -->
-          <div v-if="editingId !== team.id">
-            <div class="flex items-center gap-md mb-sm">
+            <!-- Edit mode -->
+            <div v-else class="flex flex-col gap-md">
+              <input
+                v-model="editName"
+                class="form-input"
+                type="text"
+                placeholder="Team name"
+                maxlength="30"
+              >
+
+              <div v-if="editMembers.length > 0" class="flex flex-col gap-xs">
+                <div class="text-[0.75rem] text-fg-muted uppercase tracking-wide">
+                  Members (throw order)
+                </div>
+                <div
+                  v-for="(member, i) in editMembers"
+                  :key="member"
+                  class="member-row"
+                >
+                  <span class="member-pos">{{ i + 1 }}</span>
+                  <PlayerAvatar v-bind="usePlayers().getAvatarProps(member)" :size="28" />
+                  <span class="flex-1 text-[0.85rem] text-fg truncate">{{ member }}</span>
+                  <button class="order-btn" :disabled="i === 0" title="Move up" @click="editMoveMember(i, -1)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6" /></svg>
+                  </button>
+                  <button class="order-btn" :disabled="i === editMembers.length - 1" title="Move down" @click="editMoveMember(i, 1)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" /></svg>
+                  </button>
+                  <button class="order-btn order-btn-danger" title="Remove" @click="editRemoveMember(i)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
+                  </button>
+                </div>
+              </div>
+
+              <div class="flex gap-sm">
+                <div class="flex-1 relative">
+                  <input
+                    v-model="editMemberName"
+                    class="form-input"
+                    type="text"
+                    placeholder="Add member name"
+                    maxlength="20"
+                    list="edit-player-list"
+                    @keyup.enter="editAddMember"
+                  >
+                  <datalist id="edit-player-list">
+                    <option v-for="p in availablePlayersForEdit" :key="p.id" :value="p.name" />
+                  </datalist>
+                </div>
+                <button
+                  class="btn btn-secondary shrink-0"
+                  :disabled="!editMemberName.trim()"
+                  @click="editAddMember"
+                >
+                  + Add
+                </button>
+              </div>
+
+              <div class="flex gap-sm justify-end">
+                <button class="btn btn-secondary" @click="cancelEdit">
+                  Cancel
+                </button>
+                <button class="btn btn-gold" :disabled="!editName.trim() || editMembers.length < 2 || saving" @click="saveEdit">
+                  {{ saving ? 'Saving...' : 'Save' }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </TransitionGroup>
+      </section>
+
+      <!-- Delete confirmation modal -->
+      <Transition name="fade">
+        <div v-if="deleteTarget" class="modal-overlay" @click.self="deleteTarget = null">
+          <div class="modal-card">
+            <h3 class="text-[1rem] font-bold text-fg mb-sm">
+              Delete Team
+            </h3>
+            <div class="flex items-center gap-md mb-md">
               <div class="team-icon">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -275,142 +395,24 @@ onMounted(() => {
                   <path d="M16 3.13a4 4 0 0 1 0 7.75" />
                 </svg>
               </div>
-              <div class="flex-1 min-w-0">
-                <div class="text-[0.95rem] font-bold text-fg truncate">
-                  {{ team.name }}
-                </div>
-                <div class="text-[0.7rem] text-fg-muted">
-                  {{ team.members.length }} members
-                </div>
-              </div>
-              <div class="flex gap-xs shrink-0">
-                <button class="action-btn" title="Edit" @click="startEdit(team)">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                  </svg>
-                </button>
-                <button class="action-btn action-btn-danger" title="Delete" @click="deleteTarget = team">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="3 6 5 6 21 6" />
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                  </svg>
-                </button>
-              </div>
+              <span class="text-[0.9rem] text-fg-secondary">{{ deleteTarget.name }}</span>
             </div>
-            <!-- Member chips -->
-            <div class="flex flex-wrap gap-xs">
-              <div v-for="m in team.members" :key="m.id" class="member-chip">
-                <PlayerAvatar v-bind="usePlayers().getAvatarProps(m.playerName)" :size="20" />
-                <span>{{ m.playerName }}</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Edit mode -->
-          <div v-else class="flex flex-col gap-md">
-            <input
-              v-model="editName"
-              class="form-input"
-              type="text"
-              placeholder="Team name"
-              maxlength="30"
-            >
-
-            <div v-if="editMembers.length > 0" class="flex flex-col gap-xs">
-              <div class="text-[0.75rem] text-fg-muted uppercase tracking-wide">
-                Members (throw order)
-              </div>
-              <div
-                v-for="(member, i) in editMembers"
-                :key="member"
-                class="member-row"
-              >
-                <span class="member-pos">{{ i + 1 }}</span>
-                <PlayerAvatar v-bind="usePlayers().getAvatarProps(member)" :size="28" />
-                <span class="flex-1 text-[0.85rem] text-fg truncate">{{ member }}</span>
-                <button class="order-btn" :disabled="i === 0" title="Move up" @click="editMoveMember(i, -1)">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6" /></svg>
-                </button>
-                <button class="order-btn" :disabled="i === editMembers.length - 1" title="Move down" @click="editMoveMember(i, 1)">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" /></svg>
-                </button>
-                <button class="order-btn order-btn-danger" title="Remove" @click="editRemoveMember(i)">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
-                </button>
-              </div>
-            </div>
-
-            <div class="flex gap-sm">
-              <div class="flex-1 relative">
-                <input
-                  v-model="editMemberName"
-                  class="form-input"
-                  type="text"
-                  placeholder="Add member name"
-                  maxlength="20"
-                  list="edit-player-list"
-                  @keyup.enter="editAddMember"
-                >
-                <datalist id="edit-player-list">
-                  <option v-for="p in availablePlayersForEdit" :key="p.id" :value="p.name" />
-                </datalist>
-              </div>
-              <button
-                class="btn btn-secondary shrink-0"
-                :disabled="!editMemberName.trim()"
-                @click="editAddMember"
-              >
-                + Add
-              </button>
-            </div>
-
+            <p class="text-[0.85rem] text-fg-muted mb-lg">
+              This will remove the team. Tournament history will be kept.
+            </p>
             <div class="flex gap-sm justify-end">
-              <button class="btn btn-secondary" @click="cancelEdit">
+              <button class="btn btn-secondary" @click="deleteTarget = null">
                 Cancel
               </button>
-              <button class="btn btn-gold" :disabled="!editName.trim() || editMembers.length < 2 || saving" @click="saveEdit">
-                {{ saving ? 'Saving...' : 'Save' }}
+              <button class="btn btn-danger" :disabled="deleting" @click="confirmDelete">
+                {{ deleting ? 'Deleting...' : 'Delete' }}
               </button>
             </div>
           </div>
         </div>
-      </TransitionGroup>
-    </section>
-
-    <!-- Delete confirmation modal -->
-    <Transition name="fade">
-      <div v-if="deleteTarget" class="modal-overlay" @click.self="deleteTarget = null">
-        <div class="modal-card">
-          <h3 class="text-[1rem] font-bold text-fg mb-sm">
-            Delete Team
-          </h3>
-          <div class="flex items-center gap-md mb-md">
-            <div class="team-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                <circle cx="9" cy="7" r="4" />
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-              </svg>
-            </div>
-            <span class="text-[0.9rem] text-fg-secondary">{{ deleteTarget.name }}</span>
-          </div>
-          <p class="text-[0.85rem] text-fg-muted mb-lg">
-            This will remove the team. Tournament history will be kept.
-          </p>
-          <div class="flex gap-sm justify-end">
-            <button class="btn btn-secondary" @click="deleteTarget = null">
-              Cancel
-            </button>
-            <button class="btn btn-danger" :disabled="deleting" @click="confirmDelete">
-              {{ deleting ? 'Deleting...' : 'Delete' }}
-            </button>
-          </div>
-        </div>
-      </div>
-    </Transition>
-  </div>
+      </Transition>
+    </div>
+  </AuthGate>
 </template>
 
 <style scoped>

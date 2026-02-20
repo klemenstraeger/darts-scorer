@@ -62,112 +62,114 @@ function sessionStatEntries(stats: Record<string, unknown> | null): { label: str
 </script>
 
 <template>
-  <div class="training-stats px-lg py-xl max-w-[800px] mx-auto w-full max-sm:px-md">
-    <div class="flex items-center gap-md mb-xl">
-      <NuxtLink to="/training" class="back-link">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="15 18 9 12 15 6" />
-        </svg>
-      </NuxtLink>
-      <h1 class="text-[1.8rem] font-black text-fg max-sm:text-[1.4rem]">
-        Training Stats
-      </h1>
-    </div>
-
-    <!-- Mode filter tabs -->
-    <div class="mode-tabs">
-      <button
-        class="mode-tab"
-        :class="{ active: activeMode === null }"
-        @click="selectMode(null)"
-      >
-        All
-      </button>
-      <button
-        v-for="mode in TRAINING_MODES"
-        :key="mode.mode"
-        class="mode-tab"
-        :class="{ active: activeMode === mode.mode }"
-        :style="activeMode === mode.mode ? { color: mode.color, borderColor: mode.color } : {}"
-        @click="selectMode(mode.mode)"
-      >
-        {{ mode.name }}
-      </button>
-    </div>
-
-    <!-- Aggregate stats overview -->
-    <div v-if="statsData?.stats" class="stats-overview">
-      <div
-        v-for="(stat, mode) in statsData.stats"
-        :key="mode"
-        class="stat-card glass-card"
-        :class="{ hidden: activeMode && activeMode !== mode }"
-      >
-        <span class="stat-card-mode" :style="{ color: modeColor(mode as string) }">
-          {{ modeName(mode as string) }}
-        </span>
-        <div class="stat-card-values">
-          <div class="stat-item">
-            <span class="stat-number">{{ stat.totalSessions }}</span>
-            <span class="stat-label">Sessions</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-number">{{ stat.avgDarts }}</span>
-            <span class="stat-label">Avg Darts</span>
-          </div>
-          <div v-if="stat.lastPlayed" class="stat-item">
-            <span class="stat-number text-[0.9rem]">{{ formatDate(stat.lastPlayed) }}</span>
-            <span class="stat-label">Last Played</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Session history list -->
-    <div class="sessions-list mt-xl">
-      <h2 class="text-[1.1rem] font-bold text-fg mb-md">
-        Recent Sessions
-      </h2>
-
-      <div v-if="!sessionsData?.sessions?.length" class="empty-state">
-        <p class="text-fg-muted text-center">
-          No training sessions yet. Start practicing!
-        </p>
-        <NuxtLink to="/training" class="btn btn-gold mt-md">
-          Start Training
+  <AuthGate feature="Training Stats" description="Sign in to track your training session history, scores, and improvement over time.">
+    <div class="training-stats px-lg py-xl max-w-[800px] mx-auto w-full max-sm:px-md">
+      <div class="flex items-center gap-md mb-xl">
+        <NuxtLink to="/training" class="back-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
         </NuxtLink>
+        <h1 class="text-[1.8rem] font-black text-fg max-sm:text-[1.4rem]">
+          Training Stats
+        </h1>
       </div>
 
-      <div v-else class="sessions-grid">
-        <div
-          v-for="session in sessionsData.sessions"
-          :key="session.id"
-          class="session-card glass-card"
+      <!-- Mode filter tabs -->
+      <div class="mode-tabs">
+        <button
+          class="mode-tab"
+          :class="{ active: activeMode === null }"
+          @click="selectMode(null)"
         >
-          <div class="session-header">
-            <span class="session-mode" :style="{ color: modeColor(session.mode) }">
-              {{ modeName(session.mode) }}
-            </span>
-            <span class="session-date">{{ formatDate(session.createdAt) }}</span>
+          All
+        </button>
+        <button
+          v-for="mode in TRAINING_MODES"
+          :key="mode.mode"
+          class="mode-tab"
+          :class="{ active: activeMode === mode.mode }"
+          :style="activeMode === mode.mode ? { color: mode.color, borderColor: mode.color } : {}"
+          @click="selectMode(mode.mode)"
+        >
+          {{ mode.name }}
+        </button>
+      </div>
+
+      <!-- Aggregate stats overview -->
+      <div v-if="statsData?.stats" class="stats-overview">
+        <div
+          v-for="(stat, mode) in statsData.stats"
+          :key="mode"
+          class="stat-card glass-card"
+          :class="{ hidden: activeMode && activeMode !== mode }"
+        >
+          <span class="stat-card-mode" :style="{ color: modeColor(mode as string) }">
+            {{ modeName(mode as string) }}
+          </span>
+          <div class="stat-card-values">
+            <div class="stat-item">
+              <span class="stat-number">{{ stat.totalSessions }}</span>
+              <span class="stat-label">Sessions</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-number">{{ stat.avgDarts }}</span>
+              <span class="stat-label">Avg Darts</span>
+            </div>
+            <div v-if="stat.lastPlayed" class="stat-item">
+              <span class="stat-number text-[0.9rem]">{{ formatDate(stat.lastPlayed) }}</span>
+              <span class="stat-label">Last Played</span>
+            </div>
           </div>
-          <div class="session-stats">
-            <span class="session-darts">{{ session.totalDarts }} darts</span>
-            <span v-if="session.completed" class="session-badge completed">Completed</span>
-            <span v-else class="session-badge abandoned">Abandoned</span>
-          </div>
-          <div v-if="session.stats" class="session-details">
-            <span
-              v-for="entry in sessionStatEntries(session.stats as Record<string, unknown>)"
-              :key="entry.label"
-              class="session-detail"
-            >
-              {{ entry.label }}: <strong>{{ entry.value }}</strong>
-            </span>
+        </div>
+      </div>
+
+      <!-- Session history list -->
+      <div class="sessions-list mt-xl">
+        <h2 class="text-[1.1rem] font-bold text-fg mb-md">
+          Recent Sessions
+        </h2>
+
+        <div v-if="!sessionsData?.sessions?.length" class="empty-state">
+          <p class="text-fg-muted text-center">
+            No training sessions yet. Start practicing!
+          </p>
+          <NuxtLink to="/training" class="btn btn-gold mt-md">
+            Start Training
+          </NuxtLink>
+        </div>
+
+        <div v-else class="sessions-grid">
+          <div
+            v-for="session in sessionsData.sessions"
+            :key="session.id"
+            class="session-card glass-card"
+          >
+            <div class="session-header">
+              <span class="session-mode" :style="{ color: modeColor(session.mode) }">
+                {{ modeName(session.mode) }}
+              </span>
+              <span class="session-date">{{ formatDate(session.createdAt) }}</span>
+            </div>
+            <div class="session-stats">
+              <span class="session-darts">{{ session.totalDarts }} darts</span>
+              <span v-if="session.completed" class="session-badge completed">Completed</span>
+              <span v-else class="session-badge abandoned">Abandoned</span>
+            </div>
+            <div v-if="session.stats" class="session-details">
+              <span
+                v-for="entry in sessionStatEntries(session.stats as Record<string, unknown>)"
+                :key="entry.label"
+                class="session-detail"
+              >
+                {{ entry.label }}: <strong>{{ entry.value }}</strong>
+              </span>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
+  </AuthGate>
 </template>
 
 <style scoped>

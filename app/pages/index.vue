@@ -63,9 +63,9 @@ const features = [
 ]
 
 const steps = [
-  { number: 1, title: 'Create Account', description: 'Sign up free in seconds with email or magic link' },
-  { number: 2, title: 'Set Up Game', description: 'Pick players, game mode, and match format' },
-  { number: 3, title: 'Start Scoring', description: 'Tap or click to score — instant, accurate, beautiful' },
+  { number: 1, title: 'Enter Names', description: 'Type player names and pick your game mode' },
+  { number: 2, title: 'Start Scoring', description: 'Tap or click to score — instant, accurate, beautiful' },
+  { number: 3, title: 'Save Your Stats', description: 'Create a free account to track progress over time' },
 ]
 
 const highlights = [
@@ -73,10 +73,6 @@ const highlights = [
   { label: 'Works Offline', sublabel: 'Full PWA — no internet needed' },
   { label: 'Install as App', sublabel: 'Add to home screen on any device' },
 ]
-
-function scrollToFeatures() {
-  document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })
-}
 </script>
 
 <template>
@@ -104,12 +100,12 @@ function scrollToFeatures() {
         </p>
 
         <div class="hero-ctas anim-fade-in-up" style="--delay: 500ms;">
-          <NuxtLink to="/login" class="btn btn-gold hero-btn">
-            Get Started Free
+          <NuxtLink to="/play" class="btn btn-gold hero-btn">
+            Play Now
           </NuxtLink>
-          <button class="btn btn-secondary hero-btn" @click="scrollToFeatures">
-            Learn More
-          </button>
+          <NuxtLink to="/login" class="btn btn-secondary hero-btn">
+            Sign In
+          </NuxtLink>
         </div>
       </div>
     </section>
@@ -164,7 +160,7 @@ function scrollToFeatures() {
         Get Started in Seconds
       </h2>
       <p class="section-subtitle">
-        From sign-up to first throw in under a minute.
+        From landing to first throw in under a minute.
       </p>
 
       <div class="steps-grid">
@@ -211,8 +207,8 @@ function scrollToFeatures() {
         <p class="cta-subtitle">
           Join players using Darts Scorer for professional-grade game tracking.
         </p>
-        <NuxtLink to="/login" class="btn btn-gold cta-btn">
-          Get Started Now
+        <NuxtLink to="/play" class="btn btn-gold cta-btn">
+          Start Playing Now
         </NuxtLink>
       </div>
     </section>

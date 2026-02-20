@@ -107,148 +107,150 @@ function confirmAbandon() {
 </script>
 
 <template>
-  <div class="flex flex-col items-center gap-xl px-lg py-xl max-w-[600px] mx-auto w-full max-sm:px-md">
-    <!-- Back link -->
-    <div class="w-full">
-      <NuxtLink to="/dashboard" class="back-link">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="15 18 9 12 15 6" />
-        </svg>
-        Back to Home
-      </NuxtLink>
-    </div>
-
-    <!-- Title -->
-    <div class="text-center">
-      <h1 class="text-[1.8rem] font-black text-fg max-sm:text-[1.5rem]">
-        New Game
-      </h1>
-      <p class="text-fg-muted text-[0.85rem] mt-xs">
-        Set up a custom match
-      </p>
-    </div>
-
-    <!-- Wizard -->
-    <WizardShell
-      v-model:current-step="step"
-      :total-steps="3"
-      :can-advance="step === 1 ? canAdvanceStep1 : true"
-      finish-label="Start Game"
-      @finish="startGame"
-    >
-      <!-- Step 1: Select Players -->
-      <div v-if="step === 1" key="step-players" class="wizard-step">
-        <h3 class="step-title">
-          Select Players
-        </h3>
-        <p class="step-subtitle">
-          Tap to select. Order = throw order.
-        </p>
-
-        <PlayerPicker
-          v-model="humanSelection"
-          :min="1"
-          :max="4 - botPlayers.size"
-        />
-
-        <!-- Add Bot section -->
-        <div v-if="selectedPlayers.length < 4" class="w-full flex flex-col items-center gap-sm">
-          <span class="text-[0.8rem] font-bold text-fg-muted uppercase tracking-wide">Add a Bot</span>
-          <div class="flex gap-xs flex-wrap justify-center">
-            <button
-              v-for="diff in (['easy', 'medium', 'hard', 'pro'] as const)"
-              :key="diff"
-              class="bot-diff-btn"
-              @click="addBot(diff)"
-            >
-              <svg class="inline-block w-[14px] h-[14px] mr-[4px] opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2" /><circle cx="8.5" cy="16" r="1.5" /><circle cx="15.5" cy="16" r="1.5" /><path d="M12 2v5M7 7h10" /></svg>
-              {{ diff.charAt(0).toUpperCase() + diff.slice(1) }}
-            </button>
-          </div>
-        </div>
-
-        <!-- Bot chips -->
-        <div v-if="botPlayers.size > 0" class="w-full flex flex-wrap gap-xs justify-center">
-          <span
-            v-for="[name] in botPlayers"
-            :key="name"
-            class="bot-chip"
-          >
-            <svg class="inline-block w-[14px] h-[14px] mr-[3px] opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2" /><circle cx="8.5" cy="16" r="1.5" /><circle cx="15.5" cy="16" r="1.5" /><path d="M12 2v5M7 7h10" /></svg>
-            {{ name }}
-            <button class="bot-chip-remove" @click="removeBot(name)">&times;</button>
-          </span>
-        </div>
-
-        <!-- Quick Start -->
-        <button
-          v-if="canAdvanceStep1"
-          class="quick-start-btn"
-          @click="quickStart"
-        >
-          Quick Start
-          <span class="quick-hint">501 &middot; Double Out &middot; 1 Leg</span>
-        </button>
+  <AuthGate feature="New Game" description="Sign in to set up games with your saved players, avatars, and Elo ratings.">
+    <div class="flex flex-col items-center gap-xl px-lg py-xl max-w-[600px] mx-auto w-full max-sm:px-md">
+      <!-- Back link -->
+      <div class="w-full">
+        <NuxtLink to="/dashboard" class="back-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+          Back to Home
+        </NuxtLink>
       </div>
 
-      <!-- Step 2: Game Settings -->
-      <div v-else-if="step === 2" key="step-settings" class="wizard-step">
-        <h3 class="step-title">
-          Game Settings
-        </h3>
-        <p class="step-subtitle">
-          Customize or just tap Next for defaults.
+      <!-- Title -->
+      <div class="text-center">
+        <h1 class="text-[1.8rem] font-black text-fg max-sm:text-[1.5rem]">
+          New Game
+        </h1>
+        <p class="text-fg-muted text-[0.85rem] mt-xs">
+          Set up a custom match
         </p>
-
-        <GameSettingsPanel
-          v-model:game-mode="gameMode"
-          v-model:checkout="checkout"
-          v-model:legs-to-win="legsToWin"
-          v-model:sets-to-win="setsToWin"
-        />
       </div>
 
-      <!-- Step 3: Review & Start -->
-      <div v-else key="step-review" class="wizard-step">
-        <h3 class="step-title">
-          Ready to Play
-        </h3>
-        <p class="step-subtitle">
-          Review your game setup.
-        </p>
-
-        <GameSummary
-          :players="selectedPlayers"
-          :game-mode="gameMode"
-          :checkout="checkout"
-          :legs-to-win="legsToWin"
-          :sets-to-win="setsToWin"
-        />
-      </div>
-    </WizardShell>
-
-    <!-- Abandon confirm modal -->
-    <Teleport to="body">
-      <div v-if="showAbandonConfirm" class="modal-overlay" @click.self="showAbandonConfirm = false">
-        <div class="glass-card-heavy w-full max-w-[380px] p-2xl flex flex-col gap-lg">
-          <h3 class="text-[1.1rem] font-bold text-fg">
-            Abandon Current Game?
+      <!-- Wizard -->
+      <WizardShell
+        v-model:current-step="step"
+        :total-steps="3"
+        :can-advance="step === 1 ? canAdvanceStep1 : true"
+        finish-label="Start Game"
+        @finish="startGame"
+      >
+        <!-- Step 1: Select Players -->
+        <div v-if="step === 1" key="step-players" class="wizard-step">
+          <h3 class="step-title">
+            Select Players
           </h3>
-          <p class="text-fg-secondary text-[0.9rem] leading-relaxed">
-            Starting a new game will end your current game in progress.
+          <p class="step-subtitle">
+            Tap to select. Order = throw order.
           </p>
-          <div class="flex gap-md justify-end">
-            <button class="btn btn-secondary" @click="showAbandonConfirm = false">
-              Cancel
-            </button>
-            <button class="btn btn-danger" @click="confirmAbandon">
-              Start New Game
-            </button>
+
+          <PlayerPicker
+            v-model="humanSelection"
+            :min="1"
+            :max="4 - botPlayers.size"
+          />
+
+          <!-- Add Bot section -->
+          <div v-if="selectedPlayers.length < 4" class="w-full flex flex-col items-center gap-sm">
+            <span class="text-[0.8rem] font-bold text-fg-muted uppercase tracking-wide">Add a Bot</span>
+            <div class="flex gap-xs flex-wrap justify-center">
+              <button
+                v-for="diff in (['easy', 'medium', 'hard', 'pro'] as const)"
+                :key="diff"
+                class="bot-diff-btn"
+                @click="addBot(diff)"
+              >
+                <svg class="inline-block w-[14px] h-[14px] mr-[4px] opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2" /><circle cx="8.5" cy="16" r="1.5" /><circle cx="15.5" cy="16" r="1.5" /><path d="M12 2v5M7 7h10" /></svg>
+                {{ diff.charAt(0).toUpperCase() + diff.slice(1) }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Bot chips -->
+          <div v-if="botPlayers.size > 0" class="w-full flex flex-wrap gap-xs justify-center">
+            <span
+              v-for="[name] in botPlayers"
+              :key="name"
+              class="bot-chip"
+            >
+              <svg class="inline-block w-[14px] h-[14px] mr-[3px] opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2" /><circle cx="8.5" cy="16" r="1.5" /><circle cx="15.5" cy="16" r="1.5" /><path d="M12 2v5M7 7h10" /></svg>
+              {{ name }}
+              <button class="bot-chip-remove" @click="removeBot(name)">&times;</button>
+            </span>
+          </div>
+
+          <!-- Quick Start -->
+          <button
+            v-if="canAdvanceStep1"
+            class="quick-start-btn"
+            @click="quickStart"
+          >
+            Quick Start
+            <span class="quick-hint">501 &middot; Double Out &middot; 1 Leg</span>
+          </button>
+        </div>
+
+        <!-- Step 2: Game Settings -->
+        <div v-else-if="step === 2" key="step-settings" class="wizard-step">
+          <h3 class="step-title">
+            Game Settings
+          </h3>
+          <p class="step-subtitle">
+            Customize or just tap Next for defaults.
+          </p>
+
+          <GameSettingsPanel
+            v-model:game-mode="gameMode"
+            v-model:checkout="checkout"
+            v-model:legs-to-win="legsToWin"
+            v-model:sets-to-win="setsToWin"
+          />
+        </div>
+
+        <!-- Step 3: Review & Start -->
+        <div v-else key="step-review" class="wizard-step">
+          <h3 class="step-title">
+            Ready to Play
+          </h3>
+          <p class="step-subtitle">
+            Review your game setup.
+          </p>
+
+          <GameSummary
+            :players="selectedPlayers"
+            :game-mode="gameMode"
+            :checkout="checkout"
+            :legs-to-win="legsToWin"
+            :sets-to-win="setsToWin"
+          />
+        </div>
+      </WizardShell>
+
+      <!-- Abandon confirm modal -->
+      <Teleport to="body">
+        <div v-if="showAbandonConfirm" class="modal-overlay" @click.self="showAbandonConfirm = false">
+          <div class="glass-card-heavy w-full max-w-[380px] p-2xl flex flex-col gap-lg">
+            <h3 class="text-[1.1rem] font-bold text-fg">
+              Abandon Current Game?
+            </h3>
+            <p class="text-fg-secondary text-[0.9rem] leading-relaxed">
+              Starting a new game will end your current game in progress.
+            </p>
+            <div class="flex gap-md justify-end">
+              <button class="btn btn-secondary" @click="showAbandonConfirm = false">
+                Cancel
+              </button>
+              <button class="btn btn-danger" @click="confirmAbandon">
+                Start New Game
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    </Teleport>
-  </div>
+      </Teleport>
+    </div>
+  </AuthGate>
 </template>
 
 <style scoped>

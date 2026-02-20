@@ -2,31 +2,35 @@
 const route = useRoute()
 const { profile, fetch: fetchProfile, logout } = useProfile()
 const { stopGame } = useGameState()
+const { isAuthenticated } = useAuth()
 
-// Fetch profile on mount if not already loaded
+// Fetch profile on mount if not already loaded (only for authenticated users)
 onMounted(() => {
-  if (!profile.value)
+  if (isAuthenticated.value && !profile.value)
     fetchProfile()
 })
 
-const navItems = [
-  { path: '/dashboard', label: 'Home', name: 'dashboard', icon: 'home' },
+const navItems = computed(() => [
+  isAuthenticated.value
+    ? { path: '/dashboard', label: 'Home', name: 'dashboard', icon: 'home' }
+    : { path: '/play', label: 'Play', name: 'play', icon: 'home' },
   { path: '/tournaments', label: 'Tourneys', name: 'tournaments', icon: 'trophy' },
   { path: '/stats', label: 'Stats', name: 'stats', icon: 'bar-chart' },
   { path: '/settings', label: 'Settings', name: 'settings', icon: 'settings' },
-]
+])
 
 const isGamePage = computed(() => route.name === 'game')
 const isFullScreenPage = computed(() => isGamePage.value || route.name === 'training-play')
 const { isTournamentMatch } = useTournamentContext()
 
-function isNavItemActive(item: typeof navItems[number]): boolean {
+function isNavItemActive(item: { path: string, label: string, name: string, icon: string }): boolean {
   const name = String(route.name ?? '')
   return item.name === name
     || (item.name === 'tournaments' && name.startsWith('tournaments'))
     || (item.name === 'stats' && name.startsWith('stats'))
     || (item.name === 'settings' && (name === 'players' || name === 'teams'))
     || (item.name === 'dashboard' && name.startsWith('training'))
+    || (item.name === 'play' && name === 'play')
 }
 
 // Game page dots menu
@@ -46,19 +50,19 @@ function closeGameMenu() {
 async function handleStop() {
   await stopGame()
   closeGameMenu()
-  navigateTo('/dashboard')
+  navigateTo(isAuthenticated.value ? '/dashboard' : '/play')
 }
 
 function handleNewGame() {
   closeGameMenu()
-  navigateTo('/dashboard')
+  navigateTo(isAuthenticated.value ? '/dashboard' : '/play')
 }
 </script>
 
 <template>
   <nav class="app-nav glass-card sticky top-0 z-50 px-sm sm:px-lg py-sm mb-sm" data-tour="nav">
     <div class="flex items-center justify-between max-w-[1200px] mx-auto">
-      <NuxtLink to="/dashboard" class="brand-link">
+      <NuxtLink :to="isAuthenticated ? '/dashboard' : '/play'" class="brand-link">
         <DartsLogo :size="26" />
         <span class="brand-text brand-full">Darts Scorer</span>
         <span class="brand-text brand-short">DS</span>
@@ -83,6 +87,9 @@ function handleNewGame() {
 
       <div class="flex items-center gap-xs sm:gap-md shrink-0">
         <span v-if="profile" class="user-name">{{ profile.displayName }}</span>
+        <NuxtLink v-else-if="!isAuthenticated" to="/login" class="signin-link hidden sm:flex">
+          Sign In
+        </NuxtLink>
         <ThemeToggle />
 
         <!-- Game context menu -->
@@ -289,6 +296,19 @@ function handleNewGame() {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.signin-link {
+  align-items: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color var(--duration-fast);
+}
+
+.signin-link:hover {
+  color: var(--gold);
 }
 
 .logout-btn {

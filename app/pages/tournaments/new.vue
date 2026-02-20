@@ -101,194 +101,196 @@ async function createTournament() {
 </script>
 
 <template>
-  <div class="flex flex-col items-center gap-xl px-lg py-2xl max-w-[600px] mx-auto w-full max-sm:px-md max-sm:py-xl">
-    <div class="text-center">
-      <h2 class="text-[2rem] font-black text-fg max-sm:text-[1.5rem]">
-        New Tournament
-      </h2>
-    </div>
+  <AuthGate feature="Tournaments" description="Sign in to create and manage tournaments.">
+    <div class="flex flex-col items-center gap-xl px-lg py-2xl max-w-[600px] mx-auto w-full max-sm:px-md max-sm:py-xl">
+      <div class="text-center">
+        <h2 class="text-[2rem] font-black text-fg max-sm:text-[1.5rem]">
+          New Tournament
+        </h2>
+      </div>
 
-    <WizardShell
-      v-model:current-step="step"
-      :total-steps="4"
-      :can-advance="canAdvance"
-      finish-label="Create Tournament"
-      :loading="submitting"
-      @finish="createTournament"
-    >
-      <!-- Step 1: Tournament Info -->
-      <div v-if="step === 1" key="step-info" class="wizard-step">
-        <h3 class="step-title">
-          Tournament Info
-        </h3>
-        <p class="step-subtitle">
-          Give your tournament a name and pick a format.
-        </p>
+      <WizardShell
+        v-model:current-step="step"
+        :total-steps="4"
+        :can-advance="canAdvance"
+        finish-label="Create Tournament"
+        :loading="submitting"
+        @finish="createTournament"
+      >
+        <!-- Step 1: Tournament Info -->
+        <div v-if="step === 1" key="step-info" class="wizard-step">
+          <h3 class="step-title">
+            Tournament Info
+          </h3>
+          <p class="step-subtitle">
+            Give your tournament a name and pick a format.
+          </p>
 
-        <!-- Name -->
-        <div class="glass-card w-full p-lg flex flex-col gap-md">
-          <span class="settings-label">Tournament Name</span>
-          <input
-            v-model="name"
-            class="name-input"
-            type="text"
-            placeholder="Friday Night Darts"
-            maxlength="50"
+          <!-- Name -->
+          <div class="glass-card w-full p-lg flex flex-col gap-md">
+            <span class="settings-label">Tournament Name</span>
+            <input
+              v-model="name"
+              class="name-input"
+              type="text"
+              placeholder="Friday Night Darts"
+              maxlength="50"
+            >
+          </div>
+
+          <!-- Format -->
+          <div class="glass-card w-full p-lg flex flex-col items-center gap-md">
+            <span class="settings-label">Format</span>
+            <div class="mode-toggle multi format-toggle">
+              <button
+                v-for="f in formats"
+                :key="f.value"
+                class="mode-option"
+                :class="{ active: format === f.value }"
+                @click="format = f.value"
+              >
+                {{ f.label }}
+              </button>
+              <div
+                class="mode-pill"
+                :style="{
+                  width: `calc(${100 / formats.length}% - 2px)`,
+                  transform: `translateX(${formatIndex * 100}%)`,
+                }"
+              />
+            </div>
+          </div>
+
+          <!-- Participant Type -->
+          <div class="glass-card w-full p-lg flex flex-col items-center gap-md">
+            <span class="settings-label">Participants</span>
+            <div class="mode-toggle">
+              <button
+                class="mode-option"
+                :class="{ active: participantType === 'individual' }"
+                @click="participantType = 'individual'; selectedPlayers = []"
+              >
+                Individual
+              </button>
+              <button
+                class="mode-option"
+                :class="{ active: participantType === 'team' }"
+                @click="participantType = 'team'; selectedPlayers = []"
+              >
+                Teams (Doubles)
+              </button>
+              <div
+                class="mode-pill"
+                :style="{ transform: `translateX(${participantType === 'team' ? 100 : 0}%)` }"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2: Select Players / Teams -->
+        <div v-else-if="step === 2" key="step-players" class="wizard-step">
+          <h3 class="step-title">
+            {{ isTeamMode ? 'Select Teams' : 'Select Players' }}
+          </h3>
+          <p class="step-subtitle">
+            Pick at least {{ minPlayers }} {{ isTeamMode ? 'teams' : 'players' }} for this format.
+          </p>
+
+          <TeamPicker
+            v-if="isTeamMode"
+            v-model="selectedPlayers"
+            :min="minPlayers"
+            :max="16"
+          />
+          <PlayerPicker
+            v-else
+            v-model="selectedPlayers"
+            :min="minPlayers"
+            :max="16"
+          />
+        </div>
+
+        <!-- Step 3: Match Settings -->
+        <div v-else-if="step === 3" key="step-settings" class="wizard-step">
+          <h3 class="step-title">
+            Match Settings
+          </h3>
+          <p class="step-subtitle">
+            How should each match be played?
+          </p>
+
+          <GameSettingsPanel
+            v-model:game-mode="gameMode"
+            v-model:checkout="checkout"
+            v-model:legs-to-win="legsToWin"
+            v-model:sets-to-win="setsToWin"
           >
+            <!-- Group-specific settings slotted into the panel -->
+            <template v-if="isGroupFormat">
+              <div class="glass-card w-full p-lg flex flex-col items-center gap-md">
+                <span class="settings-label">Number of Groups</span>
+                <div class="mode-toggle multi">
+                  <button
+                    v-for="opt in groupOptions"
+                    :key="opt"
+                    class="mode-option"
+                    :class="{ active: groupCount === opt }"
+                    @click="groupCount = opt"
+                  >
+                    {{ opt }}
+                  </button>
+                  <div class="mode-pill" :style="{ width: `calc(${100 / groupOptions.length}% - 2px)`, transform: `translateX(${groupOptions.indexOf(groupCount) * 100}%)` }" />
+                </div>
+              </div>
+
+              <div v-if="format === 'group_knockout'" class="glass-card w-full p-lg flex flex-col items-center gap-md">
+                <span class="settings-label">Advance per Group</span>
+                <div class="mode-toggle multi">
+                  <button
+                    v-for="opt in advanceOptions"
+                    :key="opt"
+                    class="mode-option"
+                    :class="{ active: advancePerGroup === opt }"
+                    @click="advancePerGroup = opt"
+                  >
+                    {{ opt }}
+                  </button>
+                  <div class="mode-pill" :style="{ width: `calc(${100 / advanceOptions.length}% - 2px)`, transform: `translateX(${advanceOptions.indexOf(advancePerGroup) * 100}%)` }" />
+                </div>
+              </div>
+            </template>
+          </GameSettingsPanel>
         </div>
 
-        <!-- Format -->
-        <div class="glass-card w-full p-lg flex flex-col items-center gap-md">
-          <span class="settings-label">Format</span>
-          <div class="mode-toggle multi format-toggle">
-            <button
-              v-for="f in formats"
-              :key="f.value"
-              class="mode-option"
-              :class="{ active: format === f.value }"
-              @click="format = f.value"
-            >
-              {{ f.label }}
-            </button>
-            <div
-              class="mode-pill"
-              :style="{
-                width: `calc(${100 / formats.length}% - 2px)`,
-                transform: `translateX(${formatIndex * 100}%)`,
-              }"
-            />
+        <!-- Step 4: Review & Create -->
+        <div v-else key="step-review" class="wizard-step">
+          <h3 class="step-title">
+            Review Tournament
+          </h3>
+          <p class="step-subtitle">
+            Everything look good?
+          </p>
+
+          <TournamentSummary
+            :name="name"
+            :format="format"
+            :players="selectedPlayers"
+            :game-mode="gameMode"
+            :checkout="checkout"
+            :legs-to-win="legsToWin"
+            :sets-to-win="setsToWin"
+            :group-count="isGroupFormat ? groupCount : undefined"
+            :advance-per-group="format === 'group_knockout' ? advancePerGroup : undefined"
+            :team-mode="isTeamMode ? 'doubles' : undefined"
+          />
+
+          <div v-if="error" class="text-red text-[0.85rem] font-semibold text-center">
+            {{ error }}
           </div>
         </div>
-
-        <!-- Participant Type -->
-        <div class="glass-card w-full p-lg flex flex-col items-center gap-md">
-          <span class="settings-label">Participants</span>
-          <div class="mode-toggle">
-            <button
-              class="mode-option"
-              :class="{ active: participantType === 'individual' }"
-              @click="participantType = 'individual'; selectedPlayers = []"
-            >
-              Individual
-            </button>
-            <button
-              class="mode-option"
-              :class="{ active: participantType === 'team' }"
-              @click="participantType = 'team'; selectedPlayers = []"
-            >
-              Teams (Doubles)
-            </button>
-            <div
-              class="mode-pill"
-              :style="{ transform: `translateX(${participantType === 'team' ? 100 : 0}%)` }"
-            />
-          </div>
-        </div>
-      </div>
-
-      <!-- Step 2: Select Players / Teams -->
-      <div v-else-if="step === 2" key="step-players" class="wizard-step">
-        <h3 class="step-title">
-          {{ isTeamMode ? 'Select Teams' : 'Select Players' }}
-        </h3>
-        <p class="step-subtitle">
-          Pick at least {{ minPlayers }} {{ isTeamMode ? 'teams' : 'players' }} for this format.
-        </p>
-
-        <TeamPicker
-          v-if="isTeamMode"
-          v-model="selectedPlayers"
-          :min="minPlayers"
-          :max="16"
-        />
-        <PlayerPicker
-          v-else
-          v-model="selectedPlayers"
-          :min="minPlayers"
-          :max="16"
-        />
-      </div>
-
-      <!-- Step 3: Match Settings -->
-      <div v-else-if="step === 3" key="step-settings" class="wizard-step">
-        <h3 class="step-title">
-          Match Settings
-        </h3>
-        <p class="step-subtitle">
-          How should each match be played?
-        </p>
-
-        <GameSettingsPanel
-          v-model:game-mode="gameMode"
-          v-model:checkout="checkout"
-          v-model:legs-to-win="legsToWin"
-          v-model:sets-to-win="setsToWin"
-        >
-          <!-- Group-specific settings slotted into the panel -->
-          <template v-if="isGroupFormat">
-            <div class="glass-card w-full p-lg flex flex-col items-center gap-md">
-              <span class="settings-label">Number of Groups</span>
-              <div class="mode-toggle multi">
-                <button
-                  v-for="opt in groupOptions"
-                  :key="opt"
-                  class="mode-option"
-                  :class="{ active: groupCount === opt }"
-                  @click="groupCount = opt"
-                >
-                  {{ opt }}
-                </button>
-                <div class="mode-pill" :style="{ width: `calc(${100 / groupOptions.length}% - 2px)`, transform: `translateX(${groupOptions.indexOf(groupCount) * 100}%)` }" />
-              </div>
-            </div>
-
-            <div v-if="format === 'group_knockout'" class="glass-card w-full p-lg flex flex-col items-center gap-md">
-              <span class="settings-label">Advance per Group</span>
-              <div class="mode-toggle multi">
-                <button
-                  v-for="opt in advanceOptions"
-                  :key="opt"
-                  class="mode-option"
-                  :class="{ active: advancePerGroup === opt }"
-                  @click="advancePerGroup = opt"
-                >
-                  {{ opt }}
-                </button>
-                <div class="mode-pill" :style="{ width: `calc(${100 / advanceOptions.length}% - 2px)`, transform: `translateX(${advanceOptions.indexOf(advancePerGroup) * 100}%)` }" />
-              </div>
-            </div>
-          </template>
-        </GameSettingsPanel>
-      </div>
-
-      <!-- Step 4: Review & Create -->
-      <div v-else key="step-review" class="wizard-step">
-        <h3 class="step-title">
-          Review Tournament
-        </h3>
-        <p class="step-subtitle">
-          Everything look good?
-        </p>
-
-        <TournamentSummary
-          :name="name"
-          :format="format"
-          :players="selectedPlayers"
-          :game-mode="gameMode"
-          :checkout="checkout"
-          :legs-to-win="legsToWin"
-          :sets-to-win="setsToWin"
-          :group-count="isGroupFormat ? groupCount : undefined"
-          :advance-per-group="format === 'group_knockout' ? advancePerGroup : undefined"
-          :team-mode="isTeamMode ? 'doubles' : undefined"
-        />
-
-        <div v-if="error" class="text-red text-[0.85rem] font-semibold text-center">
-          {{ error }}
-        </div>
-      </div>
-    </WizardShell>
-  </div>
+      </WizardShell>
+    </div>
+  </AuthGate>
 </template>
 
 <style scoped>
