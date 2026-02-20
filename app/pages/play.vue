@@ -23,8 +23,6 @@ const canStart = computed(() => {
   return totalPlayerCount.value >= 2 && filledHumans >= 1
 })
 
-let botCounter = 0
-
 function addPlayer() {
   if (playerNames.value.length + botPlayers.value.size >= 4)
     return
@@ -37,13 +35,22 @@ function removePlayer(index: number) {
   playerNames.value.splice(index, 1)
 }
 
+function nextBotName(difficulty: BotDifficulty): string {
+  const label = difficulty.charAt(0).toUpperCase() + difficulty.slice(1)
+  const base = `Bot ${label}`
+  if (!botPlayers.value.has(base))
+    return base
+  for (let i = 2; ; i++) {
+    const name = `${base} #${i}`
+    if (!botPlayers.value.has(name))
+      return name
+  }
+}
+
 function addBot(difficulty: BotDifficulty) {
   if (totalPlayerCount.value >= 4)
     return
-  botCounter++
-  const label = difficulty.charAt(0).toUpperCase() + difficulty.slice(1)
-  const name = `Bot ${label}${botCounter > 1 ? ` #${botCounter}` : ''}`
-  botPlayers.value.set(name, difficulty)
+  botPlayers.value.set(nextBotName(difficulty), difficulty)
 }
 
 function removeBot(name: string) {

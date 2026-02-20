@@ -7,7 +7,6 @@ const { dartboardThemeId, setDartboardThemeId, inputMode, setInputMode } = useSe
 const { audioEnabled, toggle: toggleAudio } = useAudio()
 const { enabled: announcerEnabled, toggle: toggleAnnouncer } = useAnnouncer()
 const { profile, logout } = useProfile()
-const { isAuthenticated } = useAuth()
 
 function selectTheme(theme: DartboardTheme) {
   setDartboardThemeId(theme.id)
@@ -161,7 +160,7 @@ const inputModes: { id: InputMode, label: string, description: string, icon: str
           Log out
         </button>
       </div>
-      <div v-else-if="!isAuthenticated" class="flex items-center justify-between p-md bg-surface-2 border border-border-subtle rounded-md">
+      <div v-else class="flex items-center justify-between p-md bg-surface-2 border border-border-subtle rounded-md">
         <div class="flex flex-col gap-[2px]">
           <span class="text-[0.85rem] font-semibold text-fg">Not signed in</span>
           <span class="text-[0.75rem] text-fg-muted">Sign in to save preferences across devices</span>

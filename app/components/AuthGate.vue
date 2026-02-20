@@ -2,7 +2,6 @@
 defineProps<{
   feature: string
   description?: string
-  icon?: 'users' | 'trophy' | 'chart' | 'target' | 'home' | 'settings'
 }>()
 
 const { isAuthenticated } = useAuth()

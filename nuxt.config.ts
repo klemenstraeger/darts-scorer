@@ -34,7 +34,7 @@ export default defineNuxtConfig({
     redirectOptions: {
       login: '/login',
       callback: '/confirm',
-      exclude: ['/', '/login', '/confirm', '/spectate/*', '/camera/*', '/play', '/game', '/game/*', '/training', '/training/*', '/settings', '/dashboard', '/players', '/teams', '/teams/*', '/tournaments', '/tournaments/*', '/stats', '/stats/*', '/new-game', '/quick-start'],
+      exclude: ['/', '/login', '/confirm', '/spectate/*', '/camera/*', '/play', '/game', '/game/*', '/training', '/training/*', '/settings'],
     },
   },
 
