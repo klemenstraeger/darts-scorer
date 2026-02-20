@@ -1,9 +1,11 @@
 <script setup lang="ts">
+const route = useRoute()
 const { newGame, hasActiveGame, hasGame, checkActiveGame } = useGameState()
 const { lastGameSettings } = useSettings()
 const { hasActiveSession: hasActiveTraining, checkActiveSession } = useTrainingState()
 const { shouldShowTour, startTour } = useOnboarding()
 
+const dashboardTab = ref<'home' | 'training'>('home')
 const showAbandonConfirm = ref(false)
 
 const hasRematch = computed(() => {
@@ -23,6 +25,9 @@ const rematchSummary = computed(() => {
 onMounted(() => {
   checkActiveGame()
   checkActiveSession()
+
+  if (route.query.tab === 'training')
+    dashboardTab.value = 'training'
 
   if (shouldShowTour('dashboard')) {
     setTimeout(() => {
@@ -129,6 +134,40 @@ const actionCards = [
       </div>
     </div>
 
+    <!-- Tab bar -->
+    <div
+      v-motion
+      class="flex justify-center gap-sm mb-lg"
+      :initial="{ opacity: 0 }"
+      :enter="{ opacity: 1, transition: { duration: 300, delay: 50 } }"
+    >
+      <button
+        class="tab-btn"
+        :class="{ active: dashboardTab === 'home' }"
+        @click="dashboardTab = 'home'"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block mr-xs -mt-[1px]">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+          <polyline points="9 22 9 12 15 12 15 22" />
+        </svg>
+        Home
+      </button>
+      <button
+        class="tab-btn"
+        :class="{ active: dashboardTab === 'training' }"
+        @click="dashboardTab = 'training'"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block mr-xs -mt-[1px]">
+          <circle cx="12" cy="12" r="10" />
+          <circle cx="12" cy="12" r="6" />
+          <circle cx="12" cy="12" r="2" />
+        </svg>
+        Training
+      </button>
+    </div>
+
+    <!-- Home tab -->
+    <div v-if="dashboardTab === 'home'">
     <!-- Quick Start -->
     <div
       v-motion
@@ -230,6 +269,12 @@ const actionCards = [
         <span class="action-subtitle">{{ card.subtitle }}</span>
       </NuxtLink>
     </div>
+    </div>
+
+    <!-- Training tab -->
+    <div v-if="dashboardTab === 'training'">
+      <TrainingPicker :show-header="false" />
+    </div>
 
     <!-- Abandon confirm modal -->
     <Teleport to="body">
@@ -256,6 +301,36 @@ const actionCards = [
 </template>
 
 <style scoped>
+/* -- Tab buttons -------------------------------------------------------- */
+.tab-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--spacing-xs) var(--spacing-xl);
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background var(--duration-fast),
+    border-color var(--duration-fast),
+    color var(--duration-fast);
+}
+
+.tab-btn:hover {
+  background: var(--surface-3);
+}
+
+.tab-btn.active {
+  background: rgba(255, 215, 0, 0.12);
+  border-color: var(--border-gold);
+  color: var(--gold);
+  font-weight: 600;
+}
+
 /* -- Quick Start button ------------------------------------------------- */
 .quick-start-btn {
   display: flex;

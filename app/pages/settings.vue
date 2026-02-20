@@ -73,6 +73,53 @@ const inputModes: { id: InputMode, label: string, description: string, icon: str
       </button>
     </div>
 
+    <!-- Manage Section -->
+    <div class="w-full flex flex-col gap-md">
+      <h3 class="text-[1.1rem] font-bold text-fg">
+        Manage
+      </h3>
+
+      <NuxtLink to="/players" class="nav-row">
+        <div class="flex items-center gap-md">
+          <div class="nav-row-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+          </div>
+          <div class="flex flex-col gap-[2px]">
+            <span class="text-[0.9rem] font-bold text-fg">Players</span>
+            <span class="text-fg-muted text-[0.75rem]">Manage players and avatars</span>
+          </div>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-fg-muted">
+          <polyline points="9 18 15 12 9 6" />
+        </svg>
+      </NuxtLink>
+
+      <NuxtLink to="/teams" class="nav-row">
+        <div class="flex items-center gap-md">
+          <div class="nav-row-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+          </div>
+          <div class="flex flex-col gap-[2px]">
+            <span class="text-[0.9rem] font-bold text-fg">Teams</span>
+            <span class="text-fg-muted text-[0.75rem]">Create and manage teams for doubles</span>
+          </div>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-fg-muted">
+          <polyline points="9 18 15 12 9 6" />
+        </svg>
+      </NuxtLink>
+    </div>
+
     <!-- Dartboard Theme Section -->
     <div class="w-full flex flex-col gap-lg">
       <h3 class="text-[1.1rem] font-bold text-fg">
@@ -155,6 +202,36 @@ const inputModes: { id: InputMode, label: string, description: string, icon: str
 
 .theme-card.active .theme-name {
   color: var(--gold);
+}
+
+/* ── Nav row (sub-page links) ── */
+.nav-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition: border-color var(--duration-normal) var(--ease-out);
+}
+
+.nav-row:hover {
+  border-color: var(--border-default);
+}
+
+.nav-row-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--surface-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gold);
+  flex-shrink: 0;
 }
 
 /* ── Toggle row ── */

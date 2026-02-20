@@ -11,10 +11,7 @@ onMounted(() => {
 
 const navItems = [
   { path: '/dashboard', label: 'Home', name: 'dashboard', icon: 'home' },
-  { path: '/players', label: 'Players', name: 'players', icon: 'users' },
-  { path: '/teams', label: 'Teams', name: 'teams', icon: 'users' },
   { path: '/tournaments', label: 'Tourneys', name: 'tournaments', icon: 'trophy' },
-  { path: '/training', label: 'Training', name: 'training', icon: 'target' },
   { path: '/stats', label: 'Stats', name: 'stats', icon: 'bar-chart' },
   { path: '/settings', label: 'Settings', name: 'settings', icon: 'settings' },
 ]
@@ -27,10 +24,9 @@ function isNavItemActive(item: typeof navItems[number]): boolean {
   const name = String(route.name ?? '')
   return item.name === name
     || (item.name === 'tournaments' && name.startsWith('tournaments'))
-    || (item.name === 'players' && name.startsWith('players'))
-    || (item.name === 'teams' && name.startsWith('teams'))
-    || (item.name === 'training' && name.startsWith('training'))
     || (item.name === 'stats' && name.startsWith('stats'))
+    || (item.name === 'settings' && (name === 'players' || name === 'teams'))
+    || (item.name === 'dashboard' && name.startsWith('training'))
 }
 
 // Game page dots menu
@@ -167,13 +163,6 @@ function handleNewGame() {
           <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
           <polyline points="9 22 9 12 15 12 15 22" />
         </svg>
-        <!-- Users -->
-        <svg v-else-if="item.icon === 'users'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-          <circle cx="9" cy="7" r="4" />
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-        </svg>
         <!-- Trophy -->
         <svg v-else-if="item.icon === 'trophy'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
@@ -182,12 +171,6 @@ function handleNewGame() {
           <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
           <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
           <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
-        </svg>
-        <!-- Target -->
-        <svg v-else-if="item.icon === 'target'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10" />
-          <circle cx="12" cy="12" r="6" />
-          <circle cx="12" cy="12" r="2" />
         </svg>
         <!-- Bar Chart -->
         <svg v-else-if="item.icon === 'bar-chart'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
