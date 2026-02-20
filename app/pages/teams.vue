@@ -415,4 +415,3 @@ onMounted(() => {
     </div>
   </AuthGate>
 </template>
-

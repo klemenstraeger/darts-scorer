@@ -9,8 +9,6 @@ import { useMounted } from '@vueuse/core'
 import { computed, ref } from 'vue'
 import { ChartCrosshair, ChartTooltipContent, componentToString, defaultColors } from '@/components/ui/chart'
 
-let _areaChartId = 0
-
 const props = withDefaults(defineProps<BaseChartProps<T> & {
   chartConfig?: ChartConfig
   curveType?: CurveType
@@ -30,6 +28,8 @@ const props = withDefaults(defineProps<BaseChartProps<T> & {
 const _emits = defineEmits<{
   legendItemClick: [d: BulletLegendItemInterface, i: number]
 }>()
+
+let _areaChartId = 0
 
 type KeyOfT = Extract<keyof T, string>
 type Data = typeof props.data[number]

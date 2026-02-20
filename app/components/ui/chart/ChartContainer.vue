@@ -2,14 +2,14 @@
 import type { HTMLAttributes } from 'vue'
 import type { ChartConfig } from '.'
 import { computed, toRefs } from 'vue'
+import { cn } from '@/lib/utils'
+import { provideChartContext } from '.'
+import ChartStyle from './ChartStyle.vue'
 
 let _idCounter = 0
 function _generateId(): string {
   return `chart-${++_idCounter}`
 }
-import { cn } from '@/lib/utils'
-import { provideChartContext } from '.'
-import ChartStyle from './ChartStyle.vue'
 </script>
 
 <script setup lang="ts">

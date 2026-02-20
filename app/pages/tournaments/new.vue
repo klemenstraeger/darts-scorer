@@ -27,7 +27,6 @@ const formats: { value: TournamentFormat, label: string }[] = [
   { value: 'group_only', label: 'Groups' },
   { value: 'group_knockout', label: 'Groups + KO' },
 ]
-const formatIndex = computed(() => formats.findIndex(f => f.value === format.value))
 
 const groupOptions = [2, 3, 4]
 const advanceOptions = [1, 2, 3]

@@ -28,7 +28,8 @@ const CHART_KEY = Symbol('Chart') as InjectionKey<ChartContextProps>
 
 export function useChart(): ChartContextProps {
   const ctx = inject(CHART_KEY)
-  if (!ctx) throw new Error('useChart must be used within a ChartContainer')
+  if (!ctx)
+    throw new Error('useChart must be used within a ChartContainer')
   return ctx
 }
 

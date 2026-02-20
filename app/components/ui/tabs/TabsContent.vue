@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import type { TabsContentProps } from 'reka-ui'
 import type { HTMLAttributes } from 'vue'
-import { TabsContent, type TabsContentProps } from 'reka-ui'
+import { TabsContent } from 'reka-ui'
 import { cn } from '@/lib/utils'
 
 interface Props extends TabsContentProps {

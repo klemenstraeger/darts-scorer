@@ -84,10 +84,6 @@ function isPlayable(match: TournamentMatch): boolean {
   return match.status === 'pending' && !!match.player1Name && !!match.player2Name
 }
 
-function statusClass(match: TournamentMatch): string {
-  return match.status === 'in_progress' ? 'in-progress' : match.status
-}
-
 function isToday(dateStr: string): boolean {
   if (dateStr === 'Unscheduled')
     return false

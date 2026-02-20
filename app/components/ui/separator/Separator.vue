@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import type { SeparatorProps as SeparatorRootProps } from 'reka-ui'
 import type { HTMLAttributes } from 'vue'
-import { Separator as SeparatorRoot, type SeparatorProps as SeparatorRootProps } from 'reka-ui'
+import { Separator as SeparatorRoot } from 'reka-ui'
 import { cn } from '@/lib/utils'
 
 interface Props extends SeparatorRootProps {

@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { AlertDialogCancel, type AlertDialogCancelProps } from 'reka-ui'
-import { cn } from '@/lib/utils'
-import { buttonVariants } from '@/components/ui/button'
+import type { AlertDialogCancelProps } from 'reka-ui'
 import type { HTMLAttributes } from 'vue'
+import { AlertDialogCancel } from 'reka-ui'
+import { buttonVariants } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 interface Props extends AlertDialogCancelProps {
   class?: HTMLAttributes['class']

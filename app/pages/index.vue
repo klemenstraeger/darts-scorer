@@ -1,6 +1,4 @@
 <script setup lang="ts">
-const user = useSupabaseUser()
-
 // Redirect logged-in users to dashboard
 // if (import.meta.client) {
 //   watchEffect(() => {

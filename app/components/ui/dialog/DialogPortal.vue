@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { DialogPortal, type DialogPortalProps } from 'reka-ui'
+import type { DialogPortalProps } from 'reka-ui'
+import { DialogPortal } from 'reka-ui'
 
 const props = defineProps<DialogPortalProps>()
 </script>

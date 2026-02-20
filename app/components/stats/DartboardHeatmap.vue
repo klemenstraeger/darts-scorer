@@ -57,4 +57,3 @@ function heatOpacity(segment: number, ring: string): number {
     </svg>
   </div>
 </template>
-

@@ -19,7 +19,6 @@ export default defineNuxtConfig({
     '~/components',
   ],
 
-
   supabase: {
     redirect: true,
     redirectOptions: {

@@ -14,12 +14,15 @@ const colorConfig = computed(() => {
     ([, config]) => config.theme || config.color,
   )
 })
+
+const styleTag = 'style' as const
 </script>
 
 <template>
   <component
+    :is="styleTag"
+    v-bind="$attrs"
     v-if="colorConfig.length"
-    :is="'style'"
   >
     {{ Object.entries(THEMES)
       .map(
