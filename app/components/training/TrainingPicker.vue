@@ -2,7 +2,7 @@
 import type { AroundTheClockVariant, TrainingConfig, TrainingMode } from '~/types/training'
 import { TRAINING_MODES } from '~/types/training'
 
-const props = withDefaults(defineProps<{
+withDefaults(defineProps<{
   showHeader?: boolean
 }>(), {
   showHeader: true,
