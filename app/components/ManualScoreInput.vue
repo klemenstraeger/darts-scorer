@@ -10,18 +10,17 @@ const emit = defineEmits<{
 type Modifier = 1 | 2 | 3
 const modifier = ref<Modifier>(1)
 
-const modifiers: { label: string, shortcut: string, value: Modifier, color: string }[] = [
-  { label: 'Single', shortcut: '', value: 1, color: 'neutral' },
-  { label: 'Double', shortcut: 'D', value: 2, color: 'yellow' },
-  { label: 'Triple', shortcut: 'T', value: 3, color: 'blue' },
+const modifiers: { label: string, shortcut: string, value: Modifier }[] = [
+  { label: 'Single', shortcut: '', value: 1 },
+  { label: 'Double', shortcut: 'D', value: 2 },
+  { label: 'Triple', shortcut: 'T', value: 3 },
 ]
 
 const numbers = [
-  [1, 2, 3, 4],
-  [5, 6, 7, 8],
-  [9, 10, 11, 12],
-  [13, 14, 15, 16],
-  [17, 18, 19, 20],
+  [1, 2, 3, 4, 5],
+  [6, 7, 8, 9, 10],
+  [11, 12, 13, 14, 15],
+  [16, 17, 18, 19, 20],
 ]
 
 function emitScore(segment: number, mult?: number) {
@@ -55,25 +54,25 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
 <template>
   <div class="manual-input" :class="[`mod-${modifier}`, { disabled }]">
-    <div class="flex shrink-0">
-      <div class="manual-modifier-toggle">
-        <button
-          v-for="mod in modifiers"
-          :key="mod.value"
-          class="manual-mod-btn"
-          :class="{ active: modifier === mod.value }"
-          @click="modifier = mod.value"
-        >
-          {{ mod.label }}<kbd v-if="mod.shortcut" class="manual-mod-kbd">{{ mod.shortcut }}</kbd>
-        </button>
-        <div
-          class="manual-mod-pill"
-          :style="{ transform: `translateX(${(modifier - 1) * 100}%)` }"
-          :class="`pill-${modifier}`"
-        />
-      </div>
+    <!-- Modifier toggle -->
+    <div class="manual-modifier-bar">
+      <button
+        v-for="mod in modifiers"
+        :key="mod.value"
+        class="manual-mod-btn"
+        :class="[`mod-opt-${mod.value}`, { active: modifier === mod.value }]"
+        @click="modifier = mod.value"
+      >
+        {{ mod.label }}<kbd v-if="mod.shortcut" class="manual-mod-kbd">{{ mod.shortcut }}</kbd>
+      </button>
+      <div
+        class="manual-mod-indicator"
+        :style="{ transform: `translateX(${(modifier - 1) * 100}%)` }"
+        :class="`indicator-${modifier}`"
+      />
     </div>
 
+    <!-- Number grid: 5 columns x 4 rows -->
     <div class="manual-number-grid">
       <template v-for="row in numbers" :key="row[0]">
         <button
@@ -83,11 +82,12 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           :disabled="disabled"
           @click="emitScore(n); haptic()"
         >
-          {{ n }}<span v-if="modifier > 1" class="manual-mult-badge" :class="`mult-${modifier}`">x{{ modifier }}</span>
+          {{ n }}
         </button>
       </template>
     </div>
 
+    <!-- Special row: MISS / Bull -->
     <div class="manual-special-row">
       <button
         class="manual-special-btn miss"
@@ -101,87 +101,87 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
         :disabled="disabled"
         @click="emitScore(25, 1); haptic()"
       >
-        25 / SB
+        <span class="manual-special-label">25</span>
+        <span class="manual-special-sub">SB</span>
       </button>
       <button
         class="manual-special-btn bull-double"
         :disabled="disabled"
         @click="emitScore(25, 2); haptic()"
       >
-        50 / DB
+        <span class="manual-special-label">50</span>
+        <span class="manual-special-sub">DB</span>
       </button>
     </div>
   </div>
 </template>
 
 <style>
-/* ManualScoreInput — complex interactive grid with parent-class-dependent
-   hover colors and sliding pill. Cannot be pure Tailwind. */
 .manual-input {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   width: 100%;
   height: 100%;
   min-height: 0;
 }
 
 @media (min-width: 768px) {
-  .manual-input { gap: var(--spacing-sm); }
+  .manual-input { gap: 8px; }
 }
 
 .manual-input.disabled {
-  opacity: 0.4;
+  opacity: 0.35;
   pointer-events: none;
 }
 
-/* Modifier toggle */
-.manual-modifier-toggle {
+/* ── Modifier toggle ────────────────────────────────────────────────── */
+.manual-modifier-bar {
   position: relative;
   display: flex;
   background: var(--surface-2);
-  border-radius: var(--radius-md);
-  overflow: hidden;
+  border-radius: var(--radius-lg);
   border: 2px solid var(--border-color);
-  width: 100%;
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
 .manual-mod-btn {
   position: relative;
   z-index: 1;
   flex: 1;
-  padding: 8px var(--spacing-lg);
+  padding: 10px 0;
   background: transparent;
   border: none;
   color: var(--text-muted);
   font-family: var(--font-sans);
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: 0.8rem;
+  font-weight: 700;
   cursor: pointer;
   transition: color var(--duration-fast);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
 }
 
 @media (min-width: 768px) {
-  .manual-mod-btn { padding: var(--spacing-md) var(--spacing-lg); }
+  .manual-mod-btn { padding: 12px 0; font-size: 0.85rem; }
 }
 
 .manual-mod-btn.active { color: var(--text-inverse); }
-.mod-1 .manual-mod-btn.active { color: var(--text-primary); }
+.manual-mod-btn.mod-opt-1.active { color: var(--text-primary); }
 
 .manual-mod-kbd {
   display: none;
   font-family: var(--font-sans);
-  font-size: 0.6rem;
+  font-size: 0.55rem;
   font-weight: 700;
   margin-left: 4px;
-  padding: 1px 4px;
+  padding: 1px 5px;
   border-radius: 3px;
-  background: rgba(0, 0, 0, 0.08);
-  border: 1px solid var(--border-color);
+  background: rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.1);
   color: inherit;
-  opacity: 0.6;
+  opacity: 0.5;
   vertical-align: middle;
 }
 
@@ -189,28 +189,32 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   .manual-mod-kbd { display: inline; }
 }
 
-.manual-mod-pill {
+.manual-mod-indicator {
   position: absolute;
-  top: 2px;
-  left: 2px;
-  width: calc(100% / 3 - 2px);
-  height: calc(100% - 4px);
-  border-radius: calc(var(--radius-md) - 2px);
+  top: 3px;
+  left: 3px;
+  width: calc(100% / 3 - 3px);
+  height: calc(100% - 6px);
+  border-radius: calc(var(--radius-lg) - 3px);
   transition: transform var(--duration-normal) var(--ease-spring);
 }
 
-.manual-mod-pill.pill-1 { background: var(--surface-3); }
-.manual-mod-pill.pill-2 { background: var(--yellow); }
-.manual-mod-pill.pill-3 { background: var(--blue); }
+.manual-mod-indicator.indicator-1 { background: var(--surface-3); }
+.manual-mod-indicator.indicator-2 { background: var(--yellow); }
+.manual-mod-indicator.indicator-3 { background: var(--blue); }
 
-/* Number grid */
+/* ── Number grid ────────────────────────────────────────────────────── */
 .manual-number-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: repeat(5, 1fr);
-  gap: var(--spacing-xs);
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  gap: 4px;
   flex: 1;
   min-height: 0;
+}
+
+@media (min-width: 768px) {
+  .manual-number-grid { gap: 6px; }
 }
 
 .manual-num-btn {
@@ -220,23 +224,23 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   justify-content: center;
   background: var(--surface-1);
   border: 2px solid var(--border-color);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   color: var(--text-primary);
   font-family: var(--font-sans);
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   font-weight: 800;
   cursor: pointer;
   box-shadow: var(--shadow-sm);
-  transition: transform 50ms var(--ease-out), background var(--duration-fast), box-shadow var(--duration-fast);
+  transition: transform 60ms var(--ease-out),
+              box-shadow 60ms var(--ease-out),
+              border-color var(--duration-fast),
+              background var(--duration-fast);
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
 @media (min-width: 768px) {
-  .manual-num-btn { min-height: 56px; font-size: 1.4rem; }
-}
-
-.manual-num-btn:hover:not(:disabled) {
-  transform: translate(-2px, -2px);
-  box-shadow: var(--shadow-md);
+  .manual-num-btn { font-size: 1.3rem; min-height: 52px; }
 }
 
 .manual-num-btn:active:not(:disabled) {
@@ -244,64 +248,107 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   box-shadow: none;
 }
 
-.mod-2 .manual-num-btn:hover:not(:disabled) { border-color: var(--yellow); }
-.mod-3 .manual-num-btn:hover:not(:disabled) { border-color: var(--blue); }
+.manual-num-btn:disabled { opacity: 0.25; cursor: not-allowed; }
 
-.manual-num-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-
-.manual-mult-badge {
-  position: absolute;
-  top: 4px;
-  right: 6px;
-  font-size: 0.55rem;
-  font-weight: 700;
-  line-height: 1;
-  opacity: 0.7;
+/* Modifier-dependent button accent on hover / focus */
+.mod-1 .manual-num-btn:hover:not(:disabled) {
+  background: var(--surface-2);
 }
 
-.manual-mult-badge.mult-2 { color: var(--yellow); }
-.manual-mult-badge.mult-3 { color: var(--blue); }
+.mod-2 .manual-num-btn {
+  border-color: color-mix(in srgb, var(--border-color) 60%, var(--yellow));
+}
+.mod-2 .manual-num-btn:hover:not(:disabled) {
+  border-color: var(--yellow);
+  background: var(--yellow-light);
+}
 
-/* Special row */
+.mod-3 .manual-num-btn {
+  border-color: color-mix(in srgb, var(--border-color) 60%, var(--blue));
+}
+.mod-3 .manual-num-btn:hover:not(:disabled) {
+  border-color: var(--blue);
+  background: var(--blue-light);
+}
+
+/* ── Special row ────────────────────────────────────────────────────── */
 .manual-special-row {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  gap: var(--spacing-xs);
-  flex: 0.2;
-  min-height: 0;
+  gap: 4px;
+  flex-shrink: 0;
 }
 
 @media (min-width: 768px) {
-  .manual-special-row { flex: none; }
+  .manual-special-row { gap: 6px; }
 }
 
 .manual-special-btn {
-  padding: 10px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 12px 0;
   border: 2px solid var(--border-color);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   font-family: var(--font-sans);
-  font-size: 0.9rem;
   font-weight: 700;
   cursor: pointer;
   box-shadow: var(--shadow-sm);
-  transition: transform 50ms var(--ease-out), background var(--duration-fast), box-shadow var(--duration-fast);
-  text-transform: uppercase;
+  transition: transform 60ms var(--ease-out),
+              box-shadow 60ms var(--ease-out),
+              background var(--duration-fast);
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
 @media (min-width: 768px) {
-  .manual-special-btn { min-height: 48px; }
+  .manual-special-btn { padding: 14px 0; min-height: 48px; }
 }
 
-.manual-special-btn:hover:not(:disabled) { transform: translate(-2px, -2px); box-shadow: var(--shadow-md); }
-.manual-special-btn:active:not(:disabled) { transform: translate(2px, 2px); box-shadow: none; }
-.manual-special-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.manual-special-btn:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
 
-.manual-special-btn.miss { background: var(--surface-1); color: var(--red); }
-.manual-special-btn.miss:hover:not(:disabled) { background: var(--red-light, #fee2e2); }
+.manual-special-btn:disabled { opacity: 0.25; cursor: not-allowed; }
 
-.manual-special-btn.bull-single { background: var(--surface-1); color: var(--green); }
-.manual-special-btn.bull-single:hover:not(:disabled) { background: var(--green-light, #dcfce7); }
+.manual-special-label {
+  font-size: 1rem;
+  font-weight: 800;
+}
 
-.manual-special-btn.bull-double { background: var(--surface-1); color: var(--red); }
-.manual-special-btn.bull-double:hover:not(:disabled) { background: var(--red-light, #fee2e2); }
+.manual-special-sub {
+  font-size: 0.65rem;
+  font-weight: 700;
+  opacity: 0.5;
+  text-transform: uppercase;
+}
+
+.manual-special-btn.miss {
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+}
+.manual-special-btn.miss:hover:not(:disabled) {
+  background: var(--red-light);
+  color: var(--red);
+}
+
+.manual-special-btn.bull-single {
+  background: var(--surface-1);
+  color: var(--green);
+}
+.manual-special-btn.bull-single:hover:not(:disabled) {
+  background: var(--green-light);
+}
+
+.manual-special-btn.bull-double {
+  background: var(--surface-1);
+  color: var(--red);
+}
+.manual-special-btn.bull-double:hover:not(:disabled) {
+  background: var(--red-light);
+}
 </style>
