@@ -170,12 +170,13 @@ function handleClick(event: MouseEvent) {
     </text>
 
     <!-- Dart markers for replay highlighting -->
-    <g v-if="dartMarkers.length > 0">
-      <g
-        v-for="marker in dartMarkers"
-        :key="`marker-${marker.index}`"
-        class="pointer-events-none"
-      >
+      <g v-if="dartMarkers.length > 0">
+        <g
+          v-for="marker in dartMarkers"
+          :key="`marker-${marker.index}`"
+          class="pointer-events-none dartboard__marker"
+          :style="{ '--marker-delay': `${marker.index * 90}ms` }"
+        >
         <!-- Outer ring -->
         <circle
           :cx="marker.position.x"
