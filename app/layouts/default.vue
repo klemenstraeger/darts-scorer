@@ -13,7 +13,7 @@
 <style>
 /* env() safe-area calculation cannot be expressed in Tailwind */
 .default-layout-content {
-  padding-bottom: calc(48px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
 }
 
 @media (min-width: 640px) {

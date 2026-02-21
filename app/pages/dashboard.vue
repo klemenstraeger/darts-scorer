@@ -31,6 +31,9 @@ onMounted(() => {
 
   if (shouldShowTour('dashboard')) {
     setTimeout(() => {
+      const navSelector = window.matchMedia('(min-width: 640px)').matches
+        ? '[data-tour="nav-desktop"]'
+        : '[data-tour="nav-mobile"]'
       startTour([
         {
           element: '[data-tour="quick-start"]',
@@ -51,7 +54,7 @@ onMounted(() => {
           },
         },
         {
-          element: '[data-tour="nav"]',
+          element: navSelector,
           popover: {
             title: 'Navigation',
             description: 'Use the bottom bar to switch between sections quickly.',
