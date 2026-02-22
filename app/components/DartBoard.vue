@@ -174,7 +174,8 @@ function handleClick(event: MouseEvent) {
       <g
         v-for="marker in dartMarkers"
         :key="`marker-${marker.index}`"
-        class="pointer-events-none"
+        class="pointer-events-none dartboard__marker"
+        :style="{ '--marker-delay': `${marker.index * 90}ms` }"
       >
         <!-- Outer ring -->
         <circle

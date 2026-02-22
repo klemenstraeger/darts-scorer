@@ -1,18 +1,17 @@
 <script setup lang="ts">
-// Redirect logged-in users to dashboard
-// if (import.meta.client) {
-//   watchEffect(() => {
-//     if (user.value)
-//       navigateTo('/dashboard')
-//   })
-// }
+import type { Multiplier, ThrowResult } from '#shared/game-models'
+import { CHECKOUTS, getCheckout } from '#shared/checkouts'
+import { throwLabel } from '#shared/game-models'
+import DartBoard from '~/components/DartBoard.vue'
+import DartsLogo from '~/components/DartsLogo.vue'
+import { TRAINING_MODES } from '~/types/training'
 
 useHead({
   title: 'Darts Scorer — Professional Darts Scoring & Tournament Management',
   meta: [
-    { name: 'description', content: 'Free professional darts scoring app with real-time game tracking, tournament management, detailed statistics, and AI opponents. Works offline as a PWA.' },
+    { name: 'description', content: 'Free professional darts scoring app with real-time game tracking, tournament management, detailed statistics, AI opponents, and solo training drills. Works offline as a PWA.' },
     { property: 'og:title', content: 'Darts Scorer — Professional Darts Scoring & Tournament Management' },
-    { property: 'og:description', content: 'Free professional darts scoring app with real-time game tracking, tournament management, detailed statistics, and AI opponents.' },
+    { property: 'og:description', content: 'Professional darts scoring app with tournaments, training drills, stats insights, and live spectate. Works offline as a PWA.' },
     { property: 'og:type', content: 'website' },
   ],
   script: [
@@ -22,7 +21,7 @@ useHead({
         '@context': 'https://schema.org',
         '@type': 'WebApplication',
         'name': 'Darts Scorer',
-        'description': 'Professional darts scoring app with tournament management and statistics',
+        'description': 'Professional darts scoring app with tournaments, training, and statistics',
         'applicationCategory': 'SportsApplication',
         'operatingSystem': 'Any',
         'offers': { '@type': 'Offer', 'price': '0', 'priceCurrency': 'USD' },
@@ -33,37 +32,119 @@ useHead({
 
 definePageMeta({ layout: false })
 
-const features = [
+const demoScore = ref(170)
+const demoThrows = ref<ThrowResult[]>([])
+const demoHighlights = computed(() => demoThrows.value.map(t => ({
+  segment: t.segment,
+  multiplier: t.multiplier,
+})))
+const demoRound = computed(() => 8)
+const demoDartsLabel = computed(() => `${demoThrows.value.length}/3 darts`)
+const demoCheckout = computed(() => getCheckout(demoScore.value, 3 - demoThrows.value.length) ?? [])
+const heroDemo = {
+  score: 170,
+  player: 'P1',
+  leg: 'Leg 1',
+  darts: ['T20', 'T20', 'D25'],
+  visitTotal: 170,
+  checkout: CHECKOUTS[170] ?? ['T20', 'T20', 'D25'],
+}
+const demoLabels = computed(() => demoThrows.value.map(t => throwLabel(t)))
+const demoTurnTotal = computed(() => demoThrows.value.reduce((sum, t) => sum + t.segment * t.multiplier, 0))
+
+const counters = [
+  { label: 'Training Drills', value: TRAINING_MODES.length, suffix: '' },
+  { label: 'Tournament Formats', value: 4, suffix: '' },
+  { label: 'Checkout Paths', value: Object.keys(CHECKOUTS).length, suffix: '' },
+  { label: 'Achievements', value: 19, suffix: '' },
+  { label: 'Offline Mode', value: 100, suffix: '%' },
+]
+
+const deepFeatures = [
   {
-    icon: 'target',
-    color: 'yellow',
-    title: 'Real-Time Scoring',
-    description: 'Track 501, 301, and more with instant score updates, checkout suggestions, and throw-by-throw history.',
+    eyebrow: 'Real-Time Scoring',
+    title: 'Throw-by-throw precision with instant checkout math',
+    description: 'Choose per-dart or per-visit input. Track legs and sets, get live checkout suggestions, and capture every turn with zero guesswork.',
+    highlights: ['Per-dart visual dartboard', 'Per-visit quick entry', '162 checkout paths'],
+    align: 'left',
   },
   {
-    icon: 'trophy',
-    color: 'blue',
-    title: 'Tournament Management',
-    description: 'Organize round-robin and knockout tournaments with automatic bracket generation and live standings.',
+    eyebrow: 'AI Opponents',
+    title: 'Practice against bots that feel real',
+    description: 'Four difficulty levels model dartboard physics, checkouts, and misses that land on adjacent segments. Train for casual nights or pro-level pressure.',
+    highlights: ['Easy → Pro levels', 'Checkout IQ', 'Realistic miss logic'],
+    align: 'right',
   },
   {
-    icon: 'bot',
-    color: 'purple',
-    title: 'Play vs AI Bots',
-    description: 'Practice against AI opponents with four difficulty levels — from casual to pro-level challenge.',
-  },
-  {
-    icon: 'chart',
-    color: 'green',
-    title: 'Detailed Statistics',
-    description: 'Track averages, checkout percentages, scoring trends, and performance over time with visual charts.',
+    eyebrow: 'Performance Hub',
+    title: 'Stats that reveal your next breakthrough',
+    description: 'Track averages, first-9 form, bust rate, and heatmaps. Compare head-to-head rivalries and climb the Elo leaderboard.',
+    highlights: ['8 chart types', 'Elo rankings', 'Head-to-head tracker'],
+    align: 'left',
   },
 ]
 
-const steps = [
-  { number: 1, title: 'Enter Names', description: 'Type player names and pick your game mode' },
-  { number: 2, title: 'Start Scoring', description: 'Tap or click to score — instant, accurate, beautiful' },
-  { number: 3, title: 'Save Your Stats', description: 'Create a free account to track progress over time' },
+const gameModes = [
+  { title: '501 & 301', description: 'Classic X01 with flexible rules.' },
+  { title: 'Double or Single Out', description: 'Choose your preferred finish style.' },
+  { title: 'Best-of Legs & Sets', description: 'From quick games to full match nights.' },
+  { title: '2–4 Players + Teams', description: 'Solo, friends, or doubles teams.' },
+]
+
+const trainingIcons: Record<string, string> = {
+  'target': '🎯',
+  'clock': '🕐',
+  'zap': '⚡',
+  'crosshair': '🔘',
+  'grid': '📊',
+  'check-circle': '✅',
+  'star': '⭐',
+}
+
+const tournamentFormats = [
+  { title: 'Knockout', description: 'Single-elimination bracket with instant advancement.' },
+  { title: 'League', description: 'Round-robin standings with form tracking.' },
+  { title: 'Groups', description: 'Group stages with configurable advance rules.' },
+  { title: 'Groups + Knockout', description: 'Hybrid format for full tournament nights.' },
+]
+
+const extraFeatures = [
+  {
+    title: 'Throw-by-Throw Replay',
+    description: 'Scrub every dart with speed control and keyboard shortcuts.',
+    icon: 'play',
+    color: 'bg-blue-light text-blue',
+  },
+  {
+    title: 'Live Spectate + Camera',
+    description: 'Stream matches and stats to spectators in real time.',
+    icon: 'eye',
+    color: 'bg-cyan-light text-cyan',
+  },
+  {
+    title: 'Achievements & Milestones',
+    description: 'Unlock 19 achievements across scoring, wins, and checkouts.',
+    icon: 'star',
+    color: 'bg-yellow-light text-yellow',
+  },
+  {
+    title: 'Data Export',
+    description: 'Export stats to CSV or JSON for deeper analysis.',
+    icon: 'download',
+    color: 'bg-green-light text-green',
+  },
+  {
+    title: 'Guided Onboarding',
+    description: 'Built-in tours help new players start instantly.',
+    icon: 'spark',
+    color: 'bg-purple-light text-purple',
+  },
+  {
+    title: 'Offline-First PWA',
+    description: 'Install once, score anywhere with no signal.',
+    icon: 'wifi',
+    color: 'bg-orange-light text-orange',
+  },
 ]
 
 const highlights = [
@@ -72,124 +153,613 @@ const highlights = [
   { label: 'Install as App', sublabel: 'Add to home screen on any device' },
 ]
 
-const iconBgClass: Record<string, string> = {
-  yellow: 'bg-yellow-light text-yellow',
-  blue: 'bg-blue-light text-blue',
-  purple: 'bg-purple-light text-purple',
-  green: 'bg-green-light text-green',
+function handleDemoScore(segment: number, multiplier: number) {
+  if (demoThrows.value.length >= 3)
+    return
+  const points = segment * multiplier
+  if (demoScore.value - points < 0)
+    return
+  demoThrows.value = [...demoThrows.value, { segment, multiplier: multiplier as Multiplier }]
+  demoScore.value -= points
+}
+
+function resetDemo() {
+  demoScore.value = 170
+  demoThrows.value = []
 }
 </script>
 
 <template>
   <div class="overflow-x-hidden bg-surface-0">
     <!-- ── Hero ────────────────────────────────────────────────────── -->
-    <section class="relative min-h-screen max-sm:min-h-[90vh] flex items-center justify-center overflow-hidden">
-      <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div class="absolute w-[300px] h-[300px] rounded-full border-2 border-black opacity-6" />
-        <div class="absolute w-[500px] h-[500px] rounded-full border-2 border-black opacity-6" />
-        <div class="absolute w-[700px] h-[700px] rounded-full border-2 border-black opacity-6" />
+    <section class="relative min-h-screen max-sm:min-h-[92vh] flex items-center justify-center overflow-hidden px-xl">
+      <div class="absolute inset-0 pointer-events-none">
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(0,0,0,0.08),_transparent_55%)]" />
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,_rgba(255,215,0,0.18),_transparent_45%)]" />
+        <div class="absolute inset-0" style="background-image: radial-gradient(rgba(0,0,0,0.06) 1px, transparent 1px); background-size: 22px 22px;" />
       </div>
 
-      <div class="relative z-1 flex flex-col items-center gap-xl p-2xl text-center">
-        <div class="anim-fade-in" style="--delay: 0ms; --from-scale: 0.8;">
-          <DartsLogo :size="120" />
+      <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div class="absolute w-[280px] h-[280px] rounded-full border-2 border-black opacity-10" style="animation: pulse-ring 6s var(--ease-out) infinite;" />
+        <div class="absolute w-[520px] h-[520px] rounded-full border-2 border-black opacity-8" style="animation: pulse-ring 8s var(--ease-out) infinite 0.3s;" />
+        <div class="absolute w-[760px] h-[760px] rounded-full border-2 border-black opacity-6" style="animation: pulse-ring 10s var(--ease-out) infinite 0.6s;" />
+      </div>
+
+      <div class="absolute top-[12%] left-[12%] w-20 h-20 border-2 border-black rounded-full bg-yellow-light shadow-md anim-float" style="--float-duration: 6s; --float-delay: 0ms;" />
+      <div class="absolute top-[18%] right-[10%] w-24 h-24 border-2 border-black rounded-lg bg-blue-light shadow-md anim-float-reverse" style="--float-duration: 7s; --float-delay: 200ms;" />
+      <div class="absolute bottom-[18%] left-[8%] w-28 h-28 border-2 border-black rounded-xl bg-purple-light shadow-md anim-float" style="--float-duration: 8s; --float-delay: 400ms;" />
+      <div class="absolute bottom-[20%] right-[12%] w-16 h-16 border-2 border-black rounded-full bg-green-light shadow-md anim-float-reverse" style="--float-duration: 6.5s; --float-delay: 100ms;" />
+
+      <div class="relative z-1 flex flex-col items-center gap-xl p-2xl text-center max-w-[900px]">
+        <div class="flex flex-col items-center gap-md">
+          <div class="anim-fade-in" style="--delay: 0ms; --from-scale: 0.8;">
+            <DartsLogo :size="120" />
+          </div>
+          <div class="flex items-center gap-md px-lg py-sm border-2 border-black bg-surface-1 shadow-md rounded-full text-[0.8rem] font-bold text-fg-secondary anim-fade-in-up" style="--delay: 150ms;">
+            <span class="inline-flex items-center gap-xs">
+              <span class="w-2.5 h-2.5 rounded-full bg-green" style="animation: pulse-opacity 1.8s ease-in-out infinite;" />
+              Live scoring engine
+            </span>
+            <span class="h-4 w-[2px] bg-black/20" />
+            <span>Offline-ready PWA</span>
+          </div>
         </div>
 
-        <h1 class="anim-fade-in-up font-black leading-[1.05] tracking-tight text-[clamp(3rem,8vw,5rem)]" style="--delay: 200ms;">
+        <h1 class="anim-fade-in-up font-black leading-[1.02] tracking-tight text-[clamp(3.2rem,8vw,5.6rem)]" style="--delay: 260ms;">
           <span class="block text-fg">Darts</span>
           <span class="block text-yellow font-black">Scorer</span>
         </h1>
 
-        <p class="anim-fade-in-up text-fg-secondary max-w-[500px] leading-relaxed text-[clamp(1rem,2.5vw,1.25rem)]" style="--delay: 350ms;">
-          Professional scoring, tournament management, and statistics
+        <p class="anim-fade-in-up text-fg-secondary max-w-[620px] leading-relaxed text-[clamp(1rem,2.6vw,1.35rem)]" style="--delay: 380ms;">
+          Tournament-ready scoring, pro-grade training drills, and stat insights that keep every visit accountable.
         </p>
 
-        <div class="anim-fade-in-up flex gap-md mt-md max-[480px]:flex-col max-[480px]:w-full max-[480px]:max-w-[280px]" style="--delay: 500ms;">
-          <NuxtLink to="/play" class="inline-flex items-center justify-center gap-sm px-2xl py-md text-base font-extrabold bg-yellow border-2 border-black rounded-lg shadow-md transition-all duration-100 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-lg active:translate-x-0.5 active:translate-y-0.5 active:shadow-none">
+        <div class="flex flex-col sm:flex-row items-center gap-lg">
+          <NuxtLink to="/play" class="inline-flex items-center justify-center gap-sm px-3xl py-md text-base font-extrabold bg-yellow border-2 border-black rounded-lg shadow-md transition-all duration-100 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-lg active:translate-x-0.5 active:translate-y-0.5 active:shadow-none">
             Play Now
           </NuxtLink>
-          <NuxtLink to="/login" class="inline-flex items-center justify-center gap-sm px-2xl py-md text-base font-bold bg-surface-2 border-2 border-black rounded-lg shadow-md transition-all duration-100 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-lg active:translate-x-0.5 active:translate-y-0.5 active:shadow-none">
+          <NuxtLink to="/login" class="inline-flex items-center justify-center gap-sm px-3xl py-md text-base font-bold bg-surface-2 border-2 border-black rounded-lg shadow-md transition-all duration-100 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-lg active:translate-x-0.5 active:translate-y-0.5 active:shadow-none">
             Sign In
           </NuxtLink>
         </div>
+
+        <div class="mt-xl w-full max-w-[680px] bg-surface-1 border-2 border-black rounded-xl shadow-lg p-lg anim-fade-in-up" style="--delay: 500ms;">
+          <div class="grid grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] gap-lg max-md:grid-cols-1">
+            <div class="flex flex-col gap-md">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-sm">
+                  <span class="px-sm py-xs rounded-md bg-surface-2 border-2 border-black text-[0.75rem] font-bold">P1</span>
+                  <span class="text-fg-muted text-[0.75rem]">Round {{ demoRound }} · {{ demoDartsLabel }}</span>
+                </div>
+                <span class="text-[1.6rem] font-black text-fg">{{ demoScore }}</span>
+              </div>
+              <div class="grid grid-cols-3 gap-xs">
+                <div
+                  v-for="(label, index) in ['Dart 1', 'Dart 2', 'Dart 3']"
+                  :key="label"
+                  class="p-sm border-2 border-black rounded-md bg-surface-0 text-center"
+                >
+                  <div class="text-[0.7rem] text-fg-muted font-bold uppercase">
+                    {{ label }}
+                  </div>
+                  <div class="text-[1rem] font-black text-fg" :class="demoLabels[index] ? 'anim-dart-pop' : ''">
+                    {{ demoLabels[index] ?? '—' }}
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center justify-between text-[0.85rem] text-fg-secondary">
+                <span>Turn total</span>
+                <span class="font-bold">{{ demoTurnTotal }}</span>
+              </div>
+              <div class="flex items-center justify-between text-[0.85rem] text-fg-secondary">
+                <span>Suggested checkout</span>
+                <span class="font-bold text-fg">{{ demoCheckout.join(' · ') || '—' }}</span>
+              </div>
+              <div class="flex items-center gap-sm">
+                <button
+                  type="button"
+                  class="inline-flex items-center justify-center px-lg py-sm text-[0.85rem] font-bold bg-yellow border-2 border-black rounded-md shadow-sm transition-all duration-100 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md"
+                  @click="resetDemo"
+                >
+                  Reset Demo
+                </button>
+                <span class="text-[0.75rem] text-fg-muted">Click the board to score</span>
+              </div>
+            </div>
+            <div class="flex items-center justify-center">
+              <DartBoard class="max-w-[320px]" :highlight-segments="demoHighlights" @score="handleDemoScore" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-xs text-fg-muted text-[0.75rem]">
+        <span>Scroll to explore</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation: bounce-chevron 1.8s ease-in-out infinite;">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
       </div>
     </section>
 
-    <!-- ── Features ────────────────────────────────────────────────── -->
-    <section id="features" class="px-xl py-3xl max-w-[1000px] mx-auto max-sm:px-lg max-sm:py-2xl">
-      <h2 class="text-center font-extrabold text-fg mb-sm text-[clamp(1.5rem,4vw,2.2rem)]">
-        Everything You Need
-      </h2>
-      <p class="text-center text-fg-muted max-w-[520px] mx-auto mb-2xl leading-relaxed text-[clamp(0.9rem,2vw,1.05rem)]">
-        A complete darts companion built for players who take their game seriously.
-      </p>
-
-      <div class="grid grid-cols-2 gap-lg max-sm:grid-cols-1">
+    <!-- ── Social Proof ─────────────────────────────────────────────── -->
+    <section class="border-y-2 border-black bg-surface-1 px-xl py-[72px]">
+      <div class="max-w-[1100px] mx-auto grid grid-cols-5 gap-lg max-md:grid-cols-2 max-sm:grid-cols-1">
         <div
-          v-for="(feature, i) in features"
-          :key="feature.title"
-          class="bg-surface-1 border-2 border-black rounded-lg shadow-md p-2xl flex flex-col gap-md transition-all duration-100 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-lg anim-fade-in-up"
+          v-for="(item, i) in counters"
+          :key="item.label"
+          class="flex flex-col items-center text-center gap-xs p-lg bg-surface-0 border-2 border-black rounded-lg shadow-sm anim-fade-in"
           :style="{ '--delay': `${i * 100}ms` }"
         >
-          <div
-            class="w-12 h-12 flex items-center justify-center rounded-md border-2 border-black"
-            :class="iconBgClass[feature.color]"
-          >
-            <svg v-if="feature.icon === 'target'" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" />
-            </svg>
-            <svg v-else-if="feature.icon === 'trophy'" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" /><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" /><path d="M4 22h16" /><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20 7 22" /><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20 17 22" /><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
-            </svg>
-            <svg v-else-if="feature.icon === 'bot'" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="11" width="18" height="10" rx="2" /><circle cx="8.5" cy="16" r="1.5" /><circle cx="15.5" cy="16" r="1.5" /><path d="M12 2v5M7 7h10" />
-            </svg>
-            <svg v-else-if="feature.icon === 'chart'" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" />
-            </svg>
-          </div>
-          <h3 class="text-[1.1rem] font-bold text-fg">
-            {{ feature.title }}
-          </h3>
-          <p class="text-[0.9rem] text-fg-secondary leading-relaxed">
-            {{ feature.description }}
-          </p>
+          <span class="text-[2rem] font-black text-fg">
+            {{ item.value }}{{ item.suffix }}
+          </span>
+          <span class="text-[0.8rem] font-semibold text-fg-muted uppercase tracking-[0.12em]">
+            {{ item.label }}
+          </span>
         </div>
       </div>
     </section>
 
-    <!-- ── How It Works ────────────────────────────────────────────── -->
-    <section class="px-xl pt-xl pb-3xl max-w-[1000px] mx-auto max-sm:px-lg max-sm:py-2xl">
-      <h2 class="text-center font-extrabold text-fg mb-sm text-[clamp(1.5rem,4vw,2.2rem)]">
-        Get Started in Seconds
-      </h2>
-      <p class="text-center text-fg-muted max-w-[520px] mx-auto mb-2xl leading-relaxed text-[clamp(0.9rem,2vw,1.05rem)]">
-        From landing to first throw in under a minute.
-      </p>
+    <!-- ── Feature Deep Dives ───────────────────────────────────────── -->
+    <section class="px-xl py-[72px] max-w-[1200px] mx-auto flex flex-col gap-3xl max-sm:px-lg">
+      <div class="text-center max-w-[700px] mx-auto">
+        <h2 class="font-extrabold text-fg text-[clamp(1.7rem,4vw,2.4rem)]">
+          Built for match nights and training labs
+        </h2>
+        <p class="text-fg-muted mt-sm text-[clamp(0.95rem,2vw,1.1rem)]">
+          Every feature is tuned for competitive play and long-term improvement.
+        </p>
+      </div>
 
-      <div class="grid grid-cols-3 gap-lg max-sm:grid-cols-1">
+      <div
+        v-for="(feature, i) in deepFeatures"
+        :key="feature.title"
+        class="grid grid-cols-2 gap-2xl items-center max-lg:grid-cols-1"
+      >
         <div
-          v-for="(step, i) in steps"
-          :key="step.number"
-          class="flex flex-col items-center text-center gap-md p-2xl bg-surface-1 border-2 border-black rounded-lg shadow-sm transition-all duration-100 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md anim-fade-in-up"
-          :style="{ '--delay': `${i * 120}ms` }"
+          :class="feature.align === 'left' ? 'order-1' : 'order-2 max-lg:order-1'"
+          class="flex flex-col gap-md"
         >
-          <div class="w-11 h-11 flex items-center justify-center rounded-full bg-yellow border-2 border-black text-white text-[1.1rem] font-extrabold">
-            {{ step.number }}
-          </div>
-          <h3 class="text-[1.05rem] font-bold text-fg">
-            {{ step.title }}
+          <span class="text-[0.75rem] uppercase tracking-[0.2em] text-fg-muted font-bold">{{ feature.eyebrow }}</span>
+          <h3 class="text-[clamp(1.6rem,3vw,2.2rem)] font-extrabold text-fg">
+            {{ feature.title }}
           </h3>
-          <p class="text-[0.85rem] text-fg-muted leading-relaxed">
-            {{ step.description }}
+          <p class="text-[1rem] text-fg-secondary leading-relaxed">
+            {{ feature.description }}
           </p>
+          <div class="flex flex-wrap gap-sm">
+            <span
+              v-for="highlight in feature.highlights"
+              :key="highlight"
+              class="px-md py-xs text-[0.75rem] font-bold uppercase tracking-[0.12em] border-2 border-black rounded-full bg-surface-1"
+            >
+              {{ highlight }}
+            </span>
+          </div>
+        </div>
+
+        <div
+          :class="feature.align === 'left' ? 'order-2' : 'order-1 max-lg:order-2'"
+          class="bg-surface-1 border-2 border-black rounded-xl shadow-lg p-2xl"
+        >
+          <div v-if="i === 0" class="flex flex-col gap-md">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-sm">
+                <span class="text-[2.5rem] font-black text-fg">{{ heroDemo.score }}</span>
+                <span class="text-[0.8rem] font-bold text-fg-muted">remaining</span>
+              </div>
+              <div class="flex items-center gap-xs text-[0.9rem] font-bold text-fg-secondary">
+                <span class="px-sm py-xs rounded-md border-2 border-black bg-surface-2">{{ heroDemo.player }}</span>
+                <span class="px-sm py-xs rounded-md border-2 border-black bg-surface-2">{{ heroDemo.leg }}</span>
+              </div>
+            </div>
+            <div class="grid grid-cols-3 gap-sm">
+              <div
+                v-for="(dart, index) in heroDemo.darts"
+                :key="index"
+                class="p-sm border-2 border-black rounded-md bg-surface-0 text-center"
+              >
+                <div class="text-[0.7rem] text-fg-muted font-bold uppercase">
+                  Dart {{ index + 1 }}
+                </div>
+                <div class="text-[1rem] font-black text-fg">
+                  {{ dart }}
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center justify-between text-[0.85rem] text-fg-secondary">
+              <span>Visit total</span>
+              <span class="font-bold text-fg">{{ heroDemo.visitTotal }}</span>
+            </div>
+            <div class="flex items-center justify-between text-[0.85rem] text-fg-secondary">
+              <span>Checkout</span>
+              <span class="font-bold text-fg">{{ heroDemo.checkout.join(' · ') }}</span>
+            </div>
+          </div>
+
+          <div v-else-if="i === 1" class="grid grid-cols-2 gap-md">
+            <div
+              v-for="(level, index) in ['Easy', 'Medium', 'Hard', 'Pro']"
+              :key="level"
+              class="p-md border-2 border-black rounded-lg bg-surface-0 shadow-sm flex flex-col gap-sm"
+            >
+              <div class="flex items-center justify-between">
+                <span class="text-[0.85rem] font-bold text-fg">{{ level }}</span>
+                <span class="text-[0.7rem] text-fg-muted">Lvl {{ index + 1 }}</span>
+              </div>
+              <div class="h-2 rounded-full bg-surface-2 border border-black overflow-hidden">
+                <div class="h-full bg-yellow" :style="{ width: `${60 + index * 12}%` }" />
+              </div>
+              <span class="text-[0.75rem] text-fg-secondary">Checkout IQ {{ 40 + index * 18 }}%</span>
+            </div>
+            <div class="col-span-2 p-md border-2 border-black rounded-lg bg-surface-0 text-[0.85rem] text-fg-secondary">
+              Bots use real dartboard adjacency — misses land where real darts do.
+            </div>
+          </div>
+
+          <div v-else class="grid grid-cols-2 gap-lg max-md:grid-cols-1">
+            <div class="p-lg border-2 border-black rounded-lg bg-surface-0 flex flex-col gap-md">
+              <div class="flex items-center justify-between">
+                <span class="text-[0.9rem] font-bold text-fg">3-Dart Average</span>
+                <span class="text-[1.6rem] font-black text-fg">78.4</span>
+              </div>
+              <div class="h-20 rounded-lg bg-surface-2 border-2 border-black relative overflow-hidden">
+                <div class="absolute inset-0 flex items-end gap-xs p-sm">
+                  <div v-for="n in 10" :key="n" class="w-full bg-yellow" :style="{ height: `${30 + n * 4}%` }" />
+                </div>
+              </div>
+              <span class="text-[0.75rem] text-fg-muted">Rolling average over last 10 legs</span>
+            </div>
+            <div class="p-lg border-2 border-black rounded-lg bg-surface-0 flex flex-col gap-md">
+              <div class="flex items-center justify-between">
+                <span class="text-[0.9rem] font-bold text-fg">Checkout Rate</span>
+                <span class="text-[1.6rem] font-black text-fg">42%</span>
+              </div>
+              <div class="flex items-center justify-center">
+                <div class="relative w-24 h-24 rounded-full border-2 border-black bg-surface-2 overflow-hidden">
+                  <div class="absolute inset-0 rounded-full" style="background: conic-gradient(#FFD700 0 42%, transparent 42% 100%);" />
+                  <div class="absolute inset-3 rounded-full bg-surface-0 border-2 border-black" />
+                </div>
+              </div>
+              <span class="text-[0.75rem] text-fg-muted">Heatmaps + checkout breakdowns</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Game Modes Overview ─────────────────────────────────────── -->
+    <section class="px-xl py-[72px] bg-surface-1 border-y-2 border-black">
+      <div class="max-w-[1100px] mx-auto grid grid-cols-2 gap-2xl items-center max-lg:grid-cols-1">
+        <div class="flex flex-col gap-md">
+          <h2 class="font-extrabold text-fg text-[clamp(1.7rem,4vw,2.4rem)]">
+            Match formats built for every night
+          </h2>
+          <p class="text-fg-secondary leading-relaxed">
+            Configure legs, sets, and checkout rules in seconds. Play quick 301s or full tournament-length 501s.
+          </p>
+          <div class="grid grid-cols-2 gap-md max-sm:grid-cols-1">
+            <div v-for="mode in gameModes" :key="mode.title" class="p-lg bg-surface-0 border-2 border-black rounded-lg shadow-sm">
+              <h3 class="font-bold text-fg">
+                {{ mode.title }}
+              </h3>
+              <p class="text-[0.85rem] text-fg-muted mt-xs">
+                {{ mode.description }}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="bg-surface-0 border-2 border-black rounded-xl shadow-lg p-2xl flex flex-col gap-md">
+          <div class="flex items-center justify-between">
+            <span class="text-[0.85rem] font-bold text-fg">Quick Start</span>
+            <span class="px-sm py-xs rounded-full text-[0.7rem] font-bold bg-yellow border-2 border-black">501 Double Out</span>
+          </div>
+          <div class="grid grid-cols-2 gap-md text-[0.85rem]">
+            <div class="p-md border-2 border-black rounded-md bg-surface-1">
+              <div class="text-fg-muted">
+                Players
+              </div>
+              <div class="font-bold text-fg">
+                2–4 (humans + bots)
+              </div>
+            </div>
+            <div class="p-md border-2 border-black rounded-md bg-surface-1">
+              <div class="text-fg-muted">
+                Input
+              </div>
+              <div class="font-bold text-fg">
+                Per Dart / Per Visit
+              </div>
+            </div>
+            <div class="p-md border-2 border-black rounded-md bg-surface-1">
+              <div class="text-fg-muted">
+                Legs
+              </div>
+              <div class="font-bold text-fg">
+                Best of 3
+              </div>
+            </div>
+            <div class="p-md border-2 border-black rounded-md bg-surface-1">
+              <div class="text-fg-muted">
+                Sets
+              </div>
+              <div class="font-bold text-fg">
+                Best of 1
+              </div>
+            </div>
+          </div>
+          <div class="text-[0.8rem] text-fg-muted">
+            Save presets for rematches and quick start games.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Training Modes ───────────────────────────────────────────── -->
+    <section class="px-xl py-[72px] max-w-[1200px] mx-auto max-sm:px-lg">
+      <div class="flex flex-col gap-lg">
+        <div class="flex items-center justify-between flex-wrap gap-sm">
+          <div>
+            <h2 class="font-extrabold text-fg text-[clamp(1.7rem,4vw,2.4rem)]">
+              Seven training drills built for growth
+            </h2>
+            <p class="text-fg-muted mt-xs">
+              Solo sessions built around scoring, doubles, and pressure finishes.
+            </p>
+          </div>
+          <NuxtLink to="/training" class="text-[0.85rem] font-bold text-fg-secondary hover:text-yellow transition-colors">
+            Explore training →
+          </NuxtLink>
+        </div>
+        <div class="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-md">
+          <div
+            v-for="mode in TRAINING_MODES"
+            :key="mode.mode"
+            class="p-lg border-2 border-black rounded-lg bg-surface-1 shadow-md transition-all duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-lg"
+          >
+            <div class="text-[1.8rem]" :style="{ color: mode.color }">
+              {{ trainingIcons[mode.icon] ?? '🎯' }}
+            </div>
+            <h3 class="font-bold text-fg mt-sm">
+              {{ mode.name }}
+            </h3>
+            <p class="text-[0.8rem] text-fg-muted mt-xs leading-relaxed">
+              {{ mode.description }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Tournaments ─────────────────────────────────────────────── -->
+    <section class="px-xl py-[72px] bg-surface-1 border-y-2 border-black">
+      <div class="max-w-[1200px] mx-auto grid grid-cols-2 gap-2xl items-center max-lg:grid-cols-1">
+        <div class="flex flex-col gap-md">
+          <span class="text-[0.75rem] uppercase tracking-[0.2em] text-fg-muted font-bold">Tournament Suite</span>
+          <h2 class="font-extrabold text-fg text-[clamp(1.7rem,4vw,2.4rem)]">
+            Host leagues, brackets, and group nights in one place
+          </h2>
+          <p class="text-fg-secondary leading-relaxed">
+            Create tournaments with auto-generated brackets, live standings, and real-time spectate dashboards with optional camera streaming.
+          </p>
+          <div class="grid grid-cols-2 gap-md max-sm:grid-cols-1">
+            <div v-for="format in tournamentFormats" :key="format.title" class="p-md border-2 border-black rounded-lg bg-surface-0 shadow-sm">
+              <h3 class="font-bold text-fg">
+                {{ format.title }}
+              </h3>
+              <p class="text-[0.8rem] text-fg-muted mt-xs">
+                {{ format.description }}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="flex flex-col gap-lg">
+          <!-- Bracket Card -->
+          <div class="bg-surface-0 border-2 border-black rounded-xl shadow-lg p-2xl">
+            <div class="flex items-center justify-between">
+              <span class="text-[0.85rem] font-bold text-fg">Live Bracket</span>
+              <span class="px-sm py-xs rounded-full text-[0.7rem] font-bold bg-green-light border-2 border-black">LIVE</span>
+            </div>
+            <svg viewBox="0 0 320 200" class="w-full mt-md">
+              <!-- Connecting lines with draw animation -->
+              <g fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="stroke-dasharray: 300; stroke-dashoffset: 300; animation: draw-bracket 1.6s var(--ease-out) forwards; --dash-total: 300;">
+                <!-- Semi-final 1 connectors -->
+                <path d="M105 30 H130 V52 H155" />
+                <path d="M105 70 H130 V52" />
+                <!-- Semi-final 2 connectors -->
+                <path d="M105 130 H130 V152 H155" />
+                <path d="M105 170 H130 V152" />
+                <!-- Final connectors -->
+                <path d="M245 52 H260 V102 H275" />
+                <path d="M245 152 H260 V102" />
+              </g>
+              <!-- Semi-final match boxes -->
+              <g>
+                <!-- SF1: Alice -->
+                <rect x="10" y="18" width="95" height="24" rx="5" fill="var(--yellow-light)" stroke="#000" stroke-width="2" />
+                <text x="57" y="35" text-anchor="middle" font-size="11" font-weight="700" fill="#000">Alice</text>
+                <!-- SF1: Bob -->
+                <rect x="10" y="58" width="95" height="24" rx="5" fill="#FFF" stroke="#000" stroke-width="2" />
+                <text x="57" y="75" text-anchor="middle" font-size="11" font-weight="600" fill="#000">Bob</text>
+                <!-- SF2: Charlie -->
+                <rect x="10" y="118" width="95" height="24" rx="5" fill="var(--yellow-light)" stroke="#000" stroke-width="2" />
+                <text x="57" y="135" text-anchor="middle" font-size="11" font-weight="700" fill="#000">Charlie</text>
+                <!-- SF2: Dave -->
+                <rect x="10" y="158" width="95" height="24" rx="5" fill="#FFF" stroke="#000" stroke-width="2" />
+                <text x="57" y="175" text-anchor="middle" font-size="11" font-weight="600" fill="#000">Dave</text>
+              </g>
+              <!-- Final match boxes -->
+              <g>
+                <rect x="155" y="40" width="90" height="24" rx="5" fill="var(--yellow-light)" stroke="#000" stroke-width="2" />
+                <text x="200" y="57" text-anchor="middle" font-size="11" font-weight="700" fill="#000">Alice</text>
+                <rect x="155" y="140" width="90" height="24" rx="5" fill="#FFF" stroke="#000" stroke-width="2" />
+                <text x="200" y="157" text-anchor="middle" font-size="11" font-weight="600" fill="#000">Charlie</text>
+              </g>
+              <!-- Winner box -->
+              <g>
+                <rect x="275" y="90" width="35" height="24" rx="5" fill="var(--yellow)" stroke="#000" stroke-width="2" />
+                <text x="292" y="106" text-anchor="middle" font-size="9" font-weight="800" fill="#000">🏆</text>
+              </g>
+            </svg>
+          </div>
+
+          <!-- League Standings Card -->
+          <div class="bg-surface-0 border-2 border-black rounded-xl shadow-lg p-2xl">
+            <span class="text-[0.85rem] font-bold text-fg">League Standings</span>
+            <table class="w-full mt-md text-[0.8rem]">
+              <thead>
+                <tr class="text-left text-fg-muted border-b-2 border-black">
+                  <th class="pb-xs w-8">
+                    #
+                  </th>
+                  <th class="pb-xs">
+                    Player
+                  </th>
+                  <th class="pb-xs text-center w-10">
+                    W
+                  </th>
+                  <th class="pb-xs text-center w-10">
+                    L
+                  </th>
+                  <th class="pb-xs text-center w-12">
+                    Pts
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="font-medium text-fg">
+                <tr class="border-b border-black/10">
+                  <td class="py-xs font-bold text-fg-muted">
+                    1
+                  </td>
+                  <td class="py-xs font-bold">
+                    Alice
+                  </td>
+                  <td class="py-xs text-center">
+                    5
+                  </td>
+                  <td class="py-xs text-center">
+                    1
+                  </td>
+                  <td class="py-xs text-center font-bold">
+                    15
+                  </td>
+                </tr>
+                <tr class="border-b border-black/10">
+                  <td class="py-xs font-bold text-fg-muted">
+                    2
+                  </td>
+                  <td class="py-xs">
+                    Charlie
+                  </td>
+                  <td class="py-xs text-center">
+                    4
+                  </td>
+                  <td class="py-xs text-center">
+                    2
+                  </td>
+                  <td class="py-xs text-center font-bold">
+                    12
+                  </td>
+                </tr>
+                <tr class="border-b border-black/10">
+                  <td class="py-xs font-bold text-fg-muted">
+                    3
+                  </td>
+                  <td class="py-xs">
+                    Bob
+                  </td>
+                  <td class="py-xs text-center">
+                    2
+                  </td>
+                  <td class="py-xs text-center">
+                    4
+                  </td>
+                  <td class="py-xs text-center font-bold">
+                    6
+                  </td>
+                </tr>
+                <tr>
+                  <td class="py-xs font-bold text-fg-muted">
+                    4
+                  </td>
+                  <td class="py-xs">
+                    Dave
+                  </td>
+                  <td class="py-xs text-center">
+                    1
+                  </td>
+                  <td class="py-xs text-center">
+                    5
+                  </td>
+                  <td class="py-xs text-center font-bold">
+                    3
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Extra Features ───────────────────────────────────────────── -->
+    <section class="px-xl py-[72px] max-w-[1200px] mx-auto max-sm:px-lg">
+      <div class="text-center max-w-[700px] mx-auto">
+        <h2 class="font-extrabold text-fg text-[clamp(1.7rem,4vw,2.4rem)]">
+          Everything else your league keeps asking for
+        </h2>
+        <p class="text-fg-muted mt-sm">
+          Replay, spectate, achievements, exports — it all ships in the box.
+        </p>
+      </div>
+      <div class="grid grid-cols-3 gap-lg mt-2xl max-lg:grid-cols-2 max-sm:grid-cols-1">
+        <div
+          v-for="item in extraFeatures"
+          :key="item.title"
+          class="p-xl border-2 border-black rounded-lg bg-surface-1 shadow-md flex flex-col gap-md"
+        >
+          <div class="w-12 h-12 flex items-center justify-center rounded-md border-2 border-black" :class="item.color">
+            <svg v-if="item.icon === 'play'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="6 4 20 12 6 20 6 4" />
+            </svg>
+            <svg v-else-if="item.icon === 'eye'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7Z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+            <svg v-else-if="item.icon === 'star'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="12 2 15 9 22 9 17 14 19 22 12 18 5 22 7 14 2 9 9 9" />
+            </svg>
+            <svg v-else-if="item.icon === 'download'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            <svg v-else-if="item.icon === 'spark'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2l1.5 5L19 9l-5.5 2L12 17l-1.5-6L5 9l5.5-2L12 2z" />
+              <path d="M4 16l.8 2.4L7 19l-2.2.6L4 22l-.8-2.4L1 19l2.2-.6L4 16z" />
+            </svg>
+            <svg v-else-if="item.icon === 'wifi'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12.55a11 11 0 0 1 14.08 0" />
+              <path d="M1.5 9.5a16 16 0 0 1 21 0" />
+              <path d="M8.5 15.5a6 6 0 0 1 7 0" />
+              <circle cx="12" cy="18" r="1" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-bold text-fg">
+              {{ item.title }}
+            </h3>
+            <p class="text-[0.85rem] text-fg-muted mt-xs leading-relaxed">
+              {{ item.description }}
+            </p>
+          </div>
         </div>
       </div>
     </section>
 
     <!-- ── Highlights ──────────────────────────────────────────────── -->
-    <section class="border-y-2 border-black bg-surface-1 px-xl py-2xl">
-      <div class="flex justify-center gap-3xl max-w-[800px] mx-auto max-sm:flex-col max-sm:items-center max-sm:gap-xl">
+    <section class="border-y-2 border-black bg-surface-1 px-xl py-[72px]">
+      <div class="flex justify-center gap-3xl max-w-[900px] mx-auto max-sm:flex-col max-sm:items-center max-sm:gap-xl">
         <div
           v-for="(item, i) in highlights"
           :key="item.label"
@@ -203,8 +773,9 @@ const iconBgClass: Record<string, string> = {
     </section>
 
     <!-- ── Final CTA ───────────────────────────────────────────────── -->
-    <section class="px-xl py-3xl max-w-[1000px] mx-auto flex justify-center max-sm:px-lg max-sm:py-2xl">
-      <div class="flex flex-col items-center gap-lg p-3xl text-center max-w-[560px] w-full bg-yellow border-2 border-black shadow-lg rounded-lg anim-fade-in-up">
+    <section class="px-xl py-[72px] max-w-[1000px] mx-auto flex justify-center max-sm:px-lg">
+      <div class="flex flex-col items-center gap-lg p-3xl text-center max-w-[580px] w-full bg-yellow border-2 border-black shadow-lg rounded-lg">
+        <DartsLogo :size="64" />
         <h2 class="font-extrabold text-fg text-[clamp(1.3rem,3vw,1.8rem)]">
           Ready to Level Up Your Darts Game?
         </h2>

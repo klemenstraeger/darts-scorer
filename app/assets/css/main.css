@@ -261,6 +261,78 @@
   to { transform: rotate(360deg); }
 }
 
+/* ── Landing page animations ───────────────────────────────────────── */
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(var(--float-rotate, 0deg)); }
+  50% { transform: translateY(-14px) rotate(var(--float-rotate, 0deg)); }
+}
+
+@keyframes float-reverse {
+  0%, 100% { transform: translateY(-14px) rotate(var(--float-rotate, 0deg)); }
+  50% { transform: translateY(0) rotate(var(--float-rotate, 0deg)); }
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(1); opacity: 0.07; }
+  50% { transform: scale(1.05); opacity: 0.03; }
+  100% { transform: scale(1); opacity: 0.07; }
+}
+
+@keyframes bounce-chevron {
+  0%, 100% { transform: translateY(0); opacity: 0.5; }
+  50% { transform: translateY(8px); opacity: 1; }
+}
+
+@keyframes rotate-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes dart-pop {
+  0% { opacity: 0; transform: scale(0.6); }
+  60% { opacity: 1; transform: scale(1.05); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes draw-bracket {
+  from { stroke-dashoffset: var(--dash-total, 400); }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes score-tick {
+  0% { opacity: 0; transform: translateY(10px); }
+  20% { opacity: 1; transform: translateY(0); }
+  80% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-10px); }
+}
+
+/* Utility classes for landing animations */
+@layer components {
+  .anim-float {
+    animation: float var(--float-duration, 4s) var(--ease-in-out) infinite;
+    animation-delay: var(--float-delay, 0ms);
+  }
+
+  .anim-float-reverse {
+    animation: float-reverse var(--float-duration, 4s) var(--ease-in-out) infinite;
+    animation-delay: var(--float-delay, 0ms);
+  }
+
+  .anim-dart-pop {
+    animation: dart-pop 260ms var(--ease-out) both;
+  }
+
+  .dartboard__marker {
+    animation: dart-pop 320ms var(--ease-out) both;
+    animation-delay: var(--marker-delay, 0ms);
+  }
+}
+
 
 /* ═══════════════════════════════════════════════════════════════════════
    Vue Transitions (must remain global — not in a layer)
