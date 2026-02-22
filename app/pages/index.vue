@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { CHECKOUTS } from '#shared/checkouts'
+import type { Multiplier, ThrowResult } from '#shared/game-models'
+import { CHECKOUTS, getCheckout } from '#shared/checkouts'
 import { throwLabel } from '#shared/game-models'
-import type { ThrowResult } from '#shared/game-models'
-import { TRAINING_MODES } from '~/types/training'
 import DartBoard from '~/components/DartBoard.vue'
 import DartsLogo from '~/components/DartsLogo.vue'
+import { TRAINING_MODES } from '~/types/training'
 
 useHead({
   title: 'Darts Scorer — Professional Darts Scoring & Tournament Management',
@@ -34,14 +34,13 @@ definePageMeta({ layout: false })
 
 const demoScore = ref(170)
 const demoThrows = ref<ThrowResult[]>([])
-const demoHighlights = computed(() => demoThrows.value.map((t, index) => ({
+const demoHighlights = computed(() => demoThrows.value.map(t => ({
   segment: t.segment,
   multiplier: t.multiplier,
-  label: String(index + 1),
 })))
 const demoRound = computed(() => 8)
 const demoDartsLabel = computed(() => `${demoThrows.value.length}/3 darts`)
-const demoCheckout = computed(() => CHECKOUTS[demoScore.value] ?? [])
+const demoCheckout = computed(() => getCheckout(demoScore.value, 3 - demoThrows.value.length) ?? [])
 const heroDemo = {
   score: 170,
   player: 'P1',
@@ -54,11 +53,11 @@ const demoLabels = computed(() => demoThrows.value.map(t => throwLabel(t)))
 const demoTurnTotal = computed(() => demoThrows.value.reduce((sum, t) => sum + t.segment * t.multiplier, 0))
 
 const counters = [
-  { label: 'Training Drills', value: 7, suffix: '' },
+  { label: 'Training Drills', value: TRAINING_MODES.length, suffix: '' },
   { label: 'Tournament Formats', value: 4, suffix: '' },
-  { label: 'Checkout Paths', value: 162, suffix: '' },
+  { label: 'Checkout Paths', value: Object.keys(CHECKOUTS).length, suffix: '' },
   { label: 'Achievements', value: 19, suffix: '' },
-  { label: 'Offline Mode', value: 100, suffix: '%'},
+  { label: 'Offline Mode', value: 100, suffix: '%' },
 ]
 
 const deepFeatures = [
@@ -93,13 +92,13 @@ const gameModes = [
 ]
 
 const trainingIcons: Record<string, string> = {
-  target: '🎯',
-  clock: '🕐',
-  zap: '⚡',
-  crosshair: '🔘',
-  grid: '📊',
+  'target': '🎯',
+  'clock': '🕐',
+  'zap': '⚡',
+  'crosshair': '🔘',
+  'grid': '📊',
   'check-circle': '✅',
-  star: '⭐',
+  'star': '⭐',
 }
 
 const tournamentFormats = [
@@ -160,7 +159,7 @@ function handleDemoScore(segment: number, multiplier: number) {
   const points = segment * multiplier
   if (demoScore.value - points < 0)
     return
-  demoThrows.value = [...demoThrows.value, { segment, multiplier }]
+  demoThrows.value = [...demoThrows.value, { segment, multiplier: multiplier as Multiplier }]
   demoScore.value -= points
 }
 
@@ -168,7 +167,6 @@ function resetDemo() {
   demoScore.value = 170
   demoThrows.value = []
 }
-
 </script>
 
 <template>
@@ -225,38 +223,52 @@ function resetDemo() {
           </NuxtLink>
         </div>
 
-        <div class="mt-xl w-full max-w-[560px] bg-surface-1 border-2 border-black rounded-xl shadow-lg p-lg flex flex-col gap-md anim-fade-in-up" style="--delay: 500ms;">
-          <div class="flex items-center justify-between text-[0.9rem] font-semibold text-fg-secondary">
-            <span>Scoring demo</span>
-            <span class="text-fg-muted">Checkout: {{ heroDemo.checkout.join(' · ') }}</span>
-          </div>
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-sm">
-              <span class="text-[2.5rem] font-black text-fg">{{ heroDemo.score }}</span>
-              <span class="text-[0.8rem] font-bold text-fg-muted">remaining</span>
+        <div class="mt-xl w-full max-w-[680px] bg-surface-1 border-2 border-black rounded-xl shadow-lg p-lg anim-fade-in-up" style="--delay: 500ms;">
+          <div class="grid grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] gap-lg max-md:grid-cols-1">
+            <div class="flex flex-col gap-md">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-sm">
+                  <span class="px-sm py-xs rounded-md bg-surface-2 border-2 border-black text-[0.75rem] font-bold">P1</span>
+                  <span class="text-fg-muted text-[0.75rem]">Round {{ demoRound }} · {{ demoDartsLabel }}</span>
+                </div>
+                <span class="text-[1.6rem] font-black text-fg">{{ demoScore }}</span>
+              </div>
+              <div class="grid grid-cols-3 gap-xs">
+                <div
+                  v-for="(label, index) in ['Dart 1', 'Dart 2', 'Dart 3']"
+                  :key="label"
+                  class="p-sm border-2 border-black rounded-md bg-surface-0 text-center"
+                >
+                  <div class="text-[0.7rem] text-fg-muted font-bold uppercase">
+                    {{ label }}
+                  </div>
+                  <div class="text-[1rem] font-black text-fg" :class="demoLabels[index] ? 'anim-dart-pop' : ''">
+                    {{ demoLabels[index] ?? '—' }}
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center justify-between text-[0.85rem] text-fg-secondary">
+                <span>Turn total</span>
+                <span class="font-bold">{{ demoTurnTotal }}</span>
+              </div>
+              <div class="flex items-center justify-between text-[0.85rem] text-fg-secondary">
+                <span>Suggested checkout</span>
+                <span class="font-bold text-fg">{{ demoCheckout.join(' · ') || '—' }}</span>
+              </div>
+              <div class="flex items-center gap-sm">
+                <button
+                  type="button"
+                  class="inline-flex items-center justify-center px-lg py-sm text-[0.85rem] font-bold bg-yellow border-2 border-black rounded-md shadow-sm transition-all duration-100 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md"
+                  @click="resetDemo"
+                >
+                  Reset Demo
+                </button>
+                <span class="text-[0.75rem] text-fg-muted">Click the board to score</span>
+              </div>
             </div>
-            <div class="flex items-center gap-xs text-[0.9rem] font-bold text-fg-secondary">
-              <span class="px-sm py-xs rounded-md border-2 border-black bg-surface-2">{{ heroDemo.player }}</span>
-              <span class="px-sm py-xs rounded-md border-2 border-black bg-surface-2">{{ heroDemo.leg }}</span>
+            <div class="flex items-center justify-center">
+              <DartBoard class="max-w-[320px]" :highlight-segments="demoHighlights" @score="handleDemoScore" />
             </div>
-          </div>
-          <div class="grid grid-cols-3 gap-sm">
-            <div class="p-sm border-2 border-black rounded-md bg-surface-0 text-center">
-              <div class="text-[0.7rem] text-fg-muted font-bold uppercase">Dart 1</div>
-              <div class="text-[1rem] font-black text-fg">{{ heroDemo.darts[0] }}</div>
-            </div>
-            <div class="p-sm border-2 border-black rounded-md bg-surface-0 text-center">
-              <div class="text-[0.7rem] text-fg-muted font-bold uppercase">Dart 2</div>
-              <div class="text-[1rem] font-black text-fg">{{ heroDemo.darts[1] }}</div>
-            </div>
-            <div class="p-sm border-2 border-black rounded-md bg-surface-0 text-center">
-              <div class="text-[0.7rem] text-fg-muted font-bold uppercase">Dart 3</div>
-              <div class="text-[1rem] font-black text-fg">{{ heroDemo.darts[2] }}</div>
-            </div>
-          </div>
-          <div class="flex items-center justify-between text-[0.85rem] text-fg-secondary">
-            <span>Visit total</span>
-            <span class="font-bold text-fg">{{ heroDemo.visitTotal }}</span>
           </div>
         </div>
       </div>
@@ -270,7 +282,7 @@ function resetDemo() {
     </section>
 
     <!-- ── Social Proof ─────────────────────────────────────────────── -->
-    <section class="border-y-2 border-black bg-surface-1 px-xl py-2xl">
+    <section class="border-y-2 border-black bg-surface-1 px-xl py-[72px]">
       <div class="max-w-[1100px] mx-auto grid grid-cols-5 gap-lg max-md:grid-cols-2 max-sm:grid-cols-1">
         <div
           v-for="(item, i) in counters"
@@ -289,9 +301,11 @@ function resetDemo() {
     </section>
 
     <!-- ── Feature Deep Dives ───────────────────────────────────────── -->
-    <section class="px-xl py-3xl max-w-[1200px] mx-auto flex flex-col gap-3xl max-sm:px-lg">
+    <section class="px-xl py-[72px] max-w-[1200px] mx-auto flex flex-col gap-3xl max-sm:px-lg">
       <div class="text-center max-w-[700px] mx-auto">
-        <h2 class="font-extrabold text-fg text-[clamp(1.7rem,4vw,2.4rem)]">Built for match nights and training labs</h2>
+        <h2 class="font-extrabold text-fg text-[clamp(1.7rem,4vw,2.4rem)]">
+          Built for match nights and training labs
+        </h2>
         <p class="text-fg-muted mt-sm text-[clamp(0.95rem,2vw,1.1rem)]">
           Every feature is tuned for competitive play and long-term improvement.
         </p>
@@ -307,8 +321,12 @@ function resetDemo() {
           class="flex flex-col gap-md"
         >
           <span class="text-[0.75rem] uppercase tracking-[0.2em] text-fg-muted font-bold">{{ feature.eyebrow }}</span>
-          <h3 class="text-[clamp(1.6rem,3vw,2.2rem)] font-extrabold text-fg">{{ feature.title }}</h3>
-          <p class="text-[1rem] text-fg-secondary leading-relaxed">{{ feature.description }}</p>
+          <h3 class="text-[clamp(1.6rem,3vw,2.2rem)] font-extrabold text-fg">
+            {{ feature.title }}
+          </h3>
+          <p class="text-[1rem] text-fg-secondary leading-relaxed">
+            {{ feature.description }}
+          </p>
           <div class="flex flex-wrap gap-sm">
             <span
               v-for="highlight in feature.highlights"
@@ -324,47 +342,38 @@ function resetDemo() {
           :class="feature.align === 'left' ? 'order-2' : 'order-1 max-lg:order-2'"
           class="bg-surface-1 border-2 border-black rounded-xl shadow-lg p-2xl"
         >
-          <div v-if="i === 0" class="grid grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] gap-lg max-md:grid-cols-1">
-            <div class="flex flex-col gap-md">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-sm">
-                  <span class="px-sm py-xs rounded-md bg-surface-2 border-2 border-black text-[0.75rem] font-bold">P1</span>
-                  <span class="text-fg-muted text-[0.75rem]">Round {{ demoRound }} · {{ demoDartsLabel }}</span>
-                </div>
-                <span class="text-[1.6rem] font-black text-fg">{{ demoScore }}</span>
-              </div>
-              <div class="grid grid-cols-3 gap-xs">
-                <div
-                  v-for="(label, index) in ['Dart 1', 'Dart 2', 'Dart 3']"
-                  :key="label"
-                  class="p-sm border-2 border-black rounded-md bg-surface-0 text-center"
-                >
-                  <div class="text-[0.7rem] text-fg-muted font-bold uppercase">{{ label }}</div>
-                  <div class="text-[1rem] font-black text-fg" :class="demoLabels[index] ? 'anim-dart-pop' : ''">
-                    {{ demoLabels[index] ?? '—' }}
-                  </div>
-                </div>
-              </div>
-              <div class="flex items-center justify-between text-[0.85rem] text-fg-secondary">
-                <span>Turn total</span>
-                <span class="font-bold">{{ demoTurnTotal }}</span>
-              </div>
-              <div class="flex items-center justify-between text-[0.85rem] text-fg-secondary">
-                <span>Suggested checkout</span>
-                <span class="font-bold text-fg">{{ demoCheckout.join(' · ') || '—' }}</span>
-              </div>
+          <div v-if="i === 0" class="flex flex-col gap-md">
+            <div class="flex items-center justify-between">
               <div class="flex items-center gap-sm">
-                <button
-                  class="inline-flex items-center justify-center px-lg py-sm text-[0.85rem] font-bold bg-yellow border-2 border-black rounded-md shadow-sm transition-all duration-100 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-md"
-                  @click="resetDemo"
-                >
-                  Reset Demo
-                </button>
-                <span class="text-[0.75rem] text-fg-muted">Click the board to score</span>
+                <span class="text-[2.5rem] font-black text-fg">{{ heroDemo.score }}</span>
+                <span class="text-[0.8rem] font-bold text-fg-muted">remaining</span>
+              </div>
+              <div class="flex items-center gap-xs text-[0.9rem] font-bold text-fg-secondary">
+                <span class="px-sm py-xs rounded-md border-2 border-black bg-surface-2">{{ heroDemo.player }}</span>
+                <span class="px-sm py-xs rounded-md border-2 border-black bg-surface-2">{{ heroDemo.leg }}</span>
               </div>
             </div>
-            <div class="flex items-center justify-center">
-              <DartBoard class="max-w-[320px]" :highlight-segments="demoHighlights" @score="handleDemoScore" />
+            <div class="grid grid-cols-3 gap-sm">
+              <div
+                v-for="(dart, index) in heroDemo.darts"
+                :key="index"
+                class="p-sm border-2 border-black rounded-md bg-surface-0 text-center"
+              >
+                <div class="text-[0.7rem] text-fg-muted font-bold uppercase">
+                  Dart {{ index + 1 }}
+                </div>
+                <div class="text-[1rem] font-black text-fg">
+                  {{ dart }}
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center justify-between text-[0.85rem] text-fg-secondary">
+              <span>Visit total</span>
+              <span class="font-bold text-fg">{{ heroDemo.visitTotal }}</span>
+            </div>
+            <div class="flex items-center justify-between text-[0.85rem] text-fg-secondary">
+              <span>Checkout</span>
+              <span class="font-bold text-fg">{{ heroDemo.checkout.join(' · ') }}</span>
             </div>
           </div>
 
@@ -420,17 +429,23 @@ function resetDemo() {
     </section>
 
     <!-- ── Game Modes Overview ─────────────────────────────────────── -->
-    <section class="px-xl py-3xl bg-surface-1 border-y-2 border-black">
+    <section class="px-xl py-[72px] bg-surface-1 border-y-2 border-black">
       <div class="max-w-[1100px] mx-auto grid grid-cols-2 gap-2xl items-center max-lg:grid-cols-1">
         <div class="flex flex-col gap-md">
-          <h2 class="font-extrabold text-fg text-[clamp(1.7rem,4vw,2.4rem)]">Match formats built for every night</h2>
+          <h2 class="font-extrabold text-fg text-[clamp(1.7rem,4vw,2.4rem)]">
+            Match formats built for every night
+          </h2>
           <p class="text-fg-secondary leading-relaxed">
             Configure legs, sets, and checkout rules in seconds. Play quick 301s or full tournament-length 501s.
           </p>
           <div class="grid grid-cols-2 gap-md max-sm:grid-cols-1">
             <div v-for="mode in gameModes" :key="mode.title" class="p-lg bg-surface-0 border-2 border-black rounded-lg shadow-sm">
-              <h3 class="font-bold text-fg">{{ mode.title }}</h3>
-              <p class="text-[0.85rem] text-fg-muted mt-xs">{{ mode.description }}</p>
+              <h3 class="font-bold text-fg">
+                {{ mode.title }}
+              </h3>
+              <p class="text-[0.85rem] text-fg-muted mt-xs">
+                {{ mode.description }}
+              </p>
             </div>
           </div>
         </div>
@@ -441,36 +456,60 @@ function resetDemo() {
           </div>
           <div class="grid grid-cols-2 gap-md text-[0.85rem]">
             <div class="p-md border-2 border-black rounded-md bg-surface-1">
-              <div class="text-fg-muted">Players</div>
-              <div class="font-bold text-fg">2–4 (humans + bots)</div>
+              <div class="text-fg-muted">
+                Players
+              </div>
+              <div class="font-bold text-fg">
+                2–4 (humans + bots)
+              </div>
             </div>
             <div class="p-md border-2 border-black rounded-md bg-surface-1">
-              <div class="text-fg-muted">Input</div>
-              <div class="font-bold text-fg">Per Dart / Per Visit</div>
+              <div class="text-fg-muted">
+                Input
+              </div>
+              <div class="font-bold text-fg">
+                Per Dart / Per Visit
+              </div>
             </div>
             <div class="p-md border-2 border-black rounded-md bg-surface-1">
-              <div class="text-fg-muted">Legs</div>
-              <div class="font-bold text-fg">Best of 3</div>
+              <div class="text-fg-muted">
+                Legs
+              </div>
+              <div class="font-bold text-fg">
+                Best of 3
+              </div>
             </div>
             <div class="p-md border-2 border-black rounded-md bg-surface-1">
-              <div class="text-fg-muted">Sets</div>
-              <div class="font-bold text-fg">Best of 1</div>
+              <div class="text-fg-muted">
+                Sets
+              </div>
+              <div class="font-bold text-fg">
+                Best of 1
+              </div>
             </div>
           </div>
-          <div class="text-[0.8rem] text-fg-muted">Save presets for rematches and quick start games.</div>
+          <div class="text-[0.8rem] text-fg-muted">
+            Save presets for rematches and quick start games.
+          </div>
         </div>
       </div>
     </section>
 
     <!-- ── Training Modes ───────────────────────────────────────────── -->
-    <section class="px-xl py-3xl max-w-[1200px] mx-auto max-sm:px-lg">
+    <section class="px-xl py-[72px] max-w-[1200px] mx-auto max-sm:px-lg">
       <div class="flex flex-col gap-lg">
         <div class="flex items-center justify-between flex-wrap gap-sm">
           <div>
-            <h2 class="font-extrabold text-fg text-[clamp(1.7rem,4vw,2.4rem)]">Seven training drills built for growth</h2>
-            <p class="text-fg-muted mt-xs">Solo sessions built around scoring, doubles, and pressure finishes.</p>
+            <h2 class="font-extrabold text-fg text-[clamp(1.7rem,4vw,2.4rem)]">
+              Seven training drills built for growth
+            </h2>
+            <p class="text-fg-muted mt-xs">
+              Solo sessions built around scoring, doubles, and pressure finishes.
+            </p>
           </div>
-          <NuxtLink to="/training" class="text-[0.85rem] font-bold text-fg-secondary hover:text-yellow transition-colors">Explore training →</NuxtLink>
+          <NuxtLink to="/training" class="text-[0.85rem] font-bold text-fg-secondary hover:text-yellow transition-colors">
+            Explore training →
+          </NuxtLink>
         </div>
         <div class="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-md">
           <div
@@ -481,63 +520,197 @@ function resetDemo() {
             <div class="text-[1.8rem]" :style="{ color: mode.color }">
               {{ trainingIcons[mode.icon] ?? '🎯' }}
             </div>
-            <h3 class="font-bold text-fg mt-sm">{{ mode.name }}</h3>
-            <p class="text-[0.8rem] text-fg-muted mt-xs leading-relaxed">{{ mode.description }}</p>
+            <h3 class="font-bold text-fg mt-sm">
+              {{ mode.name }}
+            </h3>
+            <p class="text-[0.8rem] text-fg-muted mt-xs leading-relaxed">
+              {{ mode.description }}
+            </p>
           </div>
         </div>
       </div>
     </section>
 
     <!-- ── Tournaments ─────────────────────────────────────────────── -->
-    <section class="px-xl py-3xl bg-surface-1 border-y-2 border-black">
+    <section class="px-xl py-[72px] bg-surface-1 border-y-2 border-black">
       <div class="max-w-[1200px] mx-auto grid grid-cols-2 gap-2xl items-center max-lg:grid-cols-1">
         <div class="flex flex-col gap-md">
           <span class="text-[0.75rem] uppercase tracking-[0.2em] text-fg-muted font-bold">Tournament Suite</span>
-          <h2 class="font-extrabold text-fg text-[clamp(1.7rem,4vw,2.4rem)]">Host leagues, brackets, and group nights in one place</h2>
-          <p class="text-fg-secondary leading-relaxed">Create tournaments with auto-generated brackets, live standings, and real-time spectate dashboards with optional camera streaming.</p>
+          <h2 class="font-extrabold text-fg text-[clamp(1.7rem,4vw,2.4rem)]">
+            Host leagues, brackets, and group nights in one place
+          </h2>
+          <p class="text-fg-secondary leading-relaxed">
+            Create tournaments with auto-generated brackets, live standings, and real-time spectate dashboards with optional camera streaming.
+          </p>
           <div class="grid grid-cols-2 gap-md max-sm:grid-cols-1">
             <div v-for="format in tournamentFormats" :key="format.title" class="p-md border-2 border-black rounded-lg bg-surface-0 shadow-sm">
-              <h3 class="font-bold text-fg">{{ format.title }}</h3>
-              <p class="text-[0.8rem] text-fg-muted mt-xs">{{ format.description }}</p>
+              <h3 class="font-bold text-fg">
+                {{ format.title }}
+              </h3>
+              <p class="text-[0.8rem] text-fg-muted mt-xs">
+                {{ format.description }}
+              </p>
             </div>
           </div>
         </div>
-        <div class="bg-surface-0 border-2 border-black rounded-xl shadow-lg p-2xl">
-          <div class="flex items-center justify-between">
-            <span class="text-[0.85rem] font-bold text-fg">Live Bracket</span>
-            <span class="px-sm py-xs rounded-full text-[0.7rem] font-bold bg-green-light border-2 border-black">LIVE</span>
+        <div class="flex flex-col gap-lg">
+          <!-- Bracket Card -->
+          <div class="bg-surface-0 border-2 border-black rounded-xl shadow-lg p-2xl">
+            <div class="flex items-center justify-between">
+              <span class="text-[0.85rem] font-bold text-fg">Live Bracket</span>
+              <span class="px-sm py-xs rounded-full text-[0.7rem] font-bold bg-green-light border-2 border-black">LIVE</span>
+            </div>
+            <svg viewBox="0 0 320 200" class="w-full mt-md">
+              <!-- Connecting lines with draw animation -->
+              <g fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="stroke-dasharray: 300; stroke-dashoffset: 300; animation: draw-bracket 1.6s var(--ease-out) forwards; --dash-total: 300;">
+                <!-- Semi-final 1 connectors -->
+                <path d="M105 30 H130 V52 H155" />
+                <path d="M105 70 H130 V52" />
+                <!-- Semi-final 2 connectors -->
+                <path d="M105 130 H130 V152 H155" />
+                <path d="M105 170 H130 V152" />
+                <!-- Final connectors -->
+                <path d="M245 52 H260 V102 H275" />
+                <path d="M245 152 H260 V102" />
+              </g>
+              <!-- Semi-final match boxes -->
+              <g>
+                <!-- SF1: Alice -->
+                <rect x="10" y="18" width="95" height="24" rx="5" fill="var(--yellow-light)" stroke="#000" stroke-width="2" />
+                <text x="57" y="35" text-anchor="middle" font-size="11" font-weight="700" fill="#000">Alice</text>
+                <!-- SF1: Bob -->
+                <rect x="10" y="58" width="95" height="24" rx="5" fill="#FFF" stroke="#000" stroke-width="2" />
+                <text x="57" y="75" text-anchor="middle" font-size="11" font-weight="600" fill="#000">Bob</text>
+                <!-- SF2: Charlie -->
+                <rect x="10" y="118" width="95" height="24" rx="5" fill="var(--yellow-light)" stroke="#000" stroke-width="2" />
+                <text x="57" y="135" text-anchor="middle" font-size="11" font-weight="700" fill="#000">Charlie</text>
+                <!-- SF2: Dave -->
+                <rect x="10" y="158" width="95" height="24" rx="5" fill="#FFF" stroke="#000" stroke-width="2" />
+                <text x="57" y="175" text-anchor="middle" font-size="11" font-weight="600" fill="#000">Dave</text>
+              </g>
+              <!-- Final match boxes -->
+              <g>
+                <rect x="155" y="40" width="90" height="24" rx="5" fill="var(--yellow-light)" stroke="#000" stroke-width="2" />
+                <text x="200" y="57" text-anchor="middle" font-size="11" font-weight="700" fill="#000">Alice</text>
+                <rect x="155" y="140" width="90" height="24" rx="5" fill="#FFF" stroke="#000" stroke-width="2" />
+                <text x="200" y="157" text-anchor="middle" font-size="11" font-weight="600" fill="#000">Charlie</text>
+              </g>
+              <!-- Winner box -->
+              <g>
+                <rect x="275" y="90" width="35" height="24" rx="5" fill="var(--yellow)" stroke="#000" stroke-width="2" />
+                <text x="292" y="106" text-anchor="middle" font-size="9" font-weight="800" fill="#000">🏆</text>
+              </g>
+            </svg>
           </div>
-          <svg viewBox="0 0 280 180" class="w-full mt-md">
-            <g fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="stroke-dasharray: 200; stroke-dashoffset: 200; animation: draw-bracket 1.6s var(--ease-out) forwards; --dash-total: 200;">
-              <path d="M82 30 H102 V50 H122" />
-              <path d="M82 110 H102 V130 H122" />
-              <path d="M192 50 H200" />
-              <path d="M192 130 H200" />
-              <path d="M200 50 V130" />
-              <path d="M200 90 H208" />
-            </g>
-            <g fill="#FFF" stroke="#000" stroke-width="2">
-              <rect x="12" y="22" width="70" height="16" rx="4" />
-              <rect x="12" y="102" width="70" height="16" rx="4" />
-              <rect x="122" y="42" width="70" height="16" rx="4" />
-              <rect x="122" y="122" width="70" height="16" rx="4" />
-              <rect x="208" y="82" width="70" height="16" rx="4" />
-            </g>
-          </svg>
-          <div class="mt-md grid grid-cols-3 gap-sm text-[0.75rem] text-fg-muted">
-            <div class="p-xs border border-black rounded-md bg-surface-1">Standings</div>
-            <div class="p-xs border border-black rounded-md bg-surface-1">Fixtures</div>
-            <div class="p-xs border border-black rounded-md bg-surface-1">Spectate</div>
+
+          <!-- League Standings Card -->
+          <div class="bg-surface-0 border-2 border-black rounded-xl shadow-lg p-2xl">
+            <span class="text-[0.85rem] font-bold text-fg">League Standings</span>
+            <table class="w-full mt-md text-[0.8rem]">
+              <thead>
+                <tr class="text-left text-fg-muted border-b-2 border-black">
+                  <th class="pb-xs w-8">
+                    #
+                  </th>
+                  <th class="pb-xs">
+                    Player
+                  </th>
+                  <th class="pb-xs text-center w-10">
+                    W
+                  </th>
+                  <th class="pb-xs text-center w-10">
+                    L
+                  </th>
+                  <th class="pb-xs text-center w-12">
+                    Pts
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="font-medium text-fg">
+                <tr class="border-b border-black/10">
+                  <td class="py-xs font-bold text-fg-muted">
+                    1
+                  </td>
+                  <td class="py-xs font-bold">
+                    Alice
+                  </td>
+                  <td class="py-xs text-center">
+                    5
+                  </td>
+                  <td class="py-xs text-center">
+                    1
+                  </td>
+                  <td class="py-xs text-center font-bold">
+                    15
+                  </td>
+                </tr>
+                <tr class="border-b border-black/10">
+                  <td class="py-xs font-bold text-fg-muted">
+                    2
+                  </td>
+                  <td class="py-xs">
+                    Charlie
+                  </td>
+                  <td class="py-xs text-center">
+                    4
+                  </td>
+                  <td class="py-xs text-center">
+                    2
+                  </td>
+                  <td class="py-xs text-center font-bold">
+                    12
+                  </td>
+                </tr>
+                <tr class="border-b border-black/10">
+                  <td class="py-xs font-bold text-fg-muted">
+                    3
+                  </td>
+                  <td class="py-xs">
+                    Bob
+                  </td>
+                  <td class="py-xs text-center">
+                    2
+                  </td>
+                  <td class="py-xs text-center">
+                    4
+                  </td>
+                  <td class="py-xs text-center font-bold">
+                    6
+                  </td>
+                </tr>
+                <tr>
+                  <td class="py-xs font-bold text-fg-muted">
+                    4
+                  </td>
+                  <td class="py-xs">
+                    Dave
+                  </td>
+                  <td class="py-xs text-center">
+                    1
+                  </td>
+                  <td class="py-xs text-center">
+                    5
+                  </td>
+                  <td class="py-xs text-center font-bold">
+                    3
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
     </section>
 
     <!-- ── Extra Features ───────────────────────────────────────────── -->
-    <section class="px-xl py-3xl max-w-[1200px] mx-auto max-sm:px-lg">
+    <section class="px-xl py-[72px] max-w-[1200px] mx-auto max-sm:px-lg">
       <div class="text-center max-w-[700px] mx-auto">
-        <h2 class="font-extrabold text-fg text-[clamp(1.7rem,4vw,2.4rem)]">Everything else your league keeps asking for</h2>
-        <p class="text-fg-muted mt-sm">Replay, spectate, achievements, exports — it all ships in the box.</p>
+        <h2 class="font-extrabold text-fg text-[clamp(1.7rem,4vw,2.4rem)]">
+          Everything else your league keeps asking for
+        </h2>
+        <p class="text-fg-muted mt-sm">
+          Replay, spectate, achievements, exports — it all ships in the box.
+        </p>
       </div>
       <div class="grid grid-cols-3 gap-lg mt-2xl max-lg:grid-cols-2 max-sm:grid-cols-1">
         <div
@@ -573,15 +746,19 @@ function resetDemo() {
             </svg>
           </div>
           <div>
-            <h3 class="font-bold text-fg">{{ item.title }}</h3>
-            <p class="text-[0.85rem] text-fg-muted mt-xs leading-relaxed">{{ item.description }}</p>
+            <h3 class="font-bold text-fg">
+              {{ item.title }}
+            </h3>
+            <p class="text-[0.85rem] text-fg-muted mt-xs leading-relaxed">
+              {{ item.description }}
+            </p>
           </div>
         </div>
       </div>
     </section>
 
     <!-- ── Highlights ──────────────────────────────────────────────── -->
-    <section class="border-y-2 border-black bg-surface-1 px-xl py-2xl">
+    <section class="border-y-2 border-black bg-surface-1 px-xl py-[72px]">
       <div class="flex justify-center gap-3xl max-w-[900px] mx-auto max-sm:flex-col max-sm:items-center max-sm:gap-xl">
         <div
           v-for="(item, i) in highlights"
@@ -596,11 +773,15 @@ function resetDemo() {
     </section>
 
     <!-- ── Final CTA ───────────────────────────────────────────────── -->
-    <section class="px-xl py-3xl max-w-[1000px] mx-auto flex justify-center max-sm:px-lg">
+    <section class="px-xl py-[72px] max-w-[1000px] mx-auto flex justify-center max-sm:px-lg">
       <div class="flex flex-col items-center gap-lg p-3xl text-center max-w-[580px] w-full bg-yellow border-2 border-black shadow-lg rounded-lg">
         <DartsLogo :size="64" />
-        <h2 class="font-extrabold text-fg text-[clamp(1.3rem,3vw,1.8rem)]">Ready to Level Up Your Darts Game?</h2>
-        <p class="text-[0.95rem] text-fg-secondary leading-relaxed">Join players using Darts Scorer for professional-grade game tracking.</p>
+        <h2 class="font-extrabold text-fg text-[clamp(1.3rem,3vw,1.8rem)]">
+          Ready to Level Up Your Darts Game?
+        </h2>
+        <p class="text-[0.95rem] text-fg-secondary leading-relaxed">
+          Join players using Darts Scorer for professional-grade game tracking.
+        </p>
         <NuxtLink to="/play" class="inline-flex items-center justify-center gap-sm px-3xl py-md text-[1.05rem] font-extrabold bg-surface-1 border-2 border-black rounded-lg shadow-md transition-all duration-100 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-lg active:translate-x-0.5 active:translate-y-0.5 active:shadow-none">
           Start Playing Now
         </NuxtLink>

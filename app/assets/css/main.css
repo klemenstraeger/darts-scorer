@@ -278,16 +278,6 @@
   100% { transform: scale(1); opacity: 0.07; }
 }
 
-@keyframes slide-in-left {
-  from { opacity: 0; transform: translateX(-48px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes slide-in-right {
-  from { opacity: 0; transform: translateX(48px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-
 @keyframes bounce-chevron {
   0%, 100% { transform: translateY(0); opacity: 0.5; }
   50% { transform: translateY(8px); opacity: 1; }
@@ -331,16 +321,6 @@
   .anim-float-reverse {
     animation: float-reverse var(--float-duration, 4s) var(--ease-in-out) infinite;
     animation-delay: var(--float-delay, 0ms);
-  }
-
-  .anim-slide-in-left {
-    animation: slide-in-left 700ms var(--ease-out) both;
-    animation-delay: var(--delay, 0ms);
-  }
-
-  .anim-slide-in-right {
-    animation: slide-in-right 700ms var(--ease-out) both;
-    animation-delay: var(--delay, 0ms);
   }
 
   .anim-dart-pop {
