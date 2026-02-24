@@ -168,13 +168,12 @@
     font-family: var(--font-sans);
     background: var(--surface-0);
     color: var(--text-primary);
-    min-height: 100vh;
+    min-height: 100dvh;
     overflow-x: hidden;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
   #__nuxt {
-    min-height: 100vh;
+    min-height: 100dvh;
   }
 
   a {

@@ -1,26 +1,40 @@
 <script setup lang="ts">
 const route = useRoute()
 const { profile, fetch: fetchProfile, logout } = useProfile()
-const { stopGame } = useGameState()
+const { stopGame, hasActiveGame, checkActiveGame } = useGameState()
 const { isAuthenticated } = useAuth()
 
 // Fetch profile on mount if not already loaded (only for authenticated users)
 onMounted(() => {
   if (isAuthenticated.value && !profile.value)
     fetchProfile()
+  checkActiveGame()
 })
 
-const navItems = computed(() => [
-  isAuthenticated.value
-    ? { path: '/dashboard', label: 'Home', name: 'dashboard', icon: 'home' }
-    : { path: '/play', label: 'Play', name: 'play', icon: 'home' },
-  { path: '/tournaments', label: 'Tourneys', name: 'tournaments', icon: 'trophy' },
-  { path: '/stats', label: 'Stats', name: 'stats', icon: 'bar-chart' },
-  { path: '/settings', label: 'Settings', name: 'settings', icon: 'settings' },
-])
+// Re-check active game on route changes (game may have been started/stopped)
+watch(() => route.name, () => {
+  checkActiveGame()
+})
+
+const navItems = computed(() => {
+  const items: { path: string, label: string, name: string, icon: string }[] = [
+    isAuthenticated.value
+      ? { path: '/dashboard', label: 'Home', name: 'dashboard', icon: 'home' }
+      : { path: '/play', label: 'Play', name: 'play', icon: 'home' },
+    { path: '/tournaments', label: 'Tourneys', name: 'tournaments', icon: 'trophy' },
+  ]
+  if (hasActiveGame.value) {
+    items.push({ path: '/game', label: 'Game', name: 'game', icon: 'target' })
+  }
+  items.push(
+    { path: '/stats', label: 'Stats', name: 'stats', icon: 'bar-chart' },
+    { path: '/settings', label: 'Settings', name: 'settings', icon: 'settings' },
+  )
+  return items
+})
 
 const isGamePage = computed(() => route.name === 'game')
-const isFullScreenPage = computed(() => isGamePage.value || route.name === 'training-play')
+const isFullScreenPage = computed(() => route.name === 'training-play')
 const { isTournamentMatch } = useTournamentContext()
 
 function isNavItemActive(item: { path: string, label: string, name: string, icon: string }): boolean {
@@ -168,7 +182,7 @@ function handleNewGame() {
       class="app-bottom-nav fixed bottom-0 left-0 right-0 z-50 sm:hidden"
       aria-label="Main navigation"
     >
-      <div class="app-bottom-nav-inner" data-tour="nav-mobile">
+      <div class="app-bottom-nav-inner" :style="{ gridTemplateColumns: `repeat(${navItems.length}, minmax(0, 1fr))` }" data-tour="nav-mobile">
         <NuxtLink
           v-for="item in navItems"
           :key="item.path"
@@ -198,6 +212,12 @@ function handleNewGame() {
             <line x1="12" y1="20" x2="12" y2="10" />
             <line x1="18" y1="20" x2="18" y2="4" />
             <line x1="6" y1="20" x2="6" y2="16" />
+          </svg>
+          <!-- Target (active game) -->
+          <svg v-else-if="item.icon === 'target'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <circle cx="12" cy="12" r="6" />
+            <circle cx="12" cy="12" r="2" />
           </svg>
           <!-- Settings -->
           <svg v-else-if="item.icon === 'settings'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
@@ -484,7 +504,6 @@ function handleNewGame() {
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--spacing-xs);
   padding: var(--spacing-xs);
 }

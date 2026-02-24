@@ -55,6 +55,21 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
 <template>
   <div class="manual-input" :class="[`mod-${modifier}`, { disabled }]">
+    <!-- Number grid: 5 columns x 4 rows -->
+    <div class="manual-number-grid">
+      <template v-for="row in numbers" :key="row[0]">
+        <button
+          v-for="n in row"
+          :key="n"
+          class="manual-num-btn"
+          :disabled="disabled"
+          @click="emitScore(n); haptic()"
+        >
+          {{ n }}
+        </button>
+      </template>
+    </div>
+
     <!-- Modifier toggle -->
     <div class="manual-modifier-bar">
       <button
@@ -71,21 +86,6 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
         :style="{ transform: `translateX(${(modifier - 1) * 100}%)` }"
         :class="`indicator-${modifier}`"
       />
-    </div>
-
-    <!-- Number grid: 5 columns x 4 rows -->
-    <div class="manual-number-grid">
-      <template v-for="row in numbers" :key="row[0]">
-        <button
-          v-for="n in row"
-          :key="n"
-          class="manual-num-btn"
-          :disabled="disabled"
-          @click="emitScore(n); haptic()"
-        >
-          {{ n }}
-        </button>
-      </template>
     </div>
 
     <!-- Special row: MISS / Bull -->
@@ -123,7 +123,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   flex-direction: column;
   gap: 6px;
   width: 100%;
-  height: 100%;
+  flex: 1;
   min-height: 0;
 }
 

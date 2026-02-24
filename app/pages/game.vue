@@ -13,6 +13,7 @@ const {
   manualScore,
   visitScore,
   loadState,
+  stopGame,
   recentAchievements,
   clearAchievements,
   pendingGameOver,
@@ -24,7 +25,7 @@ const {
 const { isBotPlaying } = useBotPlay()
 const { isTournamentMatch, tournamentId, clear: clearTournamentContext } = useTournamentContext()
 const { ensureLoaded: ensurePlayers, getAvatarProps } = usePlayers()
-const { dartboardTheme, inputMode } = useSettings()
+const { inputMode } = useSettings()
 const { shouldShowTour, startTour } = useOnboarding()
 const { isAuthenticated } = useAuth()
 
@@ -73,19 +74,35 @@ onMounted(() => {
             align: 'center',
           },
         },
-        {
-          element: '[data-tour="dartboard-fab"]',
-          popover: {
-            title: 'Visual Dartboard',
-            description: 'Prefer clicking on a dartboard? Open the interactive dartboard overlay here.',
-            side: 'left',
-            align: 'center',
-          },
-        },
       ], 'game')
     }, 600)
   }
 })
+
+// Mobile game menu (three-dot overlay)
+const mobileMenuOpen = ref(false)
+const confirmStopGame = ref(false)
+
+function toggleMobileMenu() {
+  mobileMenuOpen.value = !mobileMenuOpen.value
+  confirmStopGame.value = false
+}
+
+function closeMobileMenu() {
+  mobileMenuOpen.value = false
+  confirmStopGame.value = false
+}
+
+function handleMobileStop() {
+  closeMobileMenu()
+  stopGame()
+  navigateTo(isAuthenticated.value ? '/dashboard' : '/play')
+}
+
+function handleMobileNewGame() {
+  closeMobileMenu()
+  navigateTo(isAuthenticated.value ? '/dashboard' : '/play')
+}
 
 const isMatch = computed(() => state.legs_to_win > 1 || state.sets_to_win > 1)
 const hasSets = computed(() => state.sets_to_win > 1)
@@ -100,7 +117,6 @@ const legWonPlayerName = computed(() => {
 const playerNames = computed(() => state.players.map(p => p.name))
 
 const showGameOver = ref(true)
-const showDartboard = ref(false)
 const turnTotalFlash = ref<number | null>(null)
 
 // Animated score display per player
@@ -249,28 +265,107 @@ watch(hasGame, (active) => {
 </script>
 
 <template>
-  <div class="game-root flex flex-col overflow-hidden w-full px-sm md:px-md" role="main">
+  <div class="h-full flex flex-col gap-xs overflow-hidden w-full px-sm md:px-md" role="main">
+    <!-- Game header (mobile only) -->
+    <div class="sm:hidden flex items-center justify-between shrink-0 py-xs">
+      <div class="flex items-center gap-sm">
+        <span class="inline-flex items-center justify-center w-7 h-7 bg-yellow border-2 border-black rounded-md shadow-sm">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <circle cx="12" cy="12" r="6" />
+            <circle cx="12" cy="12" r="2" />
+          </svg>
+        </span>
+        <span class="text-sm font-black uppercase tracking-[1px]">Game</span>
+        <span v-if="isTournamentMatch" class="inline-flex items-center px-[8px] py-[2px] bg-orange border border-black rounded-full text-[0.6rem] font-extrabold uppercase tracking-wide shadow-sm">Tournament</span>
+      </div>
+      <div class="relative">
+        <button
+          class="flex items-center justify-center w-8 h-8 rounded-md border-2 border-black bg-surface-1 shadow-sm transition-all duration-150 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
+          title="Game menu"
+          @click="toggleMobileMenu"
+        >
+          <svg class="w-[18px] h-[18px] text-fg-secondary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="5" r="1" />
+            <circle cx="12" cy="12" r="1" />
+            <circle cx="12" cy="19" r="1" />
+          </svg>
+        </button>
+        <Transition name="menu">
+          <div v-if="mobileMenuOpen" class="absolute top-[calc(100%+6px)] right-0 min-w-[180px] z-[52] bg-surface-1 border-2 border-black rounded-md shadow-md p-xs">
+            <button
+              class="game-menu-item"
+              @click="handleMobileNewGame"
+            >
+              <svg class="w-[14px] h-[14px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              New Game
+            </button>
+            <button
+              v-if="!confirmStopGame"
+              class="game-menu-item game-menu-item-danger"
+              @click="confirmStopGame = true"
+            >
+              <svg class="w-[14px] h-[14px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+              </svg>
+              Stop Game
+            </button>
+            <button
+              v-else
+              class="game-menu-item game-menu-item-danger game-menu-item-confirm"
+              @click="handleMobileStop"
+            >
+              <svg class="w-[14px] h-[14px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+              </svg>
+              Stop Game?
+            </button>
+          </div>
+        </Transition>
+        <Transition name="fade">
+          <div v-if="mobileMenuOpen" class="fixed inset-0 z-[51]" @click="closeMobileMenu" />
+        </Transition>
+      </div>
+    </div>
+
     <!-- Top bar: player score cards -->
-    <div class="flex gap-xs md:gap-sm py-[2px] md:py-sm shrink-0" data-tour="score-display">
+    <div class="flex gap-xs md:gap-sm shrink-0" data-tour="score-display">
       <div
         v-for="(player, i) in state.players"
         :key="i"
-        class="flex-1 flex items-center gap-xs md:gap-md px-sm py-xs md:px-xl md:py-md min-w-0 rounded-lg border-2 border-black transition-all duration-200"
+        class="flex-1 flex flex-col min-w-0 rounded-lg border-2 border-black transition-all duration-200 overflow-hidden"
         :class="i === state.current_player_index ? 'bg-yellow-light shadow-sm' : 'bg-surface-1'"
       >
-        <svg v-if="player.isBot" class="hidden md:block w-[28px] h-[28px] text-gold shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2" /><circle cx="8.5" cy="16" r="1.5" /><circle cx="15.5" cy="16" r="1.5" /><path d="M12 2v5M7 7h10" /></svg>
-        <PlayerAvatar v-else v-bind="getAvatarProps(player.name)" :size="28" class="hidden md:block" />
-        <span class="text-xs font-bold uppercase tracking-wide whitespace-nowrap overflow-hidden text-ellipsis max-w-[100px]" :class="i === state.current_player_index ? 'text-yellow' : 'text-fg-muted'">{{ player.name }}</span>
-        <span class="text-[1.9rem] md:text-[2rem] lg:text-[2.8rem] font-black tabular-nums leading-none ml-auto md:ml-0" :class="i === state.current_player_index ? 'text-yellow' : 'text-fg'">{{ displayScores[i] ?? player.score }}</span>
-        <span v-if="isMatch" class="md:hidden text-[0.65rem] font-bold text-fg-muted tabular-nums whitespace-nowrap">
-          <template v-if="hasSets">S{{ state.sets_won[i] ?? 0 }} </template>L{{ state.current_set_legs[i] ?? 0 }}
-        </span>
-        <span class="hidden md:flex flex-col gap-[2px] ml-auto">
-          <span v-if="hasSets" class="text-[0.7rem] text-fg-muted whitespace-nowrap text-right">S {{ state.sets_won[i] ?? 0 }}/{{ state.sets_to_win }}</span>
-          <span v-if="isMatch" class="text-[0.7rem] text-fg-muted whitespace-nowrap text-right">L {{ state.current_set_legs[i] ?? 0 }}/{{ state.legs_to_win }}</span>
-          <span class="text-[0.7rem] text-fg-muted whitespace-nowrap text-right">{{ playerAvg(i) }} avg</span>
-          <span class="text-[0.7rem] text-fg-muted whitespace-nowrap text-right">{{ playerDarts(i) }} darts</span>
-        </span>
+        <!-- Main row: name + score -->
+        <div class="flex items-center gap-xs md:gap-md px-sm py-xs md:px-xl md:py-md">
+          <svg v-if="player.isBot" class="hidden md:block w-[28px] h-[28px] text-gold shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2" /><circle cx="8.5" cy="16" r="1.5" /><circle cx="15.5" cy="16" r="1.5" /><path d="M12 2v5M7 7h10" /></svg>
+          <PlayerAvatar v-else v-bind="getAvatarProps(player.name)" :size="28" class="hidden md:block" />
+          <span class="text-xs font-bold uppercase tracking-wide whitespace-nowrap overflow-hidden text-ellipsis max-w-[100px]" :class="i === state.current_player_index ? 'text-fg' : 'text-fg-muted'">{{ player.name }}</span>
+          <span class="text-[1.9rem] md:text-[2rem] lg:text-[2.8rem] font-black tabular-nums leading-none ml-auto md:ml-0 text-fg">{{ displayScores[i] ?? player.score }}</span>
+          <span class="hidden md:flex flex-col gap-[2px] ml-auto">
+            <span v-if="hasSets" class="text-[0.7rem] text-fg-muted whitespace-nowrap text-right">S {{ state.sets_won[i] ?? 0 }}/{{ state.sets_to_win }}</span>
+            <span v-if="isMatch" class="text-[0.7rem] text-fg-muted whitespace-nowrap text-right">L {{ state.current_set_legs[i] ?? 0 }}/{{ state.legs_to_win }}</span>
+            <span class="text-[0.7rem] text-fg-muted whitespace-nowrap text-right">{{ playerAvg(i) }} avg</span>
+            <span class="text-[0.7rem] text-fg-muted whitespace-nowrap text-right">{{ playerDarts(i) }} darts</span>
+          </span>
+        </div>
+        <!-- Mobile stats row -->
+        <div
+          class="md:hidden flex items-center justify-center gap-[6px] px-sm pb-[5px] text-[0.68rem] font-extrabold tabular-nums"
+          :class="i === state.current_player_index ? 'text-fg/60' : 'text-fg/50'"
+        >
+          <span>{{ playerAvg(i) }} avg</span>
+          <span class="text-fg/25">·</span>
+          <span>{{ playerDarts(i) }}d</span>
+          <template v-if="isMatch">
+            <span class="text-fg/25">·</span>
+            <span v-if="hasSets">S{{ state.sets_won[i] ?? 0 }}/{{ state.sets_to_win }}</span>
+            <span>L{{ state.current_set_legs[i] ?? 0 }}/{{ state.legs_to_win }}</span>
+          </template>
+        </div>
       </div>
     </div>
 
@@ -338,7 +433,7 @@ watch(hasGame, (active) => {
     </div>
 
     <!-- Main area: 2-column layout -->
-    <div class="flex-1 min-h-0 grid grid-cols-1 md:grid-cols-[260px_1fr] lg:grid-cols-[300px_1fr] gap-md pt-0 pb-xs md:pt-xs md:pb-sm">
+    <div class="flex-1 min-h-0 grid grid-cols-1 md:grid-cols-[260px_1fr] lg:grid-cols-[300px_1fr] gap-md pt-0 pb-0 md:pt-xs md:pb-sm">
       <!-- Left: Context sidebar -->
       <div class="hidden md:flex flex-col gap-sm min-h-0 overflow-hidden">
         <!-- Throw history (scrollable) -->
@@ -360,6 +455,7 @@ watch(hasGame, (active) => {
 
         <VisitScoreInput
           v-if="isPerVisit"
+          class="flex-1 min-h-0"
           :disabled="inputDisabled"
           :current-score="state.players[state.current_player_index]?.score"
           :checkout-mode="state.checkout"
@@ -368,6 +464,7 @@ watch(hasGame, (active) => {
         />
         <ManualScoreInput
           v-else
+          class="flex-1 min-h-0"
           :disabled="inputDisabled"
           data-tour="numpad"
           @score="handleScore"
@@ -376,7 +473,7 @@ watch(hasGame, (active) => {
         <!-- Action row (always visible) -->
         <div class="flex gap-sm shrink-0">
           <button
-            class="flex-1 min-h-[48px] md:min-h-[52px] rounded-lg text-base font-bold uppercase tracking-wide bg-surface-1 border-2 border-black text-fg-secondary shadow-sm cursor-pointer transition-all duration-150 hover:enabled:-translate-x-0.5 hover:enabled:-translate-y-0.5 hover:enabled:shadow-md active:enabled:translate-x-0.5 active:enabled:translate-y-0.5 active:enabled:shadow-none disabled:opacity-40 disabled:cursor-not-allowed"
+            class="flex-1 min-h-[40px] md:min-h-[52px] rounded-lg text-base font-bold uppercase tracking-wide bg-surface-1 border-2 border-black text-fg-secondary shadow-sm cursor-pointer transition-all duration-150 hover:enabled:-translate-x-0.5 hover:enabled:-translate-y-0.5 hover:enabled:shadow-md active:enabled:translate-x-0.5 active:enabled:translate-y-0.5 active:enabled:shadow-none disabled:opacity-40 disabled:cursor-not-allowed"
             data-tour="undo-btn"
             :disabled="inputDisabled"
             @click="undoThrow"
@@ -386,36 +483,6 @@ watch(hasGame, (active) => {
         </div>
       </div>
     </div>
-
-    <!-- Dartboard FAB -->
-    <button
-      class="fixed bottom-md right-md md:bottom-xl md:right-xl w-12 h-12 rounded-full bg-yellow border-2 border-black text-fg-inverse cursor-pointer flex items-center justify-center z-10 shadow-[4px_4px_0_black] transition-all duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_black] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
-      data-tour="dartboard-fab"
-      :title="showDartboard ? 'Close dartboard' : 'Open dartboard'"
-      @click="showDartboard = !showDartboard"
-    >
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="10" />
-        <circle cx="12" cy="12" r="6" />
-        <circle cx="12" cy="12" r="2" />
-      </svg>
-    </button>
-
-    <!-- Dartboard overlay -->
-    <Transition name="fade">
-      <div v-if="showDartboard" class="fixed inset-0 bg-black/70 flex items-center justify-center z-90" @click.self="showDartboard = false">
-        <div class="dartboard-popup relative" style="width: min(80vw, 80vh, 600px); height: min(80vw, 80vh, 600px);">
-          <DartBoard
-            :disabled="inputDisabled"
-            :theme="dartboardTheme"
-            @score="handleScore"
-          />
-          <button class="absolute -top-3 -right-3 w-9 h-9 rounded-full bg-surface-1 border-2 border-black text-fg text-[1.2rem] cursor-pointer flex items-center justify-center z-1 shadow-sm hover:bg-red-tint hover:text-red" @click="showDartboard = false">
-            &times;
-          </button>
-        </div>
-      </div>
-    </Transition>
 
     <!-- Overlays -->
     <Transition name="fade">
@@ -473,15 +540,42 @@ watch(hasGame, (active) => {
 </template>
 
 <style>
-/* env() safe-area cannot be expressed in Tailwind */
-.game-root {
-  height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 44px);
-  margin-bottom: calc(-1 * env(safe-area-inset-bottom, 0px));
+.game-menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  width: 100%;
+  padding: 8px 10px;
+  border: var(--border-width) solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* :deep() for sizing child dartboard component */
-.dartboard-popup :deep(.dartboard) {
-  width: 100%;
-  height: 100%;
+.game-menu-item:active {
+  background: var(--surface-2);
+  border-color: var(--border-color);
+}
+
+.game-menu-item-danger {
+  color: var(--red);
+}
+
+.game-menu-item-danger:active {
+  background: var(--red-light);
+}
+
+.game-menu-item-confirm {
+  background: var(--red-light);
+  border-color: var(--border-color);
 }
 </style>

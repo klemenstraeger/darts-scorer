@@ -1,19 +1,28 @@
 <script setup lang="ts">
+const route = useRoute()
+
+const isFullScreenPage = computed(() =>
+  route.name === 'training-play',
+)
 </script>
 
 <template>
-  <div class="min-h-screen flex flex-col">
+  <div class="h-[100dvh] flex flex-col">
     <AppNav />
-    <div class="default-layout-content flex-1">
+    <div
+      class="flex-1 min-h-0"
+      :class="isFullScreenPage ? '' : 'default-layout-content'"
+    >
       <slot />
     </div>
   </div>
 </template>
 
 <style>
-/* env() safe-area calculation cannot be expressed in Tailwind */
+/* Bottom-nav padding only when nav is visible (not on training-play).
+   env() safe-area calculation cannot be expressed in Tailwind. */
 .default-layout-content {
-  padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(82px + env(safe-area-inset-bottom, 0px));
 }
 
 @media (min-width: 640px) {

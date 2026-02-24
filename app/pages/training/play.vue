@@ -36,7 +36,6 @@ const modeInfo = computed(() => {
   return TRAINING_MODES.find(m => m.mode === state.value!.mode)
 })
 
-const showDartboard = ref(false)
 const confirmStop = ref(false)
 
 function onScore(segment: number, multiplier: number) {
@@ -68,7 +67,7 @@ const completionStats = computed(() => {
 </script>
 
 <template>
-  <div v-if="state" class="training-play-root flex flex-col overflow-hidden px-sm md:px-md">
+  <div v-if="state" class="h-full flex flex-col overflow-hidden px-sm md:px-md">
     <!-- Top bar -->
     <div class="flex items-center justify-between py-xs shrink-0">
       <div>
@@ -140,7 +139,7 @@ const completionStats = computed(() => {
 
     <!-- Audio FAB -->
     <button
-      class="fixed bottom-[12px] right-[68px] md:bottom-[24px] md:right-[84px] w-10 h-10 rounded-full bg-surface-1 border-2 border-black text-fg-secondary cursor-pointer flex items-center justify-center z-10 shadow-[3px_3px_0_black] transition-all duration-fast hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_black] hover:text-[var(--yellow)]"
+      class="fixed bottom-[12px] right-[12px] md:bottom-[24px] md:right-[24px] w-10 h-10 rounded-full bg-surface-1 border-2 border-black text-fg-secondary cursor-pointer flex items-center justify-center z-10 shadow-[3px_3px_0_black] transition-all duration-fast hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_black] hover:text-[var(--yellow)]"
       :title="audioEnabled ? 'Mute' : 'Unmute'"
       @click="toggleAudio()"
     >
@@ -156,37 +155,6 @@ const completionStats = computed(() => {
       </svg>
     </button>
 
-    <!-- Dartboard FAB -->
-    <button
-      class="fixed bottom-[12px] right-[12px] md:bottom-[24px] md:right-[24px] w-12 h-12 rounded-full bg-surface-1 border-2 border-black text-fg-secondary cursor-pointer flex items-center justify-center z-10 shadow-[3px_3px_0_black] transition-all duration-fast hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_black] hover:text-[var(--yellow)]"
-      :title="showDartboard ? 'Close dartboard' : 'Open dartboard'"
-      @click="showDartboard = !showDartboard"
-    >
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="10" />
-        <circle cx="12" cy="12" r="6" />
-        <circle cx="12" cy="12" r="2" />
-      </svg>
-    </button>
-
-    <!-- Dartboard overlay -->
-    <Transition name="fade">
-      <div v-if="showDartboard" class="fixed inset-0 bg-black/85 flex items-center justify-center z-90" @click.self="showDartboard = false">
-        <div class="dartboard-popup relative w-[min(80vw,80vh,600px)] h-[min(80vw,80vh,600px)]">
-          <DartBoard
-            :disabled="state.isComplete"
-            @score="onScore"
-          />
-          <button
-            class="absolute -top-3 -right-3 w-9 h-9 rounded-full bg-surface-1 border-2 border-black text-fg text-[1.2rem] cursor-pointer flex items-center justify-center z-[1] shadow-[3px_3px_0_black]"
-            @click="showDartboard = false"
-          >
-            &times;
-          </button>
-        </div>
-      </div>
-    </Transition>
-
     <!-- Completion overlay -->
     <TrainingComplete
       v-if="sessionComplete && state.isComplete"
@@ -198,16 +166,3 @@ const completionStats = computed(() => {
   </div>
 </template>
 
-<style>
-/* Safe-area height calculation — cannot be done with Tailwind */
-.training-play-root {
-  height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 44px);
-  margin-bottom: calc(-1 * env(safe-area-inset-bottom, 0px));
-}
-
-/* Deep selector for dartboard sizing */
-.dartboard-popup :deep(.dartboard) {
-  width: 100%;
-  height: 100%;
-}
-</style>
