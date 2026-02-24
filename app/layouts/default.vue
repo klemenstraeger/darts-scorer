@@ -19,14 +19,17 @@ const isFullScreenPage = computed(() =>
 </template>
 
 <style>
-/* Bottom-nav padding only when nav is visible (not on training-play).
-   env() safe-area calculation cannot be expressed in Tailwind. */
+/* env() safe-area calculations cannot be expressed in Tailwind.
+   On mobile the desktop nav is hidden, so content needs top safe-area padding.
+   Bottom padding accounts for the fixed bottom nav bar. */
 .default-layout-content {
+  padding-top: env(safe-area-inset-top, 0px);
   padding-bottom: calc(82px + env(safe-area-inset-bottom, 0px));
 }
 
 @media (min-width: 640px) {
   .default-layout-content {
+    padding-top: 0;
     padding-bottom: 0;
   }
 }
