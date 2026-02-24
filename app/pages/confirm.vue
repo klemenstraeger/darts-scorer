@@ -87,7 +87,9 @@ onMounted(async () => {
             </svg>
           </div>
 
-          <h1 class="text-[1.8rem] font-black text-fg">{{ statusTitle }}</h1>
+          <h1 class="text-[1.8rem] font-black text-fg">
+            {{ statusTitle }}
+          </h1>
           <p class="mt-sm text-[0.95rem] text-fg-secondary leading-relaxed">
             {{ statusMessage }}
           </p>

@@ -195,8 +195,12 @@ async function handleEmailAuth() {
             <div class="flex items-center gap-sm">
               <div class="h-10 w-10 rounded-lg border-2 border-black bg-yellow-light shadow-sm" />
               <div>
-                <h2 class="text-[1.4rem] font-black text-fg">{{ modeCopy.title }}</h2>
-                <p class="text-[0.85rem] text-fg-muted">{{ modeCopy.subtitle }}</p>
+                <h2 class="text-[1.4rem] font-black text-fg">
+                  {{ modeCopy.title }}
+                </h2>
+                <p class="text-[0.85rem] text-fg-muted">
+                  {{ modeCopy.subtitle }}
+                </p>
               </div>
             </div>
           </div>

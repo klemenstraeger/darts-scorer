@@ -165,4 +165,3 @@ const completionStats = computed(() => {
     />
   </div>
 </template>
-
