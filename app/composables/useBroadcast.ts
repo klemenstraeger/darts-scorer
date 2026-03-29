@@ -29,6 +29,7 @@ function waitForIceGathering(pc: RTCPeerConnection): Promise<RTCSessionDescripti
 }
 
 export type BroadcastState = 'idle' | 'starting' | 'waiting' | 'connected' | 'error'
+export type FacingMode = 'environment' | 'user'
 
 /**
  * Phone side: captures camera and broadcasts via WebRTC.
@@ -40,9 +41,73 @@ export function useBroadcaster(tournamentId: Ref<number> | number) {
   const state = ref<BroadcastState>('idle')
   const localStream = ref<MediaStream | null>(null)
   const errorMsg = ref('')
+  const facingMode = ref<FacingMode>('environment')
+  const zoomLevel = ref(1)
+  const minZoom = ref(1)
+  const maxZoom = ref(1)
+  const zoomSupported = ref(false)
+  const switchingCamera = ref(false)
 
   let pc: RTCPeerConnection | null = null
   let pollTimer: ReturnType<typeof setInterval> | null = null
+
+  function readZoomCapabilities(stream: MediaStream) {
+    zoomSupported.value = false
+    zoomLevel.value = 1
+    const track = stream.getVideoTracks()[0]
+    if (!track) return
+    const caps = track.getCapabilities() as MediaTrackCapabilities & { zoom?: { min: number, max: number, step: number } }
+    if (caps.zoom) {
+      zoomSupported.value = true
+      minZoom.value = caps.zoom.min
+      maxZoom.value = caps.zoom.max
+      zoomLevel.value = track.getSettings().zoom as number ?? caps.zoom.min
+    }
+  }
+
+  async function applyZoom(zoom: number) {
+    const track = localStream.value?.getVideoTracks()[0]
+    if (!track || !zoomSupported.value) return
+    zoomLevel.value = zoom
+    await track.applyConstraints({ advanced: [{ zoom } as MediaTrackConstraintSet] })
+  }
+
+  async function switchCamera() {
+    if (switchingCamera.value || !localStream.value) return
+    switchingCamera.value = true
+
+    const newFacing: FacingMode = facingMode.value === 'environment' ? 'user' : 'environment'
+
+    try {
+      const newStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: newFacing, width: { ideal: 1280 }, height: { ideal: 720 } },
+        audio: false,
+      })
+
+      const newTrack = newStream.getVideoTracks()[0] ?? null
+
+      // Replace track on WebRTC sender without renegotiating
+      if (pc && newTrack) {
+        const sender = pc.getSenders().find(s => s.track?.kind === 'video')
+        if (sender) {
+          await sender.replaceTrack(newTrack)
+        }
+      }
+
+      // Stop old tracks, swap stream
+      localStream.value.getTracks().forEach(t => t.stop())
+      localStream.value = newStream
+      facingMode.value = newFacing
+
+      readZoomCapabilities(newStream)
+    }
+    catch {
+      // If switching fails, stay on current camera
+    }
+    finally {
+      switchingCamera.value = false
+    }
+  }
 
   async function startBroadcast() {
     state.value = 'starting'
@@ -55,6 +120,8 @@ export function useBroadcaster(tournamentId: Ref<number> | number) {
         audio: false,
       })
       localStream.value = stream
+      facingMode.value = 'environment'
+      readZoomCapabilities(stream)
 
       // Create peer connection
       pc = new RTCPeerConnection(STUN_SERVERS)
@@ -164,8 +231,16 @@ export function useBroadcaster(tournamentId: Ref<number> | number) {
     state: readonly(state),
     localStream: readonly(localStream),
     errorMsg: readonly(errorMsg),
+    facingMode: readonly(facingMode),
+    zoomLevel: readonly(zoomLevel),
+    minZoom: readonly(minZoom),
+    maxZoom: readonly(maxZoom),
+    zoomSupported: readonly(zoomSupported),
+    switchingCamera: readonly(switchingCamera),
     startBroadcast,
     stopBroadcast,
+    switchCamera,
+    applyZoom,
   }
 }
 
