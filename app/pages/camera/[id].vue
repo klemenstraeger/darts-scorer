@@ -9,9 +9,19 @@ const user = useSupabaseUser()
 const needsLogin = computed(() => !user.value)
 
 const {
-  state, localStream, errorMsg,
-  facingMode, zoomLevel, minZoom, maxZoom, zoomSupported, switchingCamera,
-  startBroadcast, stopBroadcast, switchCamera, applyZoom,
+  state,
+  localStream,
+  errorMsg,
+  facingMode,
+  zoomLevel,
+  minZoom,
+  maxZoom,
+  zoomSupported,
+  switchingCamera,
+  startBroadcast,
+  stopBroadcast,
+  switchCamera,
+  applyZoom,
 } = useBroadcaster(tournamentId)
 
 const debouncedApplyZoom = useDebounceFn(applyZoom, 200)
@@ -43,7 +53,8 @@ const statusText = computed(() => {
 
 const zoomPercent = computed({
   get: () => {
-    if (maxZoom.value <= minZoom.value) return 0
+    if (maxZoom.value <= minZoom.value)
+      return 0
     return ((zoomLevel.value - minZoom.value) / (maxZoom.value - minZoom.value)) * 100
   },
   set: (pct: number) => {

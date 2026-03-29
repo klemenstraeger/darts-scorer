@@ -55,7 +55,8 @@ export function useBroadcaster(tournamentId: Ref<number> | number) {
     zoomSupported.value = false
     zoomLevel.value = 1
     const track = stream.getVideoTracks()[0]
-    if (!track) return
+    if (!track)
+      return
     const caps = track.getCapabilities() as MediaTrackCapabilities & { zoom?: { min: number, max: number, step: number } }
     if (caps.zoom) {
       zoomSupported.value = true
@@ -67,13 +68,15 @@ export function useBroadcaster(tournamentId: Ref<number> | number) {
 
   async function applyZoom(zoom: number) {
     const track = localStream.value?.getVideoTracks()[0]
-    if (!track || !zoomSupported.value) return
+    if (!track || !zoomSupported.value)
+      return
     zoomLevel.value = zoom
     await track.applyConstraints({ advanced: [{ zoom } as MediaTrackConstraintSet] })
   }
 
   async function switchCamera() {
-    if (switchingCamera.value || !localStream.value) return
+    if (switchingCamera.value || !localStream.value)
+      return
     switchingCamera.value = true
 
     const newFacing: FacingMode = facingMode.value === 'environment' ? 'user' : 'environment'

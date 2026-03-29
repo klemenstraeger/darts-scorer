@@ -40,7 +40,8 @@ const groupedRounds = computed(() => {
     const pairs: TournamentMatch[][] = []
     for (let i = 0; i < r.matches.length; i += 2) {
       const pair: TournamentMatch[] = [r.matches[i]]
-      if (r.matches[i + 1]) pair.push(r.matches[i + 1])
+      if (r.matches[i + 1])
+        pair.push(r.matches[i + 1])
       pairs.push(pair)
     }
     return { ...r, pairs, isLast }
