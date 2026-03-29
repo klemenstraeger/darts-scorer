@@ -21,18 +21,31 @@ const rounds = computed(() => {
     map.get(match.round)!.push(match)
   }
 
-  // Sort each round's matches by position
   for (const [, matches] of map) {
     matches.sort((a, b) => a.position - b.position)
   }
 
-  // Return sorted by round number
   return Array.from(map.entries())
     .sort(([a], [b]) => a - b)
     .map(([round, matches]) => ({ round, matches }))
 })
 
 const totalRounds = computed(() => rounds.value.length)
+
+// Group matches into pairs per round so we can draw bracket connector lines.
+// Each pair of adjacent matches feeds one match in the next round.
+const groupedRounds = computed(() => {
+  return rounds.value.map((r, idx) => {
+    const isLast = idx === rounds.value.length - 1
+    const pairs: TournamentMatch[][] = []
+    for (let i = 0; i < r.matches.length; i += 2) {
+      const pair: TournamentMatch[] = [r.matches[i]]
+      if (r.matches[i + 1]) pair.push(r.matches[i + 1])
+      pairs.push(pair)
+    }
+    return { ...r, pairs, isLast }
+  })
+})
 
 function roundLabel(round: number): string {
   const fromFinal = totalRounds.value - round + 1
@@ -48,53 +61,59 @@ function roundLabel(round: number): string {
 
 <template>
   <div class="overflow-x-auto pb-md">
-    <div class="flex gap-xl min-w-max p-md" :style="{ '--rounds': totalRounds }">
+    <div class="flex gap-xl min-w-max p-md">
       <div
-        v-for="r in rounds"
+        v-for="r in groupedRounds"
         :key="r.round"
-        class="flex flex-col gap-md min-w-[180px]"
+        class="flex flex-col gap-md min-w-[200px]"
       >
         <div class="text-[0.7rem] font-bold text-fg-muted uppercase tracking-[1px] text-center pb-xs border-b-2 border-black">
           {{ roundLabel(r.round) }}
         </div>
-        <div class="flex flex-col justify-around flex-1 gap-lg">
+
+        <div class="flex flex-col flex-1">
           <div
-            v-for="match in r.matches"
-            :key="match.id"
-            class="ko-bracket-match"
+            v-for="pair in r.pairs"
+            :key="pair[0].id"
+            class="flex flex-col flex-1 relative"
+            :class="{ 'bracket-pair': !r.isLast && pair.length === 2 }"
           >
-            <div
-              class="ko-bracket-slot"
-              :class="{
-                'ko-bracket-winner': match.winnerName === match.player1Name,
-                'ko-bracket-inprogress': match.status === 'in_progress',
-              }"
-            >
-              <span class="flex items-center gap-1 text-[0.75rem] font-semibold text-fg-secondary whitespace-nowrap overflow-hidden text-ellipsis max-w-[140px]" :class="{ 'text-fg font-bold': match.winnerName === match.player1Name }">
-                <PlayerAvatar v-if="match.player1Name" v-bind="getAvatarProps(match.player1Name)" :size="16" />{{ match.player1Name || 'TBD' }}
-              </span>
-              <span v-if="match.status === 'completed'" class="text-[0.75rem] font-extrabold text-fg tabular-nums">{{ match.player1LegsWon }}</span>
+            <div v-for="match in pair" :key="match.id" class="flex flex-col justify-center flex-1 py-sm">
+              <div class="ko-bracket-match">
+                <div
+                  class="ko-bracket-slot"
+                  :class="{
+                    'ko-bracket-winner': match.winnerName === match.player1Name,
+                    'ko-bracket-inprogress': match.status === 'in_progress',
+                  }"
+                >
+                  <span class="flex items-center gap-1 text-[0.75rem] font-semibold text-fg-secondary whitespace-nowrap overflow-hidden text-ellipsis max-w-[140px]" :class="{ 'text-fg font-bold': match.winnerName === match.player1Name }">
+                    <PlayerAvatar v-if="match.player1Name" v-bind="getAvatarProps(match.player1Name)" :size="16" />{{ match.player1Name || 'TBD' }}
+                  </span>
+                  <span v-if="match.status === 'completed'" class="text-[0.75rem] font-extrabold text-fg tabular-nums">{{ match.player1LegsWon }}</span>
+                </div>
+                <div
+                  class="ko-bracket-slot"
+                  :class="{
+                    'ko-bracket-winner': match.winnerName === match.player2Name,
+                    'ko-bracket-inprogress': match.status === 'in_progress',
+                  }"
+                >
+                  <span class="flex items-center gap-1 text-[0.75rem] font-semibold text-fg-secondary whitespace-nowrap overflow-hidden text-ellipsis max-w-[140px]" :class="{ 'text-fg font-bold': match.winnerName === match.player2Name }">
+                    <PlayerAvatar v-if="match.player2Name" v-bind="getAvatarProps(match.player2Name)" :size="16" />{{ match.player2Name || 'TBD' }}
+                  </span>
+                  <span v-if="match.status === 'completed'" class="text-[0.75rem] font-extrabold text-fg tabular-nums">{{ match.player2LegsWon }}</span>
+                </div>
+                <button
+                  v-if="match.status === 'pending' && match.player1Name && match.player2Name && showPlayButton"
+                  class="ko-bracket-play-btn"
+                  @click="emit('play', match.id)"
+                >
+                  Play
+                </button>
+                <span v-if="match.status === 'in_progress'" class="ko-bracket-live" style="animation: pulse-opacity 1.5s ease-in-out infinite;">LIVE</span>
+              </div>
             </div>
-            <div
-              class="ko-bracket-slot"
-              :class="{
-                'ko-bracket-winner': match.winnerName === match.player2Name,
-                'ko-bracket-inprogress': match.status === 'in_progress',
-              }"
-            >
-              <span class="flex items-center gap-1 text-[0.75rem] font-semibold text-fg-secondary whitespace-nowrap overflow-hidden text-ellipsis max-w-[140px]" :class="{ 'text-fg font-bold': match.winnerName === match.player2Name }">
-                <PlayerAvatar v-if="match.player2Name" v-bind="getAvatarProps(match.player2Name)" :size="16" />{{ match.player2Name || 'TBD' }}
-              </span>
-              <span v-if="match.status === 'completed'" class="text-[0.75rem] font-extrabold text-fg tabular-nums">{{ match.player2LegsWon }}</span>
-            </div>
-            <button
-              v-if="match.status === 'pending' && match.player1Name && match.player2Name && showPlayButton"
-              class="ko-bracket-play-btn"
-              @click="emit('play', match.id)"
-            >
-              Play
-            </button>
-            <span v-if="match.status === 'in_progress'" class="ko-bracket-live" style="animation: pulse-opacity 1.5s ease-in-out infinite;">LIVE</span>
           </div>
         </div>
       </div>
@@ -136,6 +155,27 @@ function roundLabel(round: number): string {
   border-left: 3px solid var(--yellow);
 }
 
+/* Bracket connector: the ⊏ shape connecting a pair of matches to the next round.
+   With two flex-1 match wrappers inside a flex-1 pair, the match centers land
+   exactly at 25% and 75% of the pair height — so top: 25%; height: 50% is precise. */
+.bracket-pair {
+  position: relative;
+}
+
+.bracket-pair::after {
+  content: '';
+  position: absolute;
+  right: calc(-1 * var(--spacing-xl));
+  width: var(--spacing-xl);
+  top: 25%;
+  height: 50%;
+  border-top: 2px solid black;
+  border-right: 2px solid black;
+  border-bottom: 2px solid black;
+  pointer-events: none;
+  z-index: 1;
+}
+
 .ko-bracket-play-btn {
   position: absolute;
   top: 50%;
@@ -151,7 +191,7 @@ function roundLabel(round: number): string {
   font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
-  z-index: 1;
+  z-index: 2;
   box-shadow: 2px 2px 0 black;
 }
 
@@ -169,5 +209,6 @@ function roundLabel(round: number): string {
   font-size: 0.6rem;
   font-weight: 800;
   color: var(--yellow);
+  z-index: 2;
 }
 </style>
