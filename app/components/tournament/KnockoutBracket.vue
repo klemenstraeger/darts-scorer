@@ -39,9 +39,9 @@ const groupedRounds = computed(() => {
     const isLast = idx === rounds.value.length - 1
     const pairs: TournamentMatch[][] = []
     for (let i = 0; i < r.matches.length; i += 2) {
-      const pair: TournamentMatch[] = [r.matches[i]]
+      const pair: TournamentMatch[] = [r.matches[i]!]
       if (r.matches[i + 1])
-        pair.push(r.matches[i + 1])
+        pair.push(r.matches[i + 1]!)
       pairs.push(pair)
     }
     return { ...r, pairs, isLast }
@@ -75,7 +75,7 @@ function roundLabel(round: number): string {
         <div class="flex flex-col flex-1">
           <div
             v-for="pair in r.pairs"
-            :key="pair[0].id"
+            :key="pair[0]!.id"
             class="flex flex-col flex-1 relative"
             :class="{ 'bracket-pair': !r.isLast && pair.length === 2 }"
           >
